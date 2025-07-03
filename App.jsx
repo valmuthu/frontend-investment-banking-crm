@@ -571,3 +571,21 @@ export default function App() {
               Add Contact
             </button>
           </div>
+        </div>
+      </div>
+    )
+  );
+
+  return (
+    <div className="flex bg-gray-100 min-h-screen">
+      <Navigation />
+      <div className="flex-1">
+        {activeTab === 'dashboard' && <Dashboard />}
+        {activeTab === 'contacts' && <Contacts />}
+        {activeTab === 'interviews' && <Interviews />}
+        {activeTab === 'documents' && <Documents />}
+        <ContactModal />
+      </div>
+    </div>
+  );
+}
