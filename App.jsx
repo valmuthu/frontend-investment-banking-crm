@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, Calendar, FileText, BarChart3, Search, Plus, Edit2, Trash2, Phone, Mail, Building, DollarSign, Clock, Filter, ArrowUpDown, X, Save, ChevronDown, ExternalLink, Check } from 'lucide-react';
+import { User, Calendar, FileText, BarChart3, Search, Plus, Edit2, Trash2, Phone, ExternalLink, Check, Filter, ArrowUpDown, Clock, DollarSign } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('contacts');
@@ -192,7 +192,6 @@ export default function App() {
     'Rejected'
   ];
 
-  // Filtering and sorting logic
   const filteredAndSortedContacts = contacts
     .filter(contact => {
       const matchesSearch = searchTerm === '' || 
@@ -276,21 +275,6 @@ export default function App() {
       setShowContactModal(false);
     }
   };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Hot Lead': return 'bg-red-100 text-red-800';
-      case 'In Progress': return 'bg-yellow-100 text-yellow-800';
-      case 'Cold Lead': return 'bg-blue-100 text-blue-800';
-      case 'Closed': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const totalDeals = contacts.reduce((sum, contact) => {
-    const value = parseFloat(contact.dealValue?.replace(/[$M,]/g, '')) || 0;
-    return sum + value;
-  }, 0);
 
   const Navigation = () => (
     <div className="w-64 bg-slate-900 text-white min-h-screen">
@@ -428,15 +412,248 @@ export default function App() {
     </div>
   );
 
+  const EditContactModal = () => (
+    editingContact && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <h2 className="text-xl font-bold mb-4">Edit Contact</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Name"
+              value={editingContact.name}
+              onChange={(e) => setEditingContact({...editingContact, name: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="text"
+              placeholder="Position"
+              value={editingContact.position}
+              onChange={(e) => setEditingContact({...editingContact, position: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="text"
+              placeholder="Firm"
+              value={editingContact.firm}
+              onChange={(e) => setEditingContact({...editingContact, firm: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={editingContact.email}
+              onChange={(e) => setEditingContact({...editingContact, email: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="text"
+              placeholder="LinkedIn"
+              value={editingContact.linkedin}
+              onChange={(e) => setEditingContact({...editingContact, linkedin: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <select
+              value={editingContact.networkingStatus}
+              onChange={(e) => setEditingContact({...editingContact, networkingStatus: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {networkingStatuses.map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+            <input
+              type="date"
+              placeholder="Networking Date"
+              value={editingContact.networkingDate}
+              onChange={(e) => setEditingContact({...editingContact, networkingDate: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <select
+              value={editingContact.nextSteps}
+              onChange={(e) => setEditingContact({...editingContact, nextSteps: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Next Steps</option>
+              {nextStepsOptions.map(step => (
+                <option key={step} value={step}>{step}</option>
+              ))}
+            </select>
+            <input
+              type="date"
+              placeholder="Next Steps Date"
+              value={editingContact.nextStepsDate}
+              onChange={(e) => setEditingContact({...editingContact, nextStepsDate: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                checked={editingContact.referred}
+                onChange={(e) => setEditingContact({...editingContact, referred: e.target.checked})}
+                className="mr-2"
+              />
+              <label className="text-sm text-gray-700">Referred?</label>
+            </div>
+            <textarea
+              placeholder="Notes"
+              value={editingContact.notes}
+              onChange={(e) => setEditingContact({...editingContact, notes: e.target.value})}
+              className="col-span-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows="3"
+            />
+          </div>
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              onClick={() => setEditingContact(null)}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveEdit}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  );
+
+  const ContactModal = () => (
+    showContactModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <h2 className="text-xl font-bold mb-4">Add New Contact</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Name *"
+              value={newContact.name}
+              onChange={(e) => setNewContact({...newContact, name: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="text"
+              placeholder="Position"
+              value={newContact.position}
+              onChange={(e) => setNewContact({...newContact, position: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="text"
+              placeholder="Firm *"
+              value={newContact.firm}
+              onChange={(e) => setNewContact({...newContact, firm: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={newContact.email}
+              onChange={(e) => setNewContact({...newContact, email: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="text"
+              placeholder="LinkedIn"
+              value={newContact.linkedin}
+              onChange={(e) => setNewContact({...newContact, linkedin: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <select
+              value={newContact.networkingStatus}
+              onChange={(e) => setNewContact({...newContact, networkingStatus: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {networkingStatuses.map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+            <input
+              type="date"
+              placeholder="Networking Date"
+              value={newContact.networkingDate}
+              onChange={(e) => setNewContact({...newContact, networkingDate: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <select
+              value={newContact.nextSteps}
+              onChange={(e) => setNewContact({...newContact, nextSteps: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Next Steps</option>
+              {nextStepsOptions.map(step => (
+                <option key={step} value={step}>{step}</option>
+              ))}
+            </select>
+            <input
+              type="date"
+              placeholder="Next Steps Date"
+              value={newContact.nextStepsDate}
+              onChange={(e) => setNewContact({...newContact, nextStepsDate: e.target.value})}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                checked={newContact.referred}
+                onChange={(e) => setNewContact({...newContact, referred: e.target.checked})}
+                className="mr-2"
+              />
+              <label className="text-sm text-gray-700">Referred?</label>
+            </div>
+            <textarea
+              placeholder="Notes"
+              value={newContact.notes}
+              onChange={(e) => setNewContact({...newContact, notes: e.target.value})}
+              className="col-span-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows="3"
+            />
+          </div>
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              onClick={() => setShowContactModal(false)}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={addContact}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Add Contact
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  );
+
+  return (
+    <div className="flex bg-gray-100 min-h-screen">
+      <Navigation />
+      <div className="flex-1">
+        {activeTab === 'dashboard' && <Dashboard />}
+        {activeTab === 'contacts' && <Contacts />}
+        {activeTab === 'interviews' && <Interviews />}
+        {activeTab === 'documents' && <Documents />}
+        <EditContactModal />
+        <ContactModal />
+      </div>
+    </div>
+  );
+}
+
   const Contacts = () => (
     <div className="p-6">
       <div className="bg-white rounded-lg shadow-sm border">
-        {/* Header */}
         <div className="p-6 border-b">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">Networking Details</h1>
             <div className="flex items-center space-x-4">
-              {/* Search */}
               <div className="relative">
                 <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
@@ -448,7 +665,6 @@ export default function App() {
                 />
               </div>
               
-              {/* Filter */}
               <div className="relative">
                 <button
                   onClick={() => setShowFilterMenu(!showFilterMenu)}
@@ -476,7 +692,6 @@ export default function App() {
                 )}
               </div>
 
-              {/* Sort */}
               <div className="relative">
                 <button
                   onClick={() => setShowSortMenu(!showSortMenu)}
@@ -508,7 +723,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
@@ -670,6 +884,10 @@ export default function App() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Upload Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -701,248 +919,3 @@ export default function App() {
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Edit Contact Modal
-  const EditContactModal = () => (
-    editingContact && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <h2 className="text-xl font-bold mb-4">Edit Contact</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Name"
-              value={editingContact.name}
-              onChange={(e) => setEditingContact({...editingContact, name: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="text"
-              placeholder="Position"
-              value={editingContact.position}
-              onChange={(e) => setEditingContact({...editingContact, position: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="text"
-              placeholder="Firm"
-              value={editingContact.firm}
-              onChange={(e) => setEditingContact({...editingContact, firm: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={editingContact.email}
-              onChange={(e) => setEditingContact({...editingContact, email: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="text"
-              placeholder="LinkedIn"
-              value={editingContact.linkedin}
-              onChange={(e) => setEditingContact({...editingContact, linkedin: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <select
-              value={editingContact.networkingStatus}
-              onChange={(e) => setEditingContact({...editingContact, networkingStatus: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {networkingStatuses.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
-            <input
-              type="date"
-              placeholder="Networking Date"
-              value={editingContact.networkingDate}
-              onChange={(e) => setEditingContact({...editingContact, networkingDate: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <select
-              value={editingContact.nextSteps}
-              onChange={(e) => setEditingContact({...editingContact, nextSteps: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Next Steps</option>
-              {nextStepsOptions.map(step => (
-                <option key={step} value={step}>{step}</option>
-              ))}
-            </select>
-            <input
-              type="date"
-              placeholder="Next Steps Date"
-              value={editingContact.nextStepsDate}
-              onChange={(e) => setEditingContact({...editingContact, nextStepsDate: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                checked={editingContact.referred}
-                onChange={(e) => setEditingContact({...editingContact, referred: e.target.checked})}
-                className="mr-2"
-              />
-              <label className="text-sm text-gray-700">Referred?</label>
-            </div>
-            <textarea
-              placeholder="Notes"
-              value={editingContact.notes}
-              onChange={(e) => setEditingContact({...editingContact, notes: e.target.value})}
-              className="col-span-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows="3"
-            />
-          </div>
-          <div className="flex justify-end space-x-3 mt-6">
-            <button
-              onClick={() => setEditingContact(null)}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveEdit}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Save Changes
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  );
-
-  // Add Contact Modal
-  const ContactModal = () => (
-    showContactModal && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <h2 className="text-xl font-bold mb-4">Add New Contact</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Name *"
-              value={newContact.name}
-              onChange={(e) => setNewContact({...newContact, name: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="text"
-              placeholder="Position"
-              value={newContact.position}
-              onChange={(e) => setNewContact({...newContact, position: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="text"
-              placeholder="Firm *"
-              value={newContact.firm}
-              onChange={(e) => setNewContact({...newContact, firm: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={newContact.email}
-              onChange={(e) => setNewContact({...newContact, email: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <input
-              type="text"
-              placeholder="LinkedIn"
-              value={newContact.linkedin}
-              onChange={(e) => setNewContact({...newContact, linkedin: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <select
-              value={newContact.networkingStatus}
-              onChange={(e) => setNewContact({...newContact, networkingStatus: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {networkingStatuses.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
-            <input
-              type="date"
-              placeholder="Networking Date"
-              value={newContact.networkingDate}
-              onChange={(e) => setNewContact({...newContact, networkingDate: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <select
-              value={newContact.nextSteps}
-              onChange={(e) => setNewContact({...newContact, nextSteps: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Next Steps</option>
-              {nextStepsOptions.map(step => (
-                <option key={step} value={step}>{step}</option>
-              ))}
-            </select>
-            <input
-              type="date"
-              placeholder="Next Steps Date"
-              value={newContact.nextStepsDate}
-              onChange={(e) => setNewContact({...newContact, nextStepsDate: e.target.value})}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                checked={newContact.referred}
-                onChange={(e) => setNewContact({...newContact, referred: e.target.checked})}
-                className="mr-2"
-              />
-              <label className="text-sm text-gray-700">Referred?</label>
-            </div>
-            <textarea
-              placeholder="Notes"
-              value={newContact.notes}
-              onChange={(e) => setNewContact({...newContact, notes: e.target.value})}
-              className="col-span-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows="3"
-            />
-          </div>
-          <div className="flex justify-end space-x-3 mt-6">
-            <button
-              onClick={() => setShowContactModal(false)}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={addContact}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Add Contact
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  );
-
-  return (
-    <div className="flex bg-gray-100 min-h-screen">
-      <Navigation />
-      <div className="flex-1">
-        {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'contacts' && <Contacts />}
-        {activeTab === 'interviews' && <Interviews />}
-        {activeTab === 'documents' && <Documents />}
-        <EditContactModal />
-        <ContactModal />
-      </div>
-    </div>
-  );
-}-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Upload Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
-                <th className="px-6 py-3 text-left text-xs font
