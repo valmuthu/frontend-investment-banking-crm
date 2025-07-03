@@ -670,10 +670,6 @@ export default function App() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Upload Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -681,6 +677,12 @@ export default function App() {
             <tbody className="bg-white divide-y divide-gray-200">
               {documents.map(doc => (
                 <tr key={doc.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <FileText className="w-5 h-5 mr-3 text-gray-400" />
+                      <span className="text-sm font-medium text-gray-900">{doc.name}</span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doc.type}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doc.uploadDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{doc.size}</td>
@@ -939,10 +941,8 @@ export default function App() {
       </div>
     </div>
   );
-}espace-nowrap">
-                    <div className="flex items-center">
-                      <FileText className="w-5 h-5 mr-3 text-gray-400" />
-                      <span className="text-sm font-medium text-gray-900">{doc.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whit
+}-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Upload Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
+                <th className="px-6 py-3 text-left text-xs font
