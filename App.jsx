@@ -1,55 +1,34 @@
-import { Outlet, NavLink } from 'react-router-dom'
+import { useState } from 'react';
 
-export default function App() {
+export default function Contacts() {
+  const [contacts, setContacts] = useState([]);
+  const [newContact, setNewContact] = useState('');
+
+  const addContact = () => {
+    if (newContact) {
+      setContacts([...contacts, newContact]);
+      setNewContact('');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-purple-700 text-white p-4 shadow-md">
-        <div className="max-w-5xl mx-auto flex gap-8">
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              isActive
-                ? 'font-semibold border-b-2 border-white pb-1'
-                : 'hover:underline'
-            }
-          >
-            Dashboard
-          </NavLink>
-          <NavLink
-            to="/contacts"
-            className={({ isActive }) =>
-              isActive
-                ? 'font-semibold border-b-2 border-white pb-1'
-                : 'hover:underline'
-            }
-          >
-            Contacts
-          </NavLink>
-          <NavLink
-            to="/interviews"
-            className={({ isActive }) =>
-              isActive
-                ? 'font-semibold border-b-2 border-white pb-1'
-                : 'hover:underline'
-            }
-          >
-            Interviews
-          </NavLink>
-          <NavLink
-            to="/documents"
-            className={({ isActive }) =>
-              isActive
-                ? 'font-semibold border-b-2 border-white pb-1'
-                : 'hover:underline'
-            }
-          >
-            Documents
-          </NavLink>
-        </div>
-      </nav>
-      <main className="max-w-5xl mx-auto p-6">
-        <Outlet />
-      </main>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Contacts</h1>
+      <input
+        type="text"
+        value={newContact}
+        onChange={(e) => setNewContact(e.target.value)}
+        placeholder="Add new contact"
+        className="border p-2 rounded"
+      />
+      <button onClick={addContact} className="ml-2 bg-purple-700 text-white p-2 rounded">
+        Add
+      </button>
+      <ul className="mt-4">
+        {contacts.map((contact, index) => (
+          <li key={index} className="border-b py-2">{contact}</li>
+        ))}
+      </ul>
     </div>
-  )
+  );
 }
