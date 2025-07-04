@@ -594,7 +594,7 @@ export function StrayForm({ formData, setFormData, groups, networkingStatuses, n
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </div>
+            </form>
             <div>
               <label className="block text-sm font-medium mb-2">Firm *</label>
               <input
