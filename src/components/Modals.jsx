@@ -638,7 +638,10 @@ export const InterviewHistoryModal = ({ isOpen, interview, contacts, onClose, on
       </div>
     </div>
   );
-};medium mb-2">LinkedIn</label>
+</div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">LinkedIn</label>
             <input
               type="url"
               value={formData.linkedin}
