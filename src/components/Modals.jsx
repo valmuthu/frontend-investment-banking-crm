@@ -697,7 +697,7 @@ export const InterviewHistoryModal = ({
       </div>
     </div>
   );
-};
+}
 
 // CallModal
 export const CallModal = ({ isOpen, onClose, onSubmit }) => {
