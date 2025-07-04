@@ -218,6 +218,21 @@ export const EditInterviewModal = ({ isOpen, interview, onClose, onSubmit, inter
               <label className="block text-sm font-medium mb-2">Stage</label>
               <select
                 value={formData.stage}
+              onChange={(e) => setFormData({ ...formData, group: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Group</option>
+              {groups.map(group => (
+                <option key={group} value={group}>{group}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Stage</label>
+              <select
+                value={formData.stage}
                 onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
