@@ -2,22 +2,22 @@ import { useState, useMemo } from 'react';
 import { 
   User, Calendar, TrendingUp, Target, Phone, Award,
   Clock, CheckCircle, AlertCircle, BarChart3, Users,
-  ArrowUp, ArrowDown, Eye
+  ArrowUp, ArrowDown, Eye, Building2
 } from 'lucide-react';
 
-const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactDetail }) => {
+const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactDetail, setActiveTab }) => {
   // Calculate KPIs
   const kpis = useMemo(() => {
-    const totalCalls = contacts.reduce((sum, contact) => sum + (contact.callHistory?.length || 0), 0);
+    const totalInteractions = contacts.reduce((sum, contact) => sum + (contact.interactions?.length || 0), 0);
     const totalInterviews = interviews.length;
-    const activeInterviews = interviews.filter(i => !['Offer', 'Rejected'].includes(i.stage)).length;
+    const activeInterviews = interviews.filter(i => !['Offer', 'Rejected', 'Withdrawn'].includes(i.stage)).length;
     const offers = interviews.filter(i => i.stage === 'Offer').length;
     const successRate = totalInterviews > 0 ? ((offers / totalInterviews) * 100).toFixed(1) : 0;
     const referrals = contacts.filter(c => c.referred).length;
 
     return {
       totalContacts: contacts.length,
-      totalCalls,
+      totalInteractions,
       totalInterviews,
       activeInterviews,
       successRate,
@@ -27,7 +27,7 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
 
   // Interview funnel data
   const interviewFunnel = useMemo(() => {
-    const stages = ['Applied', 'First Round', 'Second Round', 'Super Day', 'Offer'];
+    const stages = ['Applied', 'Phone Screen', 'First Round', 'Second Round', 'Final Round', 'Offer'];
     return stages.map(stage => ({
       stage,
       count: interviews.filter(i => i.stage === stage).length
@@ -36,21 +36,11 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
 
   // Networking funnel data
   const networkingFunnel = useMemo(() => {
-    const stages = ['To Be Contacted', 'Initial Outreach Sent', 'Intro Call Complete', 'Follow-Up Complete', 'Regular Contact'];
+    const stages = ['To Be Contacted', 'Initial Outreach Sent', 'Follow up Call Scheduled', 'Intro Call Complete', 'Regular Contact'];
     return stages.map(stage => ({
       stage,
       count: contacts.filter(c => c.networkingStatus === stage).length
     }));
-  }, [contacts]);
-
-  // Referrals by source
-  const referralData = useMemo(() => {
-    const referralSources = {};
-    contacts.filter(c => c.referred).forEach(contact => {
-      const source = contact.referredBy || 'Unknown';
-      referralSources[source] = (referralSources[source] || 0) + 1;
-    });
-    return Object.entries(referralSources).map(([source, count]) => ({ source, count }));
   }, [contacts]);
 
   // Upcoming tasks
@@ -60,6 +50,7 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
 
     const interviewTasks = interviews
       .filter(i => {
+        if (!i.nextStepsDate) return false;
         const taskDate = new Date(i.nextStepsDate);
         return taskDate >= today && taskDate <= nextWeek;
       })
@@ -67,13 +58,14 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
         id: i.id,
         type: 'interview',
         title: i.nextSteps,
-        subtitle: `${i.company} - ${i.position}`,
+        subtitle: `${i.firm} - ${i.position}`,
         date: i.nextStepsDate,
         priority: new Date(i.nextStepsDate) <= new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000) ? 'high' : 'normal'
       }));
 
     const networkingTasks = contacts
       .filter(c => {
+        if (!c.nextStepsDate) return false;
         const taskDate = new Date(c.nextStepsDate);
         return taskDate >= today && taskDate <= nextWeek;
       })
@@ -86,15 +78,15 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
         priority: new Date(c.nextStepsDate) <= new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000) ? 'high' : 'normal'
       }));
 
-    return { interviewTasks, networkingTasks };
+    return [...interviewTasks, ...networkingTasks].sort((a, b) => new Date(a.date) - new Date(b.date));
   }, [contacts, interviews]);
 
   const KPICard = ({ title, value, icon: Icon, change, color = 'blue' }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
           {change && (
             <div className={`flex items-center mt-2 text-sm ${change > 0 ? 'text-green-600' : 'text-red-600'}`}>
               {change > 0 ? <ArrowUp className="w-4 h-4 mr-1" /> : <ArrowDown className="w-4 h-4 mr-1" />}
@@ -113,7 +105,7 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
     const maxCount = Math.max(...data.map(d => d.count));
     
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
         <div className="space-y-3">
           {data.map((item, index) => (
@@ -143,54 +135,13 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
     );
   };
 
-  const ReferralChart = ({ data }) => {
-    const total = data.reduce((sum, item) => sum + item.count, 0);
-    
-    return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Referrals Received</h3>
-        {data.length > 0 ? (
-          <div className="space-y-3">
-            {data.map((item, index) => {
-              const percentage = ((item.count / total) * 100).toFixed(1);
-              const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500'];
-              
-              return (
-                <div key={item.source} className="flex items-center">
-                  <div className={`w-4 h-4 rounded-full ${colors[index % colors.length]} mr-3`}></div>
-                  <div className="flex-1">
-                    <div className="flex justify-between text-sm">
-                      <span className="font-medium text-gray-900">{item.source}</span>
-                      <span className="text-gray-600">{item.count} ({percentage}%)</span>
-                    </div>
-                    <div className="mt-1 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className={`${colors[index % colors.length]} h-2 rounded-full transition-all duration-500`}
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-            <p>No referrals recorded yet</p>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const TaskTimeline = ({ tasks, title, type }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+  const TaskTimeline = ({ tasks, title }) => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
       {tasks.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-80 overflow-y-auto">
           {tasks.map((task) => (
-            <div key={`${task.type}-${task.id}`} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+            <div key={`${task.type}-${task.id}`} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
               <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
                 task.priority === 'high' ? 'bg-red-500' : 'bg-blue-500'
               }`}></div>
@@ -210,7 +161,7 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
       ) : (
         <div className="text-center py-8 text-gray-500">
           <Clock className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-          <p>No upcoming {type} tasks</p>
+          <p>No upcoming tasks</p>
         </div>
       )}
     </div>
@@ -232,8 +183,8 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
           color="blue"
         />
         <KPICard 
-          title="Total Calls" 
-          value={kpis.totalCalls} 
+          title="Total Interactions" 
+          value={kpis.totalInteractions} 
           icon={Phone} 
           color="green"
         />
@@ -264,7 +215,7 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <FunnelChart 
           data={interviewFunnel} 
           title="Interview Funnel" 
@@ -275,36 +226,27 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
           title="Networking Funnel" 
           color="green"
         />
-        <ReferralChart data={referralData} />
       </div>
 
       {/* Tasks and Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <TaskTimeline 
-          tasks={upcomingTasks.interviewTasks}
-          title="Upcoming Interview Tasks"
-          type="interview"
+          tasks={upcomingTasks}
+          title="Upcoming Tasks (Next 7 Days)"
         />
-        <TaskTimeline 
-          tasks={upcomingTasks.networkingTasks}
-          title="Upcoming Networking Tasks"
-          type="networking"
-        />
-      </div>
 
-      {/* Recent Contacts */}
-      <div className="mt-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        {/* Recent Contacts */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Recent Contacts</h3>
             <button 
-              onClick={() => setActiveTab?.('contacts')}
+              onClick={() => setActiveTab('contacts')}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium"
             >
               View All
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-3 max-h-80 overflow-y-auto">
             {contacts.slice(0, 6).map(contact => (
               <div 
                 key={contact.id} 
@@ -314,19 +256,64 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
                   setShowContactDetail(true);
                 }}
               >
-                <img
-                  src={contact.avatar}
-                  alt={contact.name}
-                  className="w-10 h-10 rounded-full object-cover mr-3"
-                />
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-3">
+                  {contact.name.split(' ').map(n => n[0]).join('')}
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 truncate">{contact.name}</p>
-                  <p className="text-sm text-gray-600 truncate">{contact.firm}</p>
+                  <p className="text-sm text-gray-600 truncate">{contact.firm} • {contact.position}</p>
+                  {contact.group && <p className="text-xs text-gray-500">{contact.group}</p>}
                 </div>
                 <Eye className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Recent Interviews */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Recent Interviews</h3>
+          <button 
+            onClick={() => setActiveTab('interviews')}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+          >
+            View All
+          </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {interviews.slice(0, 6).map(interview => {
+            const getStageColor = (stage) => {
+              switch (stage) {
+                case 'Applied': return 'bg-gray-100 text-gray-800';
+                case 'Phone Screen': return 'bg-blue-100 text-blue-800';
+                case 'First Round': return 'bg-purple-100 text-purple-800';
+                case 'Second Round': return 'bg-indigo-100 text-indigo-800';
+                case 'Final Round': return 'bg-orange-100 text-orange-800';
+                case 'Offer': return 'bg-green-100 text-green-800';
+                case 'Rejected': return 'bg-red-100 text-red-800';
+                default: return 'bg-gray-100 text-gray-800';
+              }
+            };
+
+            return (
+              <div 
+                key={interview.id} 
+                className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
+              >
+                <Building2 className="w-8 h-8 text-gray-400 mr-3" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 truncate">{interview.firm}</p>
+                  <p className="text-sm text-gray-600 truncate">{interview.position}</p>
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${getStageColor(interview.stage)}`}>
+                    {interview.stage}
+                  </span>
+                </div>
+                <Eye className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
