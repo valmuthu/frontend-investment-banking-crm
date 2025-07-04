@@ -677,4 +677,608 @@ export default function App() {
                       <a href={`mailto:${contact.email}`} className="text-gray-400 hover:text-blue-600 transition-colors">
                         <Mail className="w-4 h-4" />
                       </a>
-                      <a href={`tel:${contact.phone}`} className="
+                      <a href={`tel:${contact.phone}`} className="text-gray-400 hover:text-green-600 transition-colors">
+                        <Phone className="w-4 h-4" />
+                      </a>
+                      <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600 transition-colors">
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </div>
+                    <button
+                      onClick={() => setSelectedContactId(contact.id)}
+                      className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      View Details
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {filteredAndSortedContacts.length === 0 && (
+          <div className="text-center py-12">
+            <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No contacts found</h3>
+            <p className="text-gray-500 mb-6">Get started by adding your first contact</p>
+            <button
+              onClick={() => setShowContactModal(true)}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Add Your First Contact
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const Dashboard = () => (
+    <div className="flex-1 bg-gray-50 p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+        <p className="text-gray-600">Investment Banking CRM Overview</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Contacts</p>
+              <p className="text-3xl font-bold text-gray-900">{contacts.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+              <User className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Active Networking</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {contacts.filter(c => c.networkingStatus !== 'To Be Contacted').length}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Referred Contacts</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {contacts.filter(c => c.referred).length}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+              <Check className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Interviews</p>
+              <p className="text-3xl font-bold text-gray-900">{interviews.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-orange-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Contacts</h3>
+          <div className="space-y-3">
+            {contacts.slice(0, 3).map(contact => (
+              <div key={contact.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => setSelectedContactId(contact.id)}>
+                <div className="flex items-center">
+                  <img src={contact.avatar} alt={contact.name} className="w-10 h-10 rounded-full object-cover mr-3" />
+                  <div>
+                    <p className="font-medium text-gray-900">{contact.name}</p>
+                    <p className="text-sm text-gray-600">{contact.firm}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(contact.networkingStatus)}`}>
+                  {contact.networkingStatus}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Interviews</h3>
+          <div className="space-y-3">
+            {interviews.slice(0, 3).map(interview => (
+              <div key={interview.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="font-medium text-gray-900">{interview.company}</p>
+                  <p className="text-sm text-gray-600">{interview.date} at {interview.time}</p>
+                </div>
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                  {interview.stage}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const Interviews = () => (
+    <div className="flex-1 bg-gray-50 p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Interviews</h1>
+          <p className="text-gray-600">Track your investment banking interviews</p>
+        </div>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Interview
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {interviews.map(interview => (
+          <div key={interview.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">{interview.company}</h3>
+                <p className="text-sm text-gray-600">{interview.position}</p>
+              </div>
+              <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                {interview.status}
+              </span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center text-sm text-gray-600">
+                <Calendar className="w-4 h-4 mr-2" />
+                {interview.date} at {interview.time}
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <User className="w-4 h-4 mr-2" />
+                {interview.interviewer}
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <Clock className="w-4 h-4 mr-2" />
+                {interview.stage}
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <p className="text-sm text-gray-600">{interview.notes}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const Documents = () => (
+    <div className="flex-1 bg-gray-50 p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Documents</h1>
+          <p className="text-gray-600">Manage your resumes, cover letters, and templates</p>
+        </div>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors">
+          <Plus className="w-4 h-4 mr-2" />
+          Upload Document
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Name</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Type</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Upload Date</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Size</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Status</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {documents.map(doc => (
+                <tr key={doc.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center">
+                      <FileText className="w-5 h-5 mr-3 text-gray-400" />
+                      <span className="text-sm font-medium text-gray-900">{doc.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{doc.type}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{doc.uploadDate}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{doc.size}</td>
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                      {doc.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium">
+                    <div className="flex space-x-3">
+                      <button className="text-blue-600 hover:text-blue-800">Download</button>
+                      <button className="text-red-600 hover:text-red-800">Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  const EditContactModal = () => (
+    editingContact && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">Edit Contact</h2>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={editingContact.name}
+                onChange={(e) => setEditingContact({...editingContact, name: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Position"
+                value={editingContact.position}
+                onChange={(e) => setEditingContact({...editingContact, position: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Company"
+                value={editingContact.firm}
+                onChange={(e) => setEditingContact({...editingContact, firm: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="email"
+                placeholder="Email Address"
+                value={editingContact.email}
+                onChange={(e) => setEditingContact({...editingContact, email: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Phone Number"
+                value={editingContact.phone}
+                onChange={(e) => setEditingContact({...editingContact, phone: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Location"
+                value={editingContact.location}
+                onChange={(e) => setEditingContact({...editingContact, location: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="LinkedIn URL"
+                value={editingContact.linkedin}
+                onChange={(e) => setEditingContact({...editingContact, linkedin: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <select
+                value={editingContact.networkingStatus}
+                onChange={(e) => setEditingContact({...editingContact, networkingStatus: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {networkingStatuses.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+              <input
+                type="date"
+                value={editingContact.networkingDate}
+                onChange={(e) => setEditingContact({...editingContact, networkingDate: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <select
+                value={editingContact.nextSteps}
+                onChange={(e) => setEditingContact({...editingContact, nextSteps: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Next Steps</option>
+                {nextStepsOptions.map(step => (
+                  <option key={step} value={step}>{step}</option>
+                ))}
+              </select>
+              <input
+                type="date"
+                value={editingContact.nextStepsDate}
+                onChange={(e) => setEditingContact({...editingContact, nextStepsDate: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div className="flex items-center space-x-4">
+                <input
+                  type="checkbox"
+                  checked={editingContact.referred}
+                  onChange={(e) => setEditingContact({...editingContact, referred: e.target.checked})}
+                  className="w-4 h-4"
+                />
+                <label className="text-sm font-medium text-gray-700">Referred Contact</label>
+              </div>
+              {editingContact.referred && (
+                <input
+                  type="text"
+                  placeholder="Referred By"
+                  value={editingContact.referredBy}
+                  onChange={(e) => setEditingContact({...editingContact, referredBy: e.target.value})}
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              )}
+              <textarea
+                placeholder="Notes"
+                value={editingContact.notes}
+                onChange={(e) => setEditingContact({...editingContact, notes: e.target.value})}
+                className="col-span-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows="4"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+            <button
+              onClick={() => setEditingContact(null)}
+              className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveEdit}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  );
+
+  const ContactModal = () => (
+    showContactModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">Add New Contact</h2>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="text"
+                placeholder="Full Name *"
+                value={newContact.name}
+                onChange={(e) => setNewContact({...newContact, name: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Position"
+                value={newContact.position}
+                onChange={(e) => setNewContact({...newContact, position: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Company *"
+                value={newContact.firm}
+                onChange={(e) => setNewContact({...newContact, firm: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="email"
+                placeholder="Email Address"
+                value={newContact.email}
+                onChange={(e) => setNewContact({...newContact, email: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Phone Number"
+                value={newContact.phone}
+                onChange={(e) => setNewContact({...newContact, phone: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Location"
+                value={newContact.location}
+                onChange={(e) => setNewContact({...newContact, location: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="LinkedIn URL"
+                value={newContact.linkedin}
+                onChange={(e) => setNewContact({...newContact, linkedin: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <select
+                value={newContact.networkingStatus}
+                onChange={(e) => setNewContact({...newContact, networkingStatus: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {networkingStatuses.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+              <input
+                type="date"
+                value={newContact.networkingDate}
+                onChange={(e) => setNewContact({...newContact, networkingDate: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <select
+                value={newContact.nextSteps}
+                onChange={(e) => setNewContact({...newContact, nextSteps: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Next Steps</option>
+                {nextStepsOptions.map(step => (
+                  <option key={step} value={step}>{step}</option>
+                ))}
+              </select>
+              <input
+                type="date"
+                value={newContact.nextStepsDate}
+                onChange={(e) => setNewContact({...newContact, nextStepsDate: e.target.value})}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div className="flex items-center space-x-4">
+                <input
+                  type="checkbox"
+                  checked={newContact.referred}
+                  onChange={(e) => setNewContact({...newContact, referred: e.target.checked})}
+                  className="w-4 h-4"
+                />
+                <label className="text-sm font-medium text-gray-700">Referred Contact</label>
+              </div>
+              {newContact.referred && (
+                <input
+                  type="text"
+                  placeholder="Referred By"
+                  value={newContact.referredBy}
+                  onChange={(e) => setNewContact({...newContact, referredBy: e.target.value})}
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              )}
+              <textarea
+                placeholder="Notes"
+                value={newContact.notes}
+                onChange={(e) => setNewContact({...newContact, notes: e.target.value})}
+                className="col-span-2 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows="4"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+            <button
+              onClick={() => setShowContactModal(false)}
+              className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={addContact}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Add Contact
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  );
+
+  const CallModal = () => (
+    showCallModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">Add Interaction</h2>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              <select
+                value={newCall.type}
+                onChange={(e) => setNewCall({...newCall, type: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Call">Phone Call</option>
+                <option value="Email">Email</option>
+                <option value="Coffee">Coffee Meeting</option>
+                <option value="Lunch">Lunch</option>
+                <option value="Video Call">Video Call</option>
+              </select>
+              <input
+                type="date"
+                value={newCall.date}
+                onChange={(e) => setNewCall({...newCall, date: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                placeholder="Duration (e.g., 30 min)"
+                value={newCall.duration}
+                onChange={(e) => setNewCall({...newCall, duration: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <select
+                value={newCall.outcome}
+                onChange={(e) => setNewCall({...newCall, outcome: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Outcome</option>
+                <option value="Excellent">Excellent</option>
+                <option value="Positive">Positive</option>
+                <option value="Neutral">Neutral</option>
+                <option value="Sent">Sent</option>
+                <option value="No Response">No Response</option>
+              </select>
+              <textarea
+                placeholder="Notes about this interaction..."
+                value={newCall.notes}
+                onChange={(e) => setNewCall({...newCall, notes: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows="4"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+            <button
+              onClick={() => setShowCallModal(false)}
+              className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={addCallRecord}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Add Interaction
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  );
+
+  return (
+    <div className="flex bg-gray-50 min-h-screen">
+      <Navigation />
+      {selectedContactId ? (
+        <ContactDetailPage />
+      ) : (
+        <div className="flex-1">
+          {activeTab === 'dashboard' && <Dashboard />}
+          {activeTab === 'contacts' && <Contacts />}
+          {activeTab === 'interviews' && <Interviews />}
+          {activeTab === 'documents' && <Documents />}
+        </div>
+      )}
+      <EditContactModal />
+      <ContactModal />
+      <CallModal />
+    </div>
+  );
+}
