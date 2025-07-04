@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react';
 import { 
   Search, Plus, Filter, ArrowUpDown, Grid, List, 
   Edit2, Trash2, Eye, Mail, Phone, ExternalLink, 
-  Check, ChevronRight, X, ChevronDown, Linkedin
+  Check, ChevronRight, X, ChevronDown, Linkedin,
+  Building2, Calendar, Users
 } from 'lucide-react';
 
 const Contacts = ({ 
@@ -13,8 +14,7 @@ const Contacts = ({
   onEdit, 
   onDelete, 
   onAdd,
-  setSelectedContactId,
-  setShowContactDetail 
+  onShowContactDetail 
 }) => {
   const [viewMode, setViewMode] = useState('cards');
   const [searchTerm, setSearchTerm] = useState('');
@@ -129,14 +129,14 @@ const Contacts = ({
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'To Be Contacted': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'To Be Contacted': return 'bg-gray-50 text-gray-700 border-gray-200';
       case 'Initial Outreach Sent': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'Follow up Call Scheduled': return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'Intro Call Complete': return 'bg-green-50 text-green-700 border-green-200';
       case 'Follow up Email Sent': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'Meeting Scheduled': return 'bg-orange-50 text-orange-700 border-orange-200';
       case 'Regular Contact': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
@@ -146,8 +146,8 @@ const Contacts = ({
     const taskDate = new Date(date);
     const diffDays = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return 'text-red-600';
-    if (diffDays <= 2) return 'text-orange-600';
+    if (diffDays < 0) return 'text-red-600 font-semibold';
+    if (diffDays <= 2) return 'text-orange-600 font-semibold';
     return 'text-gray-600';
   };
 
@@ -228,41 +228,41 @@ const Contacts = ({
   );
 
   const ContactCard = ({ contact }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+         onClick={() => onShowContactDetail(contact.id)}>
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold mr-3">
+          <div className="flex items-center flex-1">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg mr-4 shadow-md">
               {contact.name.split(' ').map(n => n[0]).join('')}
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">{contact.name}</h3>
-              <p className="text-sm text-gray-600">{contact.position}</p>
-              <p className="text-sm font-medium text-gray-900">{contact.firm}</p>
-              {contact.group && <p className="text-xs text-gray-500">{contact.group}</p>}
+            <div className="flex-1">
+              <h3 className="font-bold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">{contact.name}</h3>
+              <p className="text-gray-600 font-medium">{contact.position}</p>
+              <div className="flex items-center mt-1">
+                <Building2 className="w-4 h-4 text-gray-400 mr-1" />
+                <p className="text-sm font-semibold text-gray-900">{contact.firm}</p>
+              </div>
+              {contact.group && <p className="text-xs text-gray-500 mt-1 font-medium">{contact.group}</p>}
             </div>
           </div>
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => {
-                setSelectedContactId(contact.id);
-                setShowContactDetail(true);
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(contact);
               }}
-              className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-              title="View Details"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => onEdit(contact)}
-              className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+              className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
               title="Edit"
             >
               <Edit2 className="w-4 h-4" />
             </button>
             <button
-              onClick={() => onDelete(contact.id)}
-              className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(contact.id);
+              }}
+              className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
               title="Delete"
             >
               <Trash2 className="w-4 h-4" />
@@ -270,14 +270,14 @@ const Contacts = ({
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(contact.networkingStatus)}`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStatusColor(contact.networkingStatus)}`}>
                 {contact.networkingStatus}
               </span>
               {contact.referred && (
-                <div className="flex items-center text-sm text-green-600">
+                <div className="flex items-center text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-200">
                   <Check className="w-4 h-4 mr-1" />
                   Referred
                 </div>
@@ -291,8 +291,8 @@ const Contacts = ({
           {contact.nextSteps && (
             <div className="pt-3 border-t border-gray-100">
               <div className="flex items-center justify-between text-sm mb-1">
-                <span className="text-gray-600">Next Steps:</span>
-                <span className={`font-medium ${getPriorityColor(contact.nextStepsDate)}`}>
+                <span className="text-gray-600 font-medium">Next Steps:</span>
+                <span className={`text-sm ${getPriorityColor(contact.nextStepsDate)}`}>
                   {contact.nextStepsDate}
                 </span>
               </div>
@@ -300,19 +300,22 @@ const Contacts = ({
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-3">
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
             <div className="flex items-center space-x-3">
               <div className="relative">
                 <button
                   onMouseEnter={() => setHoveredContact(`email-${contact.id}`)}
                   onMouseLeave={() => setHoveredContact(null)}
-                  className="text-gray-400 hover:text-blue-600 transition-colors"
-                  onClick={() => window.open(`mailto:${contact.email}`, '_blank')}
+                  className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(`mailto:${contact.email}`, '_blank');
+                  }}
                 >
                   <Mail className="w-4 h-4" />
                 </button>
                 {hoveredContact === `email-${contact.id}` && (
-                  <div className="absolute bottom-6 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                  <div className="absolute bottom-10 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
                     {contact.email}
                   </div>
                 )}
@@ -321,13 +324,16 @@ const Contacts = ({
                 <button
                   onMouseEnter={() => setHoveredContact(`phone-${contact.id}`)}
                   onMouseLeave={() => setHoveredContact(null)}
-                  className="text-gray-400 hover:text-green-600 transition-colors"
-                  onClick={() => window.open(`tel:${contact.phone}`, '_blank')}
+                  className="text-gray-400 hover:text-green-600 transition-colors p-2 rounded-lg hover:bg-green-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(`tel:${contact.phone}`, '_blank');
+                  }}
                 >
                   <Phone className="w-4 h-4" />
                 </button>
                 {hoveredContact === `phone-${contact.id}` && (
-                  <div className="absolute bottom-6 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                  <div className="absolute bottom-10 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
                     {contact.phone}
                   </div>
                 )}
@@ -336,28 +342,34 @@ const Contacts = ({
                 <button
                   onMouseEnter={() => setHoveredContact(`linkedin-${contact.id}`)}
                   onMouseLeave={() => setHoveredContact(null)}
-                  className="text-gray-400 hover:text-blue-600 transition-colors"
-                  onClick={() => window.open(contact.linkedin, '_blank')}
+                  className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(contact.linkedin, '_blank');
+                  }}
                 >
                   <Linkedin className="w-4 h-4" />
                 </button>
                 {hoveredContact === `linkedin-${contact.id}` && (
-                  <div className="absolute bottom-6 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                    {contact.linkedin}
+                  <div className="absolute bottom-10 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                    LinkedIn Profile
                   </div>
                 )}
               </div>
             </div>
-            <button
-              onClick={() => {
-                setSelectedContactId(contact.id);
-                setShowContactDetail(true);
-              }}
-              className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
-            >
-              View Details
+            <div className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium group-hover:translate-x-1 transition-transform">
+              <span>View Details</span>
               <ChevronRight className="w-4 h-4 ml-1" />
-            </button>
+            </div>
+          </div>
+
+          {/* Interaction count */}
+          <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center text-xs text-gray-500">
+              <Calendar className="w-3 h-3 mr-1" />
+              {contact.interactions?.length || 0} interactions
+            </div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
           </div>
         </div>
       </div>
@@ -368,69 +380,84 @@ const Contacts = ({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Contact</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Firm & Position</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status & Date</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Next Steps & Due</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Contact Info</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Contact</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Company & Role</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Next Steps</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Contact Info</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-100">
             {filteredAndSortedContacts.map(contact => (
-              <tr key={contact.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3">
+              <tr key={contact.id} className="hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => onShowContactDetail(contact.id)}>
+                <td className="px-6 py-4">
                   <div className="flex items-center">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4 shadow-sm">
                       {contact.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">{contact.name}</div>
-                      {contact.referred && (
-                        <div className="flex items-center text-xs text-green-600">
-                          <Check className="w-3 h-3 mr-1" />
-                          Referred
+                      <div className="font-semibold text-gray-900 hover:text-blue-600 transition-colors">{contact.name}</div>
+                      <div className="flex items-center mt-1">
+                        {contact.referred && (
+                          <div className="flex items-center text-xs text-green-600 mr-2">
+                            <Check className="w-3 h-3 mr-1" />
+                            Referred
+                          </div>
+                        )}
+                        <div className="flex items-center text-xs text-gray-500">
+                          <Calendar className="w-3 h-3 mr-1" />
+                          {contact.interactions?.length || 0} interactions
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3">
-                  <div className="text-sm text-gray-900">{contact.firm}</div>
-                  <div className="text-sm text-gray-600">{contact.position}</div>
-                  {contact.group && <div className="text-xs text-gray-500">{contact.group}</div>}
+                <td className="px-6 py-4">
+                  <div>
+                    <div className="flex items-center font-semibold text-gray-900">
+                      <Building2 className="w-4 h-4 text-gray-400 mr-2" />
+                      {contact.firm}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">{contact.position}</div>
+                    {contact.group && <div className="text-xs text-gray-500 mt-1 font-medium">{contact.group}</div>}
+                  </div>
                 </td>
-                <td className="px-4 py-3">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(contact.networkingStatus)}`}>
+                <td className="px-6 py-4">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(contact.networkingStatus)}`}>
                     {contact.networkingStatus}
                   </span>
                   <div className="text-xs text-gray-500 mt-1">{contact.networkingDate}</div>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-6 py-4">
                   {contact.nextSteps && (
                     <div>
-                      <div className="text-sm text-gray-900">{contact.nextSteps}</div>
-                      <div className={`text-xs ${getPriorityColor(contact.nextStepsDate)}`}>
-                        {contact.nextStepsDate}
+                      <div className="text-sm text-gray-900 font-medium">{contact.nextSteps}</div>
+                      <div className={`text-xs mt-1 ${getPriorityColor(contact.nextStepsDate)}`}>
+                        Due: {contact.nextStepsDate}
                       </div>
                     </div>
                   )}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-6 py-4">
                   <div className="flex items-center space-x-2">
                     <div className="relative">
                       <button
                         onMouseEnter={() => setHoveredContact(`table-email-${contact.id}`)}
                         onMouseLeave={() => setHoveredContact(null)}
-                        onClick={() => window.open(`mailto:${contact.email}`, '_blank')}
-                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`mailto:${contact.email}`, '_blank');
+                        }}
+                        className="text-gray-400 hover:text-blue-600 transition-colors p-1.5 rounded hover:bg-blue-50"
                       >
                         <Mail className="w-4 h-4" />
                       </button>
                       {hoveredContact === `table-email-${contact.id}` && (
-                        <div className="absolute bottom-6 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                        <div className="absolute bottom-8 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
                           {contact.email}
                         </div>
                       )}
@@ -439,13 +466,16 @@ const Contacts = ({
                       <button
                         onMouseEnter={() => setHoveredContact(`table-phone-${contact.id}`)}
                         onMouseLeave={() => setHoveredContact(null)}
-                        onClick={() => window.open(`tel:${contact.phone}`, '_blank')}
-                        className="text-gray-400 hover:text-green-600 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`tel:${contact.phone}`, '_blank');
+                        }}
+                        className="text-gray-400 hover:text-green-600 transition-colors p-1.5 rounded hover:bg-green-50"
                       >
                         <Phone className="w-4 h-4" />
                       </button>
                       {hoveredContact === `table-phone-${contact.id}` && (
-                        <div className="absolute bottom-6 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                        <div className="absolute bottom-8 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
                           {contact.phone}
                         </div>
                       )}
@@ -454,39 +484,39 @@ const Contacts = ({
                       <button
                         onMouseEnter={() => setHoveredContact(`table-linkedin-${contact.id}`)}
                         onMouseLeave={() => setHoveredContact(null)}
-                        onClick={() => window.open(contact.linkedin, '_blank')}
-                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(contact.linkedin, '_blank');
+                        }}
+                        className="text-gray-400 hover:text-blue-600 transition-colors p-1.5 rounded hover:bg-blue-50"
                       >
                         <Linkedin className="w-4 h-4" />
                       </button>
                       {hoveredContact === `table-linkedin-${contact.id}` && (
-                        <div className="absolute bottom-6 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                          {contact.linkedin}
+                        <div className="absolute bottom-8 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                          LinkedIn Profile
                         </div>
                       )}
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center space-x-2">
+                <td className="px-6 py-4">
+                  <div className="flex items-center space-x-3">
                     <button
-                      onClick={() => {
-                        setSelectedContactId(contact.id);
-                        setShowContactDetail(true);
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(contact);
                       }}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      View
-                    </button>
-                    <button
-                      onClick={() => onEdit(contact)}
-                      className="text-gray-600 hover:text-gray-800 text-sm font-medium"
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:bg-blue-50 px-2 py-1 rounded transition-colors"
                     >
                       Edit
                     </button>
                     <button
-                      onClick={() => onDelete(contact.id)}
-                      className="text-red-600 hover:text-red-800 text-sm font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(contact.id);
+                      }}
+                      className="text-red-600 hover:text-red-800 text-sm font-medium hover:bg-red-50 px-2 py-1 rounded transition-colors"
                     >
                       Delete
                     </button>
@@ -503,18 +533,22 @@ const Contacts = ({
   return (
     <div className="flex-1 bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-gray-200 px-6 py-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
             <p className="text-gray-600 mt-1">Manage your investment banking network</p>
+            <div className="flex items-center mt-3 text-sm text-gray-500">
+              <Users className="w-4 h-4 mr-1" />
+              {filteredAndSortedContacts.length} contacts
+            </div>
           </div>
           <div className="flex items-center space-x-3">
             {/* View Toggle */}
             <div className="flex items-center bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('cards')}
-                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   viewMode === 'cards' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
@@ -525,7 +559,7 @@ const Contacts = ({
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   viewMode === 'table' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
@@ -537,7 +571,7 @@ const Contacts = ({
             </div>
             <button
               onClick={onAdd}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm"
+              className="bg-blue-600 text-white px-6 py-2.5 rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm font-medium"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Contact
@@ -556,7 +590,7 @@ const Contacts = ({
               placeholder="Search contacts..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           
@@ -564,7 +598,7 @@ const Contacts = ({
           
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center px-4 py-2.5 border rounded-lg hover:bg-gray-50 transition-colors ${
+            className={`flex items-center px-4 py-3 border rounded-lg hover:bg-gray-50 transition-colors font-medium ${
               Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-gray-300'
             }`}
           >
@@ -615,7 +649,7 @@ const Contacts = ({
             {Object.values(filters).some(f => f.length > 0) && (
               <button
                 onClick={clearFilters}
-                className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900"
+                className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg transition-colors"
               >
                 <X className="w-4 h-4 mr-1" />
                 Clear All
@@ -638,18 +672,18 @@ const Contacts = ({
         )}
 
         {filteredAndSortedContacts.length === 0 && (
-          <div className="text-center py-12">
+          <div className="text-center py-16">
             <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No contacts found</h3>
-            <p className="text-gray-500 mb-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No contacts found</h3>
+            <p className="text-gray-500 mb-8 max-w-md mx-auto">
               {searchTerm || Object.values(filters).some(f => f.length > 0)
-                ? 'Try adjusting your search or filters'
-                : 'Get started by adding your first contact'
+                ? 'Try adjusting your search or filters to find what you\'re looking for.'
+                : 'Get started by adding your first contact to begin building your network.'
               }
             </p>
             <button
               onClick={onAdd}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
             >
               Add Your First Contact
             </button>
