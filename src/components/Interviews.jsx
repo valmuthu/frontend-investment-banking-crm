@@ -7,11 +7,11 @@ import {
 } from 'lucide-react';
 
 const Interviews = ({ 
-  interviews, 
-  contacts,
-  interviewStages, 
-  interviewNextSteps, 
-  groups,
+  interviews = [], 
+  contacts = [],
+  interviewStages = [], 
+  interviewNextSteps = [], 
+  groups = [],
   onEdit, 
   onDelete, 
   onAdd,
@@ -48,8 +48,8 @@ const Interviews = ({
       const matchesSearch = searchTerm === '' || 
         interview.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
         interview.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        interview.group.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        interview.interviewer.toLowerCase().includes(searchTerm.toLowerCase());
+        (interview.group && interview.group.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (interview.interviewer && interview.interviewer.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesCompany = filters.companies.length === 0 || filters.companies.includes(interview.company);
       const matchesPosition = filters.positions.length === 0 || filters.positions.includes(interview.position);
@@ -122,6 +122,7 @@ const Interviews = ({
   };
 
   const getPriorityColor = (date) => {
+    if (!date) return 'text-gray-600';
     const today = new Date();
     const taskDate = new Date(date);
     const diffDays = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
@@ -169,116 +170,6 @@ const Interviews = ({
     );
   };
 
-  const InterviewHistoryModal = ({ interview, onClose }) => {
-    const referralContact = interview.referralContactId 
-      ? contacts.find(c => c.id === interview.referralContactId)
-      : null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">{interview.company}</h2>
-                <p className="text-gray-600">{interview.position} - {interview.group}</p>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-          </div>
-          
-          <div className="p-6">
-            {/* Current Status */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Current Status</h3>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStageColor(interview.stage)}`}>
-                    {interview.stage}
-                  </span>
-                  <span className="text-sm text-gray-600">{interview.date} at {interview.time}</span>
-                </div>
-                <p className="text-sm text-gray-700 mt-2">{interview.notes}</p>
-              </div>
-            </div>
-
-            {/* Interview History */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Interview History</h3>
-              {interview.interviewHistory && interview.interviewHistory.length > 0 ? (
-                <div className="space-y-3">
-                  {interview.interviewHistory.map((round) => (
-                    <div key={round.id} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStageColor(round.stage)}`}>
-                          {round.stage}
-                        </span>
-                        <span className="text-sm text-gray-600">{round.date}</span>
-                      </div>
-                      <p className="text-sm font-medium text-gray-900">Interviewer: {round.interviewer}</p>
-                      <p className="text-sm text-gray-700 mt-1">Outcome: {round.outcome}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-4">No previous interview rounds recorded</p>
-              )}
-            </div>
-
-            {/* Referral Information */}
-            {referralContact && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Referral Information</h3>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Award className="w-5 h-5 text-green-600 mr-2" />
-                      <div>
-                        <p className="font-medium text-green-900">{referralContact.name}</p>
-                        <p className="text-sm text-green-700">{referralContact.position} at {referralContact.firm}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setSelectedContactId(referralContact.id);
-                        setShowContactDetail(true);
-                        onClose();
-                      }}
-                      className="text-green-600 hover:text-green-800 text-sm font-medium"
-                    >
-                      View Contact
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Next Steps */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Next Steps</h3>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-blue-900">{interview.nextSteps}</p>
-                    <p className={`text-sm ${getPriorityColor(interview.nextStepsDate)}`}>
-                      Due: {interview.nextStepsDate}
-                    </p>
-                  </div>
-                  <AlertCircle className="w-5 h-5 text-blue-600" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const InterviewCard = ({ interview }) => {
     const referralContact = interview.referralContactId 
       ? contacts.find(c => c.id === interview.referralContactId)
@@ -292,7 +183,7 @@ const Interviews = ({
               <div className="flex items-center mb-2">
                 <Building2 className="w-5 h-5 text-gray-400 mr-2" />
                 <button
-                  onClick={() => setShowInterviewHistory(interview)}
+                  onClick={() => setShowInterviewHistory && setShowInterviewHistory(interview)}
                   className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors"
                 >
                   {interview.company}
@@ -303,21 +194,21 @@ const Interviews = ({
             </div>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => setShowInterviewHistory(interview)}
+                onClick={() => setShowInterviewHistory && setShowInterviewHistory(interview)}
                 className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
                 title="View History"
               >
                 <Eye className="w-4 h-4" />
               </button>
               <button
-                onClick={() => onEdit(interview)}
+                onClick={() => onEdit && onEdit(interview)}
                 className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
                 title="Edit"
               >
                 <Edit2 className="w-4 h-4" />
               </button>
               <button
-                onClick={() => onDelete(interview.id)}
+                onClick={() => onDelete && onDelete(interview.id)}
                 className="p-2 text-gray-400 hover:text-red-600 transition-colors"
                 title="Delete"
               >
@@ -336,12 +227,14 @@ const Interviews = ({
             <div className="space-y-2">
               <div className="flex items-center text-sm text-gray-600">
                 <Calendar className="w-4 h-4 mr-2" />
-                {interview.date} at {interview.time}
+                {interview.date} {interview.time && `at ${interview.time}`}
               </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <User className="w-4 h-4 mr-2" />
-                {interview.interviewer}
-              </div>
+              {interview.interviewer && (
+                <div className="flex items-center text-sm text-gray-600">
+                  <User className="w-4 h-4 mr-2" />
+                  {interview.interviewer}
+                </div>
+              )}
             </div>
 
             {referralContact && (
@@ -351,19 +244,25 @@ const Interviews = ({
               </div>
             )}
 
-            <div className="pt-3 border-t border-gray-100">
-              <div className="flex items-center justify-between text-sm mb-1">
-                <span className="text-gray-600">Next Steps:</span>
-                <span className={`font-medium ${getPriorityColor(interview.nextStepsDate)}`}>
-                  {interview.nextStepsDate}
-                </span>
+            {interview.nextSteps && (
+              <div className="pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-between text-sm mb-1">
+                  <span className="text-gray-600">Next Steps:</span>
+                  {interview.nextStepsDate && (
+                    <span className={`font-medium ${getPriorityColor(interview.nextStepsDate)}`}>
+                      {interview.nextStepsDate}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-700">{interview.nextSteps}</p>
               </div>
-              <p className="text-sm text-gray-700">{interview.nextSteps}</p>
-            </div>
+            )}
 
-            <div className="pt-3 border-t border-gray-100">
-              <p className="text-sm text-gray-600">{interview.notes}</p>
-            </div>
+            {interview.notes && (
+              <div className="pt-3 border-t border-gray-100">
+                <p className="text-sm text-gray-600">{interview.notes}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -405,24 +304,7 @@ const Interviews = ({
                   <ArrowUpDown className="w-4 h-4 ml-1" />
                 </button>
               </th>
-              <th className="px-6 py-4 text-left">
-                <button
-                  onClick={() => handleSort('nextSteps')}
-                  className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Next Steps
-                  <ArrowUpDown className="w-4 h-4 ml-1" />
-                </button>
-              </th>
-              <th className="px-6 py-4 text-left">
-                <button
-                  onClick={() => handleSort('nextStepsDate')}
-                  className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Due Date
-                  <ArrowUpDown className="w-4 h-4 ml-1" />
-                </button>
-              </th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Next Steps</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
@@ -438,7 +320,7 @@ const Interviews = ({
                     <div className="flex items-center">
                       <div>
                         <button
-                          onClick={() => setShowInterviewHistory(interview)}
+                          onClick={() => setShowInterviewHistory && setShowInterviewHistory(interview)}
                           className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
                         >
                           {interview.company}
@@ -460,30 +342,36 @@ const Interviews = ({
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {interview.date} at {interview.time}
+                    {interview.date} {interview.time && `at ${interview.time}`}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{interview.nextSteps}</td>
-                  <td className="px-6 py-4">
-                    <span className={`text-sm ${getPriorityColor(interview.nextStepsDate)}`}>
-                      {interview.nextStepsDate}
-                    </span>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {interview.nextSteps && (
+                      <div>
+                        <div>{interview.nextSteps}</div>
+                        {interview.nextStepsDate && (
+                          <div className={`text-xs ${getPriorityColor(interview.nextStepsDate)}`}>
+                            Due: {interview.nextStepsDate}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => setShowInterviewHistory(interview)}
+                        onClick={() => setShowInterviewHistory && setShowInterviewHistory(interview)}
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                       >
                         View
                       </button>
                       <button
-                        onClick={() => onEdit(interview)}
+                        onClick={() => onEdit && onEdit(interview)}
                         className="text-gray-600 hover:text-gray-800 text-sm font-medium"
                       >
                         Edit
                       </button>
                       <button
-                        onClick={() => onDelete(interview.id)}
+                        onClick={() => onDelete && onDelete(interview.id)}
                         className="text-red-600 hover:text-red-800 text-sm font-medium"
                       >
                         Delete
@@ -535,7 +423,7 @@ const Interviews = ({
               </button>
             </div>
             <button
-              onClick={onAdd}
+              onClick={() => onAdd && onAdd()}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -645,7 +533,7 @@ const Interviews = ({
               }
             </p>
             <button
-              onClick={onAdd}
+              onClick={() => onAdd && onAdd()}
               className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Add Your First Interview
@@ -654,33 +542,26 @@ const Interviews = ({
         )}
       </div>
 
-      {/* Interview History Modal */}
+      {/* Simple Interview History Modal placeholder */}
       {showInterviewHistory && (
-        <InterviewHistoryModal 
-          interview={showInterviewHistory}
-          onClose={() => setShowInterviewHistory(null)}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">{showInterviewHistory.company}</h2>
+              <button
+                onClick={() => setShowInterviewHistory(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <p className="text-gray-600 mb-4">Interview history modal - Coming soon!</p>
+            <p className="text-sm text-gray-500">This will show detailed interview history, past rounds, and referral information.</p>
+          </div>
+        </div>
       )}
     </div>
   );
 };
 
-export default Interviews;()) ||
-        interview.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        interview.group.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        interview.interviewer.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCompany = filters.companies.length === 0 || filters.companies.includes(interview.company);
-      const matchesPosition = filters.positions.length === 0 || filters.positions.includes(interview.position);
-      const matchesGroup = filters.groups.length === 0 || filters.groups.includes(interview.group);
-      const matchesStage = filters.stages.length === 0 || filters.stages.includes(interview.stage);
-      const matchesNextSteps = filters.nextSteps.length === 0 || filters.nextSteps.includes(interview.nextSteps);
-      
-      return matchesSearch && matchesCompany && matchesPosition && matchesGroup && 
-             matchesStage && matchesNextSteps;
-    });
-
-    if (sortField) {
-      filtered.sort((a, b) => {
-        let aValue = a[sortField] || '';
-        let bValue = b
+export default Interviews;
