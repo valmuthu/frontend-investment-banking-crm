@@ -536,7 +536,7 @@ export const InterviewHistoryModal = ({
       </div>
     </div>
   );
-};bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
+};
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900">Add Contact</h2>
