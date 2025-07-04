@@ -56,7 +56,7 @@ export const ContactModal = ({
       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Add Interview</h2>
+            <h2 className="text-xl font-bold text-gray-900">Add Contact</h2>
             <button onClick={onClose}>
               <X className="w-5 h-5" />
             </button>
@@ -64,6 +64,16 @@ export const ContactModal = ({
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Name *</label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium mb-2">Firm *</label>
               <input
@@ -73,52 +83,77 @@ export const ContactModal = ({
                 onChange={(e) => setFormData({ ...formData, firm: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              {matchingContact && (
-                <p className="text-sm text-green-600 mt-1">
-                  ✓ Auto-matched with {matchingContact.name}
-                </p>
-              )}
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Position *</label>
+              <label className="block text-sm font-medium mb-2">Position</label>
               <input
                 type="text"
-                required
                 value={formData.position}
                 onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Group</label>
+              <input
+                type="text"
+                value={formData.group}
+                onChange={(e) => setFormData({ ...formData, group: e.target.value })}
+                placeholder="e.g., TMT, Healthcare, FIG"
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Email</label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Phone</label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Group</label>
+            <label className="block text-sm font-medium mb-2">LinkedIn</label>
             <input
-              type="text"
-              value={formData.group}
-              onChange={(e) => setFormData({ ...formData, group: e.target.value })}
-              placeholder="e.g., TMT, Healthcare, FIG"
+              type="url"
+              value={formData.linkedin}
+              onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Stage</label>
+              <label className="block text-sm font-medium mb-2">Networking Status</label>
               <select
-                value={formData.stage}
-                onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
+                value={formData.networkingStatus}
+                onChange={(e) => setFormData({ ...formData, networkingStatus: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {interviewStages.map(stage => (
-                  <option key={stage} value={stage}>{stage}</option>
+                {networkingStatuses.map((status) => (
+                  <option key={status} value={status}>{status}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Stage Date</label>
+              <label className="block text-sm font-medium mb-2">Status Date</label>
               <input
                 type="date"
-                value={formData.stageDate}
-                onChange={(e) => setFormData({ ...formData, stageDate: e.target.value })}
+                value={formData.networkingDate}
+                onChange={(e) => setFormData({ ...formData, networkingDate: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -132,13 +167,13 @@ export const ContactModal = ({
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select Next Steps</option>
-                {interviewNextSteps.map(step => (
+                {nextStepsOptions.map((step) => (
                   <option key={step} value={step}>{step}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Next Steps Deadline</label>
+              <label className="block text-sm font-medium mb-2">Next Steps Date</label>
               <input
                 type="date"
                 value={formData.nextStepsDate}
@@ -147,23 +182,17 @@ export const ContactModal = ({
               />
             </div>
           </div>
-          
-          {!matchingContact && (
-            <div>
-              <label className="block text-sm font-medium mb-2">Referral Contact (Manual Selection)</label>
-              <select
-                value={formData.referralContactId}
-                onChange={(e) => setFormData({ ...formData, referralContactId: e.target.value ? parseInt(e.target.value) : '' })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">No referral</option>
-                {contacts.map((contact) => (
-                  <option key={contact.id} value={contact.id}>{contact.name} - {contact.firm}</option>
-                ))}
-              </select>
-            </div>
-          )}
-          
+          <div>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={formData.referred}
+                onChange={(e) => setFormData({ ...formData, referred: e.target.checked })}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="ml-2 text-sm text-gray-900">Referred</span>
+            </label>
+          </div>
           <div>
             <label className="block text-sm font-medium mb-2">Notes</label>
             <textarea
@@ -178,7 +207,7 @@ export const ContactModal = ({
               Cancel
             </button>
             <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              Add Interview
+              Add Contact
             </button>
           </div>
         </form>
@@ -537,167 +566,6 @@ export const InterviewHistoryModal = ({
     </div>
   );
 };
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Add Contact</h2>
-            <button onClick={onClose}>
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Name *</label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Firm *</label>
-              <input
-                type="text"
-                required
-                value={formData.firm}
-                onChange={(e) => setFormData({ ...formData, firm: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Position</label>
-              <input
-                type="text"
-                value={formData.position}
-                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Group</label>
-              <input
-                type="text"
-                value={formData.group}
-                onChange={(e) => setFormData({ ...formData, group: e.target.value })}
-                placeholder="e.g., TMT, Healthcare, FIG"
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Phone</label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">LinkedIn</label>
-            <input
-              type="url"
-              value={formData.linkedin}
-              onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Networking Status</label>
-              <select
-                value={formData.networkingStatus}
-                onChange={(e) => setFormData({ ...formData, networkingStatus: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {networkingStatuses.map((status) => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Status Date</label>
-              <input
-                type="date"
-                value={formData.networkingDate}
-                onChange={(e) => setFormData({ ...formData, networkingDate: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Next Steps</label>
-              <select
-                value={formData.nextSteps}
-                onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select Next Steps</option>
-                {nextStepsOptions.map((step) => (
-                  <option key={step} value={step}>{step}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Next Steps Date</label>
-              <input
-                type="date"
-                value={formData.nextStepsDate}
-                onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.referred}
-                onChange={(e) => setFormData({ ...formData, referred: e.target.checked })}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="ml-2 text-sm text-gray-900">Referred</span>
-            </label>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Notes</label>
-            <textarea
-              rows="3"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="flex justify-end space-x-3 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
-              Cancel
-            </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              Add Contact
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 // CallModal
 export const CallModal = ({ isOpen, onClose, onSubmit }) => {
@@ -1184,4 +1052,135 @@ export const InterviewModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900">Add Interview</h2>
+            <button onClick={onClose}>
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Firm *</label>
+              <input
+                type="text"
+                required
+                value={formData.firm}
+                onChange={(e) => setFormData({ ...formData, firm: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {matchingContact && (
+                <p className="text-sm text-green-600 mt-1">
+                  ✓ Auto-matched with {matchingContact.name}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Position *</label>
+              <input
+                type="text"
+                required
+                value={formData.position}
+                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Group</label>
+            <input
+              type="text"
+              value={formData.group}
+              onChange={(e) => setFormData({ ...formData, group: e.target.value })}
+              placeholder="e.g., TMT, Healthcare, FIG"
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Stage</label>
+              <select
+                value={formData.stage}
+                onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {interviewStages.map(stage => (
+                  <option key={stage} value={stage}>{stage}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Stage Date</label>
+              <input
+                type="date"
+                value={formData.stageDate}
+                onChange={(e) => setFormData({ ...formData, stageDate: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Next Steps</label>
+              <select
+                value={formData.nextSteps}
+                onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Next Steps</option>
+                {interviewNextSteps.map(step => (
+                  <option key={step} value={step}>{step}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Next Steps Deadline</label>
+              <input
+                type="date"
+                value={formData.nextStepsDate}
+                onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          
+          {!matchingContact && (
+            <div>
+              <label className="block text-sm font-medium mb-2">Referral Contact (Manual Selection)</label>
+              <select
+                value={formData.referralContactId}
+                onChange={(e) => setFormData({ ...formData, referralContactId: e.target.value ? parseInt(e.target.value) : '' })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">No referral</option>
+                {contacts.map((contact) => (
+                  <option key={contact.id} value={contact.id}>{contact.name} - {contact.firm}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">Notes</label>
+            <textarea
+              rows="3"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="flex justify-end space-x-3 pt-4">
+            <button type="button" onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              Add Interview
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
