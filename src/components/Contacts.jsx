@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { 
   Search, Plus, Filter, ArrowUpDown, Grid, List, 
   Edit2, Trash2, Eye, Mail, Phone, ExternalLink, 
-  Check, MapPin, ChevronRight, X, ChevronDown
+  Check, ChevronRight, X, ChevronDown, Linkedin
 } from 'lucide-react';
 
 const Contacts = ({ 
@@ -16,11 +16,13 @@ const Contacts = ({
   setSelectedContactId,
   setShowContactDetail 
 }) => {
-  const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'table'
+  const [viewMode, setViewMode] = useState('cards');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState('');
   const [sortDirection, setSortDirection] = useState('asc');
   const [showFilters, setShowFilters] = useState(false);
+  const [showSortOptions, setShowSortOptions] = useState(false);
+  const [hoveredContact, setHoveredContact] = useState(null);
   
   // Filter states
   const [filters, setFilters] = useState({
@@ -31,11 +33,23 @@ const Contacts = ({
     nextSteps: []
   });
 
+  // Sorting options
+  const sortOptions = [
+    { field: 'name', label: 'Name' },
+    { field: 'firm', label: 'Firm' },
+    { field: 'position', label: 'Position' },
+    { field: 'group', label: 'Group' },
+    { field: 'networkingStatus', label: 'Status' },
+    { field: 'networkingDate', label: 'Status Date' },
+    { field: 'nextSteps', label: 'Next Steps' },
+    { field: 'nextStepsDate', label: 'Next Steps Date' }
+  ];
+
   // Get unique values for filters
   const filterOptions = useMemo(() => ({
     firms: [...new Set(contacts.map(c => c.firm))].sort(),
     positions: [...new Set(contacts.map(c => c.position))].sort(),
-    groups: [...new Set(contacts.map(c => c.group))].sort(),
+    groups: [...new Set(contacts.map(c => c.group).filter(Boolean))].sort(),
     networkingStatuses: networkingStatuses,
     nextSteps: [...new Set(contacts.map(c => c.nextSteps).filter(Boolean))].sort()
   }), [contacts, networkingStatuses]);
@@ -48,8 +62,8 @@ const Contacts = ({
         contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         contact.firm.toLowerCase().includes(searchTerm.toLowerCase()) ||
         contact.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contact.group.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contact.email.toLowerCase().includes(searchTerm.toLowerCase());
+        (contact.group && contact.group.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (contact.email && contact.email.toLowerCase().includes(searchTerm.toLowerCase()));
       
       // Multi-select filters
       const matchesFirm = filters.firms.length === 0 || filters.firms.includes(contact.firm);
@@ -91,6 +105,7 @@ const Contacts = ({
       setSortField(field);
       setSortDirection('asc');
     }
+    setShowSortOptions(false);
   };
 
   const handleFilterChange = (filterType, value) => {
@@ -116,11 +131,24 @@ const Contacts = ({
     switch (status) {
       case 'To Be Contacted': return 'bg-gray-100 text-gray-800 border-gray-200';
       case 'Initial Outreach Sent': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'Intro Call Complete': return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'Follow-Up Complete': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'Regular Contact': return 'bg-green-50 text-green-700 border-green-200';
+      case 'Follow up Call Scheduled': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'Intro Call Complete': return 'bg-green-50 text-green-700 border-green-200';
+      case 'Follow up Email Sent': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'Meeting Scheduled': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'Regular Contact': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const getPriorityColor = (date) => {
+    if (!date) return 'text-gray-600';
+    const today = new Date();
+    const taskDate = new Date(date);
+    const diffDays = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return 'text-red-600';
+    if (diffDays <= 2) return 'text-orange-600';
+    return 'text-gray-600';
   };
 
   const FilterDropdown = ({ title, options, selected, onChange, filterKey }) => {
@@ -161,21 +189,57 @@ const Contacts = ({
     );
   };
 
+  const SortDropdown = () => (
+    <div className="relative">
+      <button
+        onClick={() => setShowSortOptions(!showSortOptions)}
+        className={`flex items-center px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
+          sortField ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+        }`}
+      >
+        <ArrowUpDown className="w-4 h-4 mr-2" />
+        Sort {sortField && `(${sortField})`}
+        <ChevronDown className="w-4 h-4 ml-1" />
+      </button>
+      
+      {showSortOptions && (
+        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+          <div className="p-2">
+            {sortOptions.map(option => (
+              <button
+                key={option.field}
+                onClick={() => handleSort(option.field)}
+                className={`w-full text-left p-2 hover:bg-gray-50 rounded text-sm ${
+                  sortField === option.field ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                }`}
+              >
+                {option.label}
+                {sortField === option.field && (
+                  <span className="ml-2">
+                    {sortDirection === 'asc' ? '↑' : '↓'}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   const ContactCard = ({ contact }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center">
-            <img
-              src={contact.avatar}
-              alt={contact.name}
-              className="w-12 h-12 rounded-full object-cover mr-3"
-            />
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold mr-3">
+              {contact.name.split(' ').map(n => n[0]).join('')}
+            </div>
             <div>
               <h3 className="font-semibold text-gray-900">{contact.name}</h3>
               <p className="text-sm text-gray-600">{contact.position}</p>
               <p className="text-sm font-medium text-gray-900">{contact.firm}</p>
-              <p className="text-xs text-gray-500">{contact.group}</p>
+              {contact.group && <p className="text-xs text-gray-500">{contact.group}</p>}
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -208,40 +272,81 @@ const Contacts = ({
 
         <div className="space-y-3">
           <div>
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(contact.networkingStatus)}`}>
-              {contact.networkingStatus}
-            </span>
-            <p className="text-xs text-gray-500 mt-1">
-              Status Date: {contact.networkingStatusDate}
+            <div className="flex items-center justify-between mb-1">
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(contact.networkingStatus)}`}>
+                {contact.networkingStatus}
+              </span>
+              {contact.referred && (
+                <div className="flex items-center text-sm text-green-600">
+                  <Check className="w-4 h-4 mr-1" />
+                  Referred
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-500">
+              Status Date: {contact.networkingDate}
             </p>
           </div>
 
-          {contact.referred && (
-            <div className="flex items-center text-sm text-green-600">
-              <Check className="w-4 h-4 mr-2" />
-              Referred by {contact.referredBy}
+          {contact.nextSteps && (
+            <div className="pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-between text-sm mb-1">
+                <span className="text-gray-600">Next Steps:</span>
+                <span className={`font-medium ${getPriorityColor(contact.nextStepsDate)}`}>
+                  {contact.nextStepsDate}
+                </span>
+              </div>
+              <p className="text-sm text-gray-700">{contact.nextSteps}</p>
             </div>
           )}
 
-          <div className="pt-3 border-t border-gray-100">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Next Steps:</span>
-              <span className="font-medium text-gray-900">{contact.nextStepsDate}</span>
-            </div>
-            <p className="text-sm text-gray-700 mt-1">{contact.nextSteps}</p>
-          </div>
-
           <div className="flex items-center justify-between pt-3">
             <div className="flex items-center space-x-3">
-              <a href={`mailto:${contact.email}`} className="text-gray-400 hover:text-blue-600 transition-colors">
-                <Mail className="w-4 h-4" />
-              </a>
-              <a href={`tel:${contact.phone}`} className="text-gray-400 hover:text-green-600 transition-colors">
-                <Phone className="w-4 h-4" />
-              </a>
-              <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600 transition-colors">
-                <ExternalLink className="w-4 h-4" />
-              </a>
+              <div className="relative">
+                <button
+                  onMouseEnter={() => setHoveredContact(`email-${contact.id}`)}
+                  onMouseLeave={() => setHoveredContact(null)}
+                  className="text-gray-400 hover:text-blue-600 transition-colors"
+                  onClick={() => window.open(`mailto:${contact.email}`, '_blank')}
+                >
+                  <Mail className="w-4 h-4" />
+                </button>
+                {hoveredContact === `email-${contact.id}` && (
+                  <div className="absolute bottom-6 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                    {contact.email}
+                  </div>
+                )}
+              </div>
+              <div className="relative">
+                <button
+                  onMouseEnter={() => setHoveredContact(`phone-${contact.id}`)}
+                  onMouseLeave={() => setHoveredContact(null)}
+                  className="text-gray-400 hover:text-green-600 transition-colors"
+                  onClick={() => window.open(`tel:${contact.phone}`, '_blank')}
+                >
+                  <Phone className="w-4 h-4" />
+                </button>
+                {hoveredContact === `phone-${contact.id}` && (
+                  <div className="absolute bottom-6 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                    {contact.phone}
+                  </div>
+                )}
+              </div>
+              <div className="relative">
+                <button
+                  onMouseEnter={() => setHoveredContact(`linkedin-${contact.id}`)}
+                  onMouseLeave={() => setHoveredContact(null)}
+                  className="text-gray-400 hover:text-blue-600 transition-colors"
+                  onClick={() => window.open(contact.linkedin, '_blank')}
+                >
+                  <Linkedin className="w-4 h-4" />
+                </button>
+                {hoveredContact === `linkedin-${contact.id}` && (
+                  <div className="absolute bottom-6 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                    {contact.linkedin}
+                  </div>
+                )}
+              </div>
             </div>
             <button
               onClick={() => {
@@ -265,84 +370,104 @@ const Contacts = ({
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-4 text-left">
-                <button
-                  onClick={() => handleSort('name')}
-                  className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Name
-                  <ArrowUpDown className="w-4 h-4 ml-1" />
-                </button>
-              </th>
-              <th className="px-6 py-4 text-left">
-                <button
-                  onClick={() => handleSort('firm')}
-                  className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Firm
-                  <ArrowUpDown className="w-4 h-4 ml-1" />
-                </button>
-              </th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Position</th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Group</th>
-              <th className="px-6 py-4 text-left">
-                <button
-                  onClick={() => handleSort('networkingStatus')}
-                  className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Status
-                  <ArrowUpDown className="w-4 h-4 ml-1" />
-                </button>
-              </th>
-              <th className="px-6 py-4 text-left">
-                <button
-                  onClick={() => handleSort('networkingStatusDate')}
-                  className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Status Date
-                  <ArrowUpDown className="w-4 h-4 ml-1" />
-                </button>
-              </th>
-              <th className="px-6 py-4 text-left">
-                <button
-                  onClick={() => handleSort('nextSteps')}
-                  className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Next Steps
-                  <ArrowUpDown className="w-4 h-4 ml-1" />
-                </button>
-              </th>
-              <th className="px-6 py-4 text-left">
-                <button
-                  onClick={() => handleSort('nextStepsDate')}
-                  className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Due Date
-                  <ArrowUpDown className="w-4 h-4 ml-1" />
-                </button>
-              </th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Actions</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Contact</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Firm & Position</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status & Date</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Next Steps & Due</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Contact Info</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {filteredAndSortedContacts.map(contact => (
               <tr key={contact.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <div className="font-medium text-gray-900">{contact.name}</div>
-                  <div className="text-sm text-gray-600">{contact.email}</div>
+                <td className="px-4 py-3">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-3">
+                      {contact.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900">{contact.name}</div>
+                      {contact.referred && (
+                        <div className="flex items-center text-xs text-green-600">
+                          <Check className="w-3 h-3 mr-1" />
+                          Referred
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-900">{contact.firm}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{contact.position}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{contact.group}</td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-3">
+                  <div className="text-sm text-gray-900">{contact.firm}</div>
+                  <div className="text-sm text-gray-600">{contact.position}</div>
+                  {contact.group && <div className="text-xs text-gray-500">{contact.group}</div>}
+                </td>
+                <td className="px-4 py-3">
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(contact.networkingStatus)}`}>
                     {contact.networkingStatus}
                   </span>
+                  <div className="text-xs text-gray-500 mt-1">{contact.networkingDate}</div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-900">{contact.networkingStatusDate}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{contact.nextSteps}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{contact.nextStepsDate}</td>
-                <td className="px-6 py-4">
+                <td className="px-4 py-3">
+                  {contact.nextSteps && (
+                    <div>
+                      <div className="text-sm text-gray-900">{contact.nextSteps}</div>
+                      <div className={`text-xs ${getPriorityColor(contact.nextStepsDate)}`}>
+                        {contact.nextStepsDate}
+                      </div>
+                    </div>
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="relative">
+                      <button
+                        onMouseEnter={() => setHoveredContact(`table-email-${contact.id}`)}
+                        onMouseLeave={() => setHoveredContact(null)}
+                        onClick={() => window.open(`mailto:${contact.email}`, '_blank')}
+                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                      >
+                        <Mail className="w-4 h-4" />
+                      </button>
+                      {hoveredContact === `table-email-${contact.id}` && (
+                        <div className="absolute bottom-6 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                          {contact.email}
+                        </div>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <button
+                        onMouseEnter={() => setHoveredContact(`table-phone-${contact.id}`)}
+                        onMouseLeave={() => setHoveredContact(null)}
+                        onClick={() => window.open(`tel:${contact.phone}`, '_blank')}
+                        className="text-gray-400 hover:text-green-600 transition-colors"
+                      >
+                        <Phone className="w-4 h-4" />
+                      </button>
+                      {hoveredContact === `table-phone-${contact.id}` && (
+                        <div className="absolute bottom-6 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                          {contact.phone}
+                        </div>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <button
+                        onMouseEnter={() => setHoveredContact(`table-linkedin-${contact.id}`)}
+                        onMouseLeave={() => setHoveredContact(null)}
+                        onClick={() => window.open(contact.linkedin, '_blank')}
+                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                      >
+                        <Linkedin className="w-4 h-4" />
+                      </button>
+                      {hoveredContact === `table-linkedin-${contact.id}` && (
+                        <div className="absolute bottom-6 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                          {contact.linkedin}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-3">
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => {
@@ -434,6 +559,8 @@ const Contacts = ({
               className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
+          
+          <SortDropdown />
           
           <button
             onClick={() => setShowFilters(!showFilters)}
