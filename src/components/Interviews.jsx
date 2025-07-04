@@ -30,20 +30,17 @@ const Interviews = ({
     positions: [],
     groups: [],
     stages: [],
-    nextSteps: [],
-    priorities: []
+    nextSteps: []
   });
 
-  // Sorting options
+  // Sorting options (removed priority and application date)
   const sortOptions = [
     { field: 'firm', label: 'Firm' },
     { field: 'position', label: 'Position' },
     { field: 'stage', label: 'Stage' },
     { field: 'stageDate', label: 'Stage Date' },
     { field: 'nextSteps', label: 'Next Steps' },
-    { field: 'nextStepsDate', label: 'Next Steps Date' },
-    { field: 'applicationDate', label: 'Application Date' },
-    { field: 'priority', label: 'Priority' }
+    { field: 'nextStepsDate', label: 'Next Steps Date' }
   ];
 
   // Get unique values for filters
@@ -52,9 +49,30 @@ const Interviews = ({
     positions: [...new Set(interviews.map(i => i.position))].sort(),
     groups: [...new Set(interviews.map(i => i.group).filter(Boolean))].sort(),
     stages: interviewStages,
-    nextSteps: [...new Set(interviews.map(i => i.nextSteps).filter(Boolean))].sort(),
-    priorities: ['Low', 'Medium', 'High']
+    nextSteps: [...new Set(interviews.map(i => i.nextSteps).filter(Boolean))].sort()
   }), [interviews, interviewStages]);
+
+  // Get firm logo URL based on firm name
+  const getFirmLogo = (firmName) => {
+    const logoMap = {
+      'Goldman Sachs': 'https://logo.clearbit.com/goldmansachs.com',
+      'Morgan Stanley': 'https://logo.clearbit.com/morganstanley.com',
+      'JPMorgan Chase': 'https://logo.clearbit.com/jpmorgan.com',
+      'Deutsche Bank': 'https://logo.clearbit.com/db.com',
+      'Credit Suisse': 'https://logo.clearbit.com/credit-suisse.com',
+      'UBS': 'https://logo.clearbit.com/ubs.com',
+      'Barclays': 'https://logo.clearbit.com/barclays.com',
+      'Citi': 'https://logo.clearbit.com/citigroup.com',
+      'Bank of America': 'https://logo.clearbit.com/bankofamerica.com',
+      'Wells Fargo': 'https://logo.clearbit.com/wellsfargo.com',
+      'Evercore': 'https://logo.clearbit.com/evercore.com',
+      'Lazard': 'https://logo.clearbit.com/lazard.com',
+      'Rothschild': 'https://logo.clearbit.com/rothschild.com',
+      'Jefferies': 'https://logo.clearbit.com/jefferies.com',
+      'PJT Partners': 'https://logo.clearbit.com/pjtpartners.com'
+    };
+    return logoMap[firmName] || null;
+  };
 
   // Filtered and sorted interviews
   const filteredAndSortedInterviews = useMemo(() => {
@@ -70,10 +88,9 @@ const Interviews = ({
       const matchesGroup = filters.groups.length === 0 || filters.groups.includes(interview.group);
       const matchesStage = filters.stages.length === 0 || filters.stages.includes(interview.stage);
       const matchesNextSteps = filters.nextSteps.length === 0 || filters.nextSteps.includes(interview.nextSteps);
-      const matchesPriority = filters.priorities.length === 0 || filters.priorities.includes(interview.priority);
       
       return matchesSearch && matchesCompany && matchesPosition && matchesGroup && 
-             matchesStage && matchesNextSteps && matchesPriority;
+             matchesStage && matchesNextSteps;
     });
 
     if (sortField) {
@@ -122,31 +139,23 @@ const Interviews = ({
       positions: [],
       groups: [],
       stages: [],
-      nextSteps: [],
-      priorities: []
+      nextSteps: []
     });
   };
 
   const getStageColor = (stage) => {
     switch (stage) {
-      case 'Applied': return 'bg-gray-50 text-gray-700 border-gray-200';
-      case 'Phone Screen': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'First Round': return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'Second Round': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-      case 'Final Round': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'Not Yet Applied': return 'bg-gray-50 text-gray-700 border-gray-200';
+      case 'Applied': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Phone Screen': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'First Round': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'Second Round': return 'bg-violet-50 text-violet-700 border-violet-200';
+      case 'Third Round': return 'bg-pink-50 text-pink-700 border-pink-200';
       case 'Case Study': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'Offer': return 'bg-green-50 text-green-700 border-green-200';
-      case 'Rejected': return 'bg-red-50 text-red-700 border-red-200';
+      case 'Superday': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'Offer Received': return 'bg-green-50 text-green-700 border-green-200';
       case 'Withdrawn': return 'bg-gray-50 text-gray-700 border-gray-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'High': return 'bg-red-50 text-red-700 border-red-200';
-      case 'Medium': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'Low': return 'bg-green-50 text-green-700 border-green-200';
+      case 'Rejected': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
@@ -169,28 +178,28 @@ const Interviews = ({
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
+          className={`flex items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium transition-all duration-200 ${
             selected.length > 0 
-              ? 'bg-blue-50 border-blue-200 text-blue-700' 
-              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' 
+              : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
           }`}
         >
           {title} {selected.length > 0 && `(${selected.length})`}
-          <ChevronDown className="w-4 h-4 ml-1" />
+          <ChevronDown className="w-4 h-4 ml-2" />
         </button>
         
         {isOpen && (
-          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-10 max-h-60 overflow-y-auto">
             <div className="p-2">
               {options.map(option => (
-                <label key={option} className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
+                <label key={option} className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
                   <input
                     type="checkbox"
                     checked={selected.includes(option)}
                     onChange={() => onChange(filterKey, option)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                   />
-                  <span className="ml-2 text-sm text-gray-900">{option}</span>
+                  <span className="ml-3 text-sm text-gray-900">{option}</span>
                 </label>
               ))}
             </div>
@@ -204,24 +213,24 @@ const Interviews = ({
     <div className="relative">
       <button
         onClick={() => setShowSortOptions(!showSortOptions)}
-        className={`flex items-center px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
-          sortField ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+        className={`flex items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium transition-all duration-200 ${
+          sortField ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
         }`}
       >
         <ArrowUpDown className="w-4 h-4 mr-2" />
         Sort {sortField && `(${sortField})`}
-        <ChevronDown className="w-4 h-4 ml-1" />
+        <ChevronDown className="w-4 h-4 ml-2" />
       </button>
       
       {showSortOptions && (
-        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
           <div className="p-2">
             {sortOptions.map(option => (
               <button
                 key={option.field}
                 onClick={() => handleSort(option.field)}
-                className={`w-full text-left p-2 hover:bg-gray-50 rounded text-sm ${
-                  sortField === option.field ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                className={`w-full text-left p-3 hover:bg-gray-50 rounded-lg text-sm transition-colors ${
+                  sortField === option.field ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-900'
                 }`}
               >
                 {option.label}
@@ -242,15 +251,30 @@ const Interviews = ({
     const referralContact = interview.referralContactId 
       ? contacts.find(c => c.id === interview.referralContactId)
       : null;
+    
+    const firmLogo = getFirmLogo(interview.firm);
 
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 cursor-pointer group"
            onClick={() => onShowInterviewDetail(interview.id)}>
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center flex-1">
-              <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold mr-4 shadow-md">
-                <Building2 className="w-6 h-6" />
+              <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold mr-4 shadow-md overflow-hidden">
+                {firmLogo ? (
+                  <img 
+                    src={firmLogo} 
+                    alt={interview.firm}
+                    className="w-full h-full object-contain p-2"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div className={`${firmLogo ? 'hidden' : 'flex'} w-full h-full items-center justify-center`}>
+                  <Building2 className="w-6 h-6" />
+                </div>
               </div>
               <div className="flex-1">
                 <h3 className="font-bold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">{interview.firm}</h3>
@@ -287,14 +311,10 @@ const Interviews = ({
               <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStageColor(interview.stage)}`}>
                 {interview.stage}
               </span>
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(interview.priority)}`}>
-                {interview.priority} Priority
-              </span>
             </div>
 
-            <div className="text-xs text-gray-500 flex items-center justify-between">
+            <div className="text-xs text-gray-500">
               <span>Stage Date: {interview.stageDate}</span>
-              <span>Applied: {interview.applicationDate}</span>
             </div>
 
             {referralContact && (
@@ -317,7 +337,7 @@ const Interviews = ({
                 <div className="flex items-center justify-between text-sm mb-1">
                   <span className="text-gray-600 font-medium">Next Steps:</span>
                   {interview.nextStepsDate && (
-                    <span className={`text-sm ${getDateUrgency(interview.nextStepsDate)}`}>
+                    <span className={`text-sm font-medium ${getDateUrgency(interview.nextStepsDate)}`}>
                       {interview.nextStepsDate}
                     </span>
                   )}
@@ -354,12 +374,12 @@ const Interviews = ({
         <table className="w-full">
           <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Company</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Position</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Stage & Priority</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Next Steps</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Progress</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Company</th>
+              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Position</th>
+              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Stage</th>
+              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Next Steps</th>
+              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Progress</th>
+              <th className="px-8 py-5 text-center text-sm font-semibold text-gray-700">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -367,26 +387,40 @@ const Interviews = ({
               const referralContact = interview.referralContactId 
                 ? contacts.find(c => c.id === interview.referralContactId)
                 : null;
+              const firmLogo = getFirmLogo(interview.firm);
 
               return (
                 <tr key={interview.id} className="hover:bg-gray-50 transition-colors cursor-pointer"
                     onClick={() => onShowInterviewDetail(interview.id)}>
-                  <td className="px-6 py-4">
+                  <td className="px-8 py-6">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm mr-4 shadow-sm">
-                        <Building2 className="w-5 h-5" />
+                      <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm mr-4 shadow-sm overflow-hidden">
+                        {firmLogo ? (
+                          <img 
+                            src={firmLogo} 
+                            alt={interview.firm}
+                            className="w-full h-full object-contain p-1"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div className={`${firmLogo ? 'hidden' : 'flex'} w-full h-full items-center justify-center`}>
+                          <Building2 className="w-5 h-5" />
+                        </div>
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900 hover:text-blue-600 transition-colors">{interview.firm}</div>
+                        <div className="font-semibold text-gray-900 hover:text-blue-600 transition-colors text-base">{interview.firm}</div>
                         {referralContact && (
-                          <div className="flex items-center text-xs text-green-600 mt-1">
+                          <div className="flex items-center text-xs text-green-600 mt-1 bg-green-50 px-2 py-1 rounded-full border border-green-200 inline-block">
                             <Award className="w-3 h-3 mr-1" />
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onShowContactDetail(referralContact.id);
                               }}
-                              className="hover:underline"
+                              className="hover:underline font-medium"
                             >
                               Referred by {referralContact.name}
                             </button>
@@ -395,63 +429,59 @@ const Interviews = ({
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-8 py-6">
                     <div>
-                      <div className="font-medium text-gray-900">{interview.position}</div>
+                      <div className="font-medium text-gray-900 text-base">{interview.position}</div>
                       {interview.group && <div className="text-xs text-gray-500 mt-1 font-medium">{interview.group}</div>}
-                      <div className="text-xs text-gray-500 mt-1">Applied: {interview.applicationDate}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="space-y-2">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStageColor(interview.stage)}`}>
+                  <td className="px-8 py-6 text-center">
+                    <div>
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStageColor(interview.stage)}`}>
                         {interview.stage}
                       </span>
-                      <div>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(interview.priority)}`}>
-                          {interview.priority}
-                        </span>
-                      </div>
-                      <div className="text-xs text-gray-500">{interview.stageDate}</div>
+                      <div className="text-sm mt-2 text-gray-800 font-medium">{interview.stageDate}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-8 py-6">
                     {interview.nextSteps && (
                       <div>
                         <div className="text-sm text-gray-900 font-medium">{interview.nextSteps}</div>
                         {interview.nextStepsDate && (
-                          <div className={`text-xs mt-1 ${getDateUrgency(interview.nextStepsDate)}`}>
+                          <div className={`text-sm mt-1 font-medium ${getDateUrgency(interview.nextStepsDate)}`}>
                             Due: {interview.nextStepsDate}
                           </div>
                         )}
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-8 py-6">
                     <div className="flex items-center text-xs text-gray-500">
                       <Calendar className="w-3 h-3 mr-1" />
                       {interview.rounds?.length || 0} rounds
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-3">
+                  <td className="px-8 py-6">
+                    <div className="flex items-center justify-center space-x-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onEdit(interview);
                         }}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                        className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                        title="Edit"
                       >
-                        Edit
+                        <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onDelete(interview.id);
                         }}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                        className="text-gray-400 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50"
+                        title="Delete"
                       >
-                        Delete
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -467,45 +497,45 @@ const Interviews = ({
   return (
     <div className="flex-1 bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-6">
+      <div className="bg-white border-b border-gray-200 px-8 py-8">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Interviews</h1>
-            <p className="text-gray-600 mt-1">Track your investment banking interviews</p>
-            <div className="flex items-center mt-3 text-sm text-gray-500">
-              <Target className="w-4 h-4 mr-1" />
+            <p className="text-gray-600 mt-2">Track your investment banking interviews</p>
+            <div className="flex items-center mt-4 text-sm text-gray-500">
+              <Target className="w-4 h-4 mr-2" />
               {filteredAndSortedInterviews.length} interviews
             </div>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             {/* View Toggle */}
             <div className="flex items-center bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('cards')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
                   viewMode === 'cards' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <Grid className="w-4 h-4 mr-1" />
+                <Grid className="w-4 h-4 mr-2" />
                 Cards
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
                   viewMode === 'table' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <List className="w-4 h-4 mr-1" />
+                <List className="w-4 h-4 mr-2" />
                 Table
               </button>
             </div>
             <button
               onClick={onAdd}
-              className="bg-blue-600 text-white px-6 py-2.5 rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm font-medium"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm font-medium"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Interview
@@ -515,16 +545,16 @@ const Interviews = ({
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-gray-200 px-8 py-6">
         <div className="flex items-center space-x-4 mb-4">
           <div className="flex-1 relative">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search interviews..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
           </div>
           
@@ -532,8 +562,8 @@ const Interviews = ({
           
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center px-4 py-3 border rounded-lg hover:bg-gray-50 transition-colors font-medium ${
-              Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-gray-300'
+            className={`flex items-center px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium ${
+              Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'text-gray-700'
             }`}
           >
             <Filter className="w-4 h-4 mr-2" />
@@ -543,7 +573,7 @@ const Interviews = ({
 
         {/* Filter Dropdowns */}
         {showFilters && (
-          <div className="flex flex-wrap items-center gap-3 p-4 bg-gray-50 rounded-lg">
+          <div className="flex flex-wrap items-center gap-4 p-6 bg-gray-50 rounded-xl border border-gray-200">
             <FilterDropdown
               title="Company"
               options={filterOptions.companies}
@@ -579,20 +609,13 @@ const Interviews = ({
               onChange={handleFilterChange}
               filterKey="nextSteps"
             />
-            <FilterDropdown
-              title="Priority"
-              options={filterOptions.priorities}
-              selected={filters.priorities}
-              onChange={handleFilterChange}
-              filterKey="priorities"
-            />
             
             {Object.values(filters).some(f => f.length > 0) && (
               <button
                 onClick={clearFilters}
-                className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg transition-colors"
+                className="flex items-center px-4 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg transition-colors border border-gray-300"
               >
-                <X className="w-4 h-4 mr-1" />
+                <X className="w-4 h-4 mr-2" />
                 Clear All
               </button>
             )}
@@ -601,7 +624,7 @@ const Interviews = ({
       </div>
 
       {/* Content */}
-      <div className="p-6">
+      <div className="p-8">
         {viewMode === 'cards' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAndSortedInterviews.map(interview => (
@@ -613,9 +636,9 @@ const Interviews = ({
         )}
 
         {filteredAndSortedInterviews.length === 0 && (
-          <div className="text-center py-16">
-            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No interviews found</h3>
+          <div className="text-center py-20">
+            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-6" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">No interviews found</h3>
             <p className="text-gray-500 mb-8 max-w-md mx-auto">
               {searchTerm || Object.values(filters).some(f => f.length > 0)
                 ? 'Try adjusting your search or filters to find what you\'re looking for.'
