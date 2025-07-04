@@ -1,151 +1,56 @@
-className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+import { useState, useEffect } from 'react';
+import { 
+  X, Mail, Phone, ExternalLink, MapPin, Calendar, 
+  Clock, User, Building2, ArrowLeft, Plus, 
+  MessageSquare, PhoneCall, Award, Edit2
+} from 'lucide-react';
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Interviewer
-                </label>
-                <input
-                  type="text"
-                  value={formData.interviewer}
-                  onChange={(e) => handleChange('interviewer', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Interviewer name"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Next Steps */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Next Steps</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Next Steps
-                </label>
-                <select
-                  value={formData.nextSteps}
-                  onChange={(e) => handleChange('nextSteps', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select next steps</option>
-                  {interviewNextSteps.map(step => (
-                    <option key={step} value={step}>{step}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Next Steps Date
-                </label>
-                <input
-                  type="date"
-                  value={formData.nextStepsDate}
-                  onChange={(e) => handleChange('nextStepsDate', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Referral Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Referral Information</h3>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Referred by (Optional)
-              </label>
-              <select
-                value={formData.referralContactId || ''}
-                onChange={(e) => handleChange('referralContactId', e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">No referral</option>
-                {contacts.map(contact => (
-                  <option key={contact.id} value={contact.id}>
-                    {contact.name} - {contact.firm}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes
-            </label>
-            <textarea
-              rows="4"
-              value={formData.notes}
-              onChange={(e) => handleChange('notes', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Any additional notes about this interview..."
-            />
-          </div>
-
-          {/* Submit Buttons */}
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Add Interview
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-// Edit Interview Modal
-export const EditInterviewModal = ({ 
+// Contact Modal
+export const ContactModal = ({ 
   isOpen, 
-  interview, 
   onClose, 
   onSubmit, 
-  interviewStages, 
-  interviewNextSteps, 
-  groups,
-  contacts 
+  networkingStatuses, 
+  nextStepsOptions, 
+  groups 
 }) => {
   const [formData, setFormData] = useState({
-    company: '',
+    name: '',
     position: '',
     group: '',
-    date: '',
-    time: '',
-    interviewer: '',
-    stage: 'Applied',
+    email: '',
+    phone: '',
+    linkedin: '',
+    firm: '',
+    networkingStatus: 'To Be Contacted',
+    networkingStatusDate: new Date().toISOString().split('T')[0],
     nextSteps: '',
     nextStepsDate: '',
-    notes: '',
-    referralContactId: null
+    referred: false,
+    referredBy: '',
+    notes: ''
   });
-
-  useEffect(() => {
-    if (interview) {
-      setFormData(interview);
-    }
-  }, [interview]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.company && formData.position) {
+    if (formData.name && formData.firm) {
       onSubmit(formData);
+      setFormData({
+        name: '',
+        position: '',
+        group: '',
+        email: '',
+        phone: '',
+        linkedin: '',
+        firm: '',
+        networkingStatus: 'To Be Contacted',
+        networkingStatusDate: new Date().toISOString().split('T')[0],
+        nextSteps: '',
+        nextStepsDate: '',
+        referred: false,
+        referredBy: '',
+        notes: ''
+      });
       onClose();
     }
   };
@@ -154,14 +59,14 @@ export const EditInterviewModal = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  if (!isOpen || !interview) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Edit Interview</h2>
+            <h2 className="text-xl font-bold text-gray-900">Add New Contact</h2>
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -171,35 +76,49 @@ export const EditInterviewModal = ({
           </div>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Company Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Company Information</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Company *
+                  Full Name *
                 </label>
                 <input
                   type="text"
                   required
-                  value={formData.company}
-                  onChange={(e) => handleChange('company', e.target.value)}
+                  value={formData.name}
+                  onChange={(e) => handleChange('name', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter full name"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Position *
+                  Firm *
                 </label>
                 <input
                   type="text"
                   required
+                  value={formData.firm}
+                  onChange={(e) => handleChange('firm', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Company/Firm name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Position
+                </label>
+                <input
+                  type="text"
                   value={formData.position}
                   onChange={(e) => handleChange('position', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Job title"
                 />
               </div>
 
@@ -218,72 +137,83 @@ export const EditInterviewModal = ({
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleChange('email', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="email@example.com"
+                />
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Stage
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => handleChange('phone', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  LinkedIn URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.linkedin}
+                  onChange={(e) => handleChange('linkedin', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="https://linkedin.com/in/..."
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Networking Status</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Current Status
                 </label>
                 <select
-                  value={formData.stage}
-                  onChange={(e) => handleChange('stage', e.target.value)}
+                  value={formData.networkingStatus}
+                  onChange={(e) => handleChange('networkingStatus', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  {interviewStages.map(stage => (
-                    <option key={stage} value={stage}>{stage}</option>
+                  {networkingStatuses.map(status => (
+                    <option key={status} value={status}>{status}</option>
                   ))}
                 </select>
               </div>
-            </div>
-          </div>
 
-          {/* Interview Details */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Interview Details</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date
+                  Status Date
                 </label>
                 <input
                   type="date"
-                  value={formData.date}
-                  onChange={(e) => handleChange('date', e.target.value)}
+                  value={formData.networkingStatusDate}
+                  onChange={(e) => handleChange('networkingStatusDate', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Time
-                </label>
-                <input
-                  type="time"
-                  value={formData.time}
-                  onChange={(e) => handleChange('time', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Interviewer
-                </label>
-                <input
-                  type="text"
-                  value={formData.interviewer}
-                  onChange={(e) => handleChange('interviewer', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Next Steps */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Next Steps</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Next Steps
@@ -294,7 +224,7 @@ export const EditInterviewModal = ({
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select next steps</option>
-                  {interviewNextSteps.map(step => (
+                  {nextStepsOptions.map(step => (
                     <option key={step} value={step}>{step}</option>
                   ))}
                 </select>
@@ -314,31 +244,37 @@ export const EditInterviewModal = ({
             </div>
           </div>
 
-          {/* Referral Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Referral Information</h3>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Referred by (Optional)
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="referred"
+                checked={formData.referred}
+                onChange={(e) => handleChange('referred', e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="referred" className="ml-2 text-sm font-medium text-gray-700">
+                This is a referred contact
               </label>
-              <select
-                value={formData.referralContactId || ''}
-                onChange={(e) => handleChange('referralContactId', e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">No referral</option>
-                {contacts.map(contact => (
-                  <option key={contact.id} value={contact.id}>
-                    {contact.name} - {contact.firm}
-                  </option>
-                ))}
-              </select>
             </div>
+
+            {formData.referred && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Referred By
+                </label>
+                <input
+                  type="text"
+                  value={formData.referredBy}
+                  onChange={(e) => handleChange('referredBy', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Who referred this contact?"
+                />
+              </div>
+            )}
           </div>
 
-          {/* Notes */}
-          <div>
+          <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Notes
             </label>
@@ -347,145 +283,11 @@ export const EditInterviewModal = ({
               value={formData.notes}
               onChange={(e) => handleChange('notes', e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Any additional notes about this contact..."
             />
           </div>
 
-          {/* Submit Buttons */}
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Save Changes
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-// Call Modal
-export const CallModal = ({ isOpen, onClose, onSubmit, newCall, setNewCall }) => {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (newCall.notes) {
-      onSubmit(newCall);
-      setNewCall({
-        type: 'Call',
-        date: new Date().toISOString().split('T')[0],
-        duration: '',
-        notes: '',
-        outcome: ''
-      });
-      onClose();
-    }
-  };
-
-  const handleChange = (field, value) => {
-    setNewCall(prev => ({ ...prev, [field]: value }));
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Add Interaction</h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Interaction Type
-            </label>
-            <select
-              value={newCall.type}
-              onChange={(e) => handleChange('type', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="Call">Phone Call</option>
-              <option value="Email">Email</option>
-              <option value="Coffee">Coffee Meeting</option>
-              <option value="Lunch">Lunch</option>
-              <option value="Video Call">Video Call</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date
-            </label>
-            <input
-              type="date"
-              value={newCall.date}
-              onChange={(e) => handleChange('date', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Duration
-            </label>
-            <input
-              type="text"
-              value={newCall.duration}
-              onChange={(e) => handleChange('duration', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g., 30 min"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Outcome
-            </label>
-            <select
-              value={newCall.outcome}
-              onChange={(e) => handleChange('outcome', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select outcome</option>
-              <option value="Excellent">Excellent</option>
-              <option value="Positive">Positive</option>
-              <option value="Neutral">Neutral</option>
-              <option value="Sent">Sent</option>
-              <option value="No Response">No Response</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes *
-            </label>
-            <textarea
-              required
-              rows="4"
-              value={newCall.notes}
-              onChange={(e) => handleChange('notes', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Notes about this interaction..."
-            />
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+          <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
@@ -506,7 +308,6 @@ export const CallModal = ({ isOpen, onClose, onSubmit, newCall, setNewCall }) =>
   );
 };
 
-// Contact Detail Modal
 export const ContactDetailModal = ({ 
   isOpen, 
   contact, 
@@ -549,32 +350,6 @@ export const ContactDetailModal = ({
                   <h1 className="text-2xl font-bold text-gray-900">{contact.name}</h1>
                   <p className="text-gray-600">{contact.position} at {contact.firm}</p>
                 </div>
-              </div>
-
-              {/* Networking History */}
-              {contact.networkingHistory && contact.networkingHistory.length > 0 && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Networking History</h3>
-                  <div className="space-y-3">
-                    {contact.networkingHistory.map((entry) => (
-                      <div key={entry.id} className="border-l-4 border-blue-200 pl-4 py-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-900">{entry.status}</span>
-                          <span className="text-sm text-gray-500">{entry.date}</span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">{entry.notes}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -724,306 +499,32 @@ export const ContactDetailModal = ({
                       </button>
                     </div>
                   )}
-                </div>import { useState, useEffect } from 'react';
-import { 
-  X, Mail, Phone, ExternalLink, MapPin, Calendar, 
-  Clock, User, Building2, ArrowLeft, Plus, 
-  MessageSquare, PhoneCall, Award, Edit2
-} from 'lucide-react';
+                </div>
+              </div>
 
-// Contact Modal
-export const ContactModal = ({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  networkingStatuses, 
-  nextStepsOptions, 
-  groups 
-}) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    position: '',
-    group: '',
-    email: '',
-    phone: '',
-    linkedin: '',
-    firm: '',
-    networkingStatus: 'To Be Contacted',
-    networkingStatusDate: new Date().toISOString().split('T')[0],
-    nextSteps: '',
-    nextStepsDate: '',
-    referred: false,
-    referredBy: '',
-    notes: ''
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (formData.name && formData.firm) {
-      onSubmit(formData);
-      setFormData({
-        name: '',
-        position: '',
-        group: '',
-        email: '',
-        phone: '',
-        linkedin: '',
-        firm: '',
-        networkingStatus: 'To Be Contacted',
-        networkingStatusDate: new Date().toISOString().split('T')[0],
-        nextSteps: '',
-        nextStepsDate: '',
-        referred: false,
-        referredBy: '',
-        notes: ''
-      });
-      onClose();
-    }
-  };
-
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Add New Contact</h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
+              {contact.networkingHistory && contact.networkingHistory.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Networking History</h3>
+                  <div className="space-y-3">
+                    {contact.networkingHistory.map((entry) => (
+                      <div key={entry.id} className="border-l-4 border-blue-200 pl-4 py-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-900">{entry.status}</span>
+                          <span className="text-sm text-gray-500">{entry.date}</span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{entry.notes}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        
-        <form onSubmit={handleSubmit} className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => handleChange('name', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter full name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Firm *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.firm}
-                  onChange={(e) => handleChange('firm', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Company/Firm name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Position
-                </label>
-                <input
-                  type="text"
-                  value={formData.position}
-                  onChange={(e) => handleChange('position', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Job title"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Group
-                </label>
-                <select
-                  value={formData.group}
-                  onChange={(e) => handleChange('group', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select group</option>
-                  {groups.map(group => (
-                    <option key={group} value={group}>{group}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Contact Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleChange('email', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="email@example.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => handleChange('phone', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="+1 (555) 123-4567"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  LinkedIn URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.linkedin}
-                  onChange={(e) => handleChange('linkedin', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="https://linkedin.com/in/..."
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Networking Status */}
-          <div className="mt-6 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Networking Status</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Status
-                </label>
-                <select
-                  value={formData.networkingStatus}
-                  onChange={(e) => handleChange('networkingStatus', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  {networkingStatuses.map(status => (
-                    <option key={status} value={status}>{status}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status Date
-                </label>
-                <input
-                  type="date"
-                  value={formData.networkingStatusDate}
-                  onChange={(e) => handleChange('networkingStatusDate', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Next Steps
-                </label>
-                <select
-                  value={formData.nextSteps}
-                  onChange={(e) => handleChange('nextSteps', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select next steps</option>
-                  {nextStepsOptions.map(step => (
-                    <option key={step} value={step}>{step}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Next Steps Date
-                </label>
-                <input
-                  type="date"
-                  value={formData.nextStepsDate}
-                  onChange={(e) => handleChange('nextStepsDate', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Referral Information */}
-          <div className="mt-6 space-y-4">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="referred"
-                checked={formData.referred}
-                onChange={(e) => handleChange('referred', e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <label htmlFor="referred" className="ml-2 text-sm font-medium text-gray-700">
-                This is a referred contact
-              </label>
-            </div>
-
-            {formData.referred && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Referred By
-                </label>
-                <input
-                  type="text"
-                  value={formData.referredBy}
-                  onChange={(e) => handleChange('referredBy', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Who referred this contact?"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Notes */}
-          <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes
-            </label>
-            <textarea
-              rows="4"
-              value={formData.notes}
-              onChange={(e) => handleChange('notes', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Any additional notes about this contact..."
-            />
-          </div>
-
-          {/* Submit Buttons */}
-          <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+      </div>
+    </div>
+  );
+};gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
             >
               Cancel
             </button>
@@ -1104,7 +605,6 @@ export const EditContactModal = ({
         
         <form onSubmit={handleSubmit} className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Basic Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
               
@@ -1163,7 +663,6 @@ export const EditContactModal = ({
               </div>
             </div>
 
-            {/* Contact Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
               
@@ -1205,7 +704,6 @@ export const EditContactModal = ({
             </div>
           </div>
 
-          {/* Networking Status */}
           <div className="mt-6 space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">Networking Status</h3>
             
@@ -1267,7 +765,6 @@ export const EditContactModal = ({
             </div>
           </div>
 
-          {/* Referral Information */}
           <div className="mt-6 space-y-4">
             <div className="flex items-center">
               <input
@@ -1297,7 +794,6 @@ export const EditContactModal = ({
             )}
           </div>
 
-          {/* Notes */}
           <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Notes
@@ -1310,7 +806,6 @@ export const EditContactModal = ({
             />
           </div>
 
-          {/* Submit Buttons */}
           <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
             <button
               type="button"
@@ -1332,63 +827,61 @@ export const EditContactModal = ({
   );
 };
 
-// Interview Modal
-export const InterviewModal = ({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  interviewStages, 
-  interviewNextSteps, 
-  groups,
-  contacts 
-}) => {
-  const [formData, setFormData] = useState({
-    company: '',
-    position: '',
-    group: '',
-    date: '',
-    time: '',
-    interviewer: '',
-    stage: 'Applied',
-    nextSteps: '',
-    nextStepsDate: '',
-    notes: '',
-    referralContactId: null
-  });
+// Simple modals for now - you can expand these later
+export const InterviewModal = ({ isOpen, onClose, onSubmit }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+        <h2 className="text-xl font-bold mb-4">Add Interview</h2>
+        <p className="text-gray-600 mb-4">Interview modal coming soon...</p>
+        <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded-lg">Close</button>
+      </div>
+    </div>
+  );
+};
 
+export const EditInterviewModal = ({ isOpen, onClose, onSubmit }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+        <h2 className="text-xl font-bold mb-4">Edit Interview</h2>
+        <p className="text-gray-600 mb-4">Edit interview modal coming soon...</p>
+        <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded-lg">Close</button>
+      </div>
+    </div>
+  );
+};
+
+export const CallModal = ({ isOpen, onClose, onSubmit, newCall, setNewCall }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.company && formData.position) {
-      onSubmit(formData);
-      setFormData({
-        company: '',
-        position: '',
-        group: '',
-        date: '',
-        time: '',
-        interviewer: '',
-        stage: 'Applied',
-        nextSteps: '',
-        nextStepsDate: '',
+    if (newCall.notes) {
+      onSubmit(newCall);
+      setNewCall({
+        type: 'Call',
+        date: new Date().toISOString().split('T')[0],
+        duration: '',
         notes: '',
-        referralContactId: null
+        outcome: ''
       });
       onClose();
     }
   };
 
   const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setNewCall(prev => ({ ...prev, [field]: value }));
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Add New Interview</h2>
+            <h2 className="text-xl font-bold text-gray-900">Add Interaction</h2>
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -1398,96 +891,83 @@ export const InterviewModal = ({
           </div>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Company Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Company Information</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Company *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.company}
-                  onChange={(e) => handleChange('company', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Company name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Position *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.position}
-                  onChange={(e) => handleChange('position', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Position title"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Group
-                </label>
-                <select
-                  value={formData.group}
-                  onChange={(e) => handleChange('group', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select group</option>
-                  {groups.map(group => (
-                    <option key={group} value={group}>{group}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Stage
-                </label>
-                <select
-                  value={formData.stage}
-                  onChange={(e) => handleChange('stage', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  {interviewStages.map(stage => (
-                    <option key={stage} value={stage}>{stage}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Interaction Type
+            </label>
+            <select
+              value={newCall.type}
+              onChange={(e) => handleChange('type', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="Call">Phone Call</option>
+              <option value="Email">Email</option>
+              <option value="Coffee">Coffee Meeting</option>
+              <option value="Lunch">Lunch</option>
+              <option value="Video Call">Video Call</option>
+            </select>
           </div>
 
-          {/* Interview Details */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Interview Details</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => handleChange('date', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Date
+            </label>
+            <input
+              type="date"
+              value={newCall.date}
+              onChange={(e) => handleChange('date', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Time
-                </label>
-                <input
-                  type="time"
-                  value={formData.time}
-                  onChange={(e) => handleChange('time', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Duration
+            </label>
+            <input
+              type="text"
+              value={newCall.duration}
+              onChange={(e) => handleChange('duration', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., 30 min"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Outcome
+            </label>
+            <select
+              value={newCall.outcome}
+              onChange={(e) => handleChange('outcome', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select outcome</option>
+              <option value="Excellent">Excellent</option>
+              <option value="Positive">Positive</option>
+              <option value="Neutral">Neutral</option>
+              <option value="Sent">Sent</option>
+              <option value="No Response">No Response</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Notes *
+            </label>
+            <textarea
+              required
+              rows="4"
+              value={newCall.notes}
+              onChange={(e) => handleChange('notes', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Notes about this interaction..."
+            />
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-3 text-
