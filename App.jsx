@@ -1,34 +1,4 @@
-<span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(contact.networkingStatus)}`}>
-                      {contact.networkingStatus}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    {contact.location}
-                  </div>
-
-                  {contact.referred && (
-                    <div className="flex items-center text-sm text-green-600">
-                      <Check className="w-4 h-4 mr-2" />
-                      Referred by {contact.referredBy}
-                    </div>
-                  )}
-
-                  <div className="pt-3 border-t border-gray-100">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Next Steps:</span>
-                      <span className="font-medium text-gray-900">{contact.nextStepsDate}</span>
-                    </div>
-                    <p className="text-sm text-gray-700 mt-1">{contact.nextSteps}</p>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-3">
-                    <div className="flex items-center space-x-3">
-                      <a href={`mailto:${contact.email}`} className="text-gray-400 hover:text-blue-600 transition-colors">
-                        <Mail className="w-4 h-4" />
-                      </a>
-                      <a href={`tel:${contact.phone}`} className="text-gray-400 hover:text-green-600 transition-colors">
+<a href={`tel:${contact.phone}`} className="text-gray-400 hover:text-green-600 transition-colors">
                         <Phone className="w-4 h-4" />
                       </a>
                       <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600 transition-colors">
@@ -582,7 +552,57 @@
                 <option value="">Select Outcome</option>
                 <option value="Excellent">Excellent</option>
                 <option value="Positive">Positive</option>
-                <option value="Neutral">Neutral</option>import { useState } from 'react';
+                <option value="Neutral">Neutral</option>
+                <option value="Sent">Sent</option>
+                <option value="No Response">No Response</option>
+              </select>
+              <textarea
+                placeholder="Notes about this interaction..."
+                value={newCall.notes}
+                onChange={(e) => setNewCall({...newCall, notes: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows="4"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+            <button
+              onClick={() => setShowCallModal(false)}
+              className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={addCallRecord}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Add Interaction
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  );
+
+  return (
+    <div className="flex bg-gray-50 min-h-screen">
+      <Navigation />
+      {selectedContactId ? (
+        <ContactDetailPage />
+      ) : (
+        <div className="flex-1">
+          {activeTab === 'interviews' && <Interviews />}
+          {activeTab === 'documents' && <Documents />}
+        </div>
+      )}
+      <EditContactModal />
+      <ContactModal />
+      <CallModal />
+    </div>
+  );
+} === 'dashboard' && <Dashboard />}
+          {activeTab === 'contacts' && <Contacts />}
+          {activeTabimport { useState } from 'react';
 import { User, Calendar, FileText, BarChart3, Search, Plus, Edit2, Trash2, Phone, ExternalLink, Check, Filter, ArrowUpDown, Clock, DollarSign, ArrowLeft, MessageSquare, PhoneCall, Mail, MapPin, Building2, ChevronRight, Eye } from 'lucide-react';
 
 export default function App() {
@@ -667,42 +687,6 @@ export default function App() {
           duration: '30 min',
           notes: 'Monthly check-in. Discussed market trends and potential openings.',
           outcome: 'Positive'
-        },
-        {
-          id: 2,
-          type: 'Coffee',
-          date: '2025-05-15',
-          duration: '60 min',
-          notes: 'In-person coffee meeting. Discussed career progression and industry insights.',
-          outcome: 'Excellent'
-        }
-      ]
-    },
-    {
-      id: 3,
-      name: 'Michael Chen',
-      position: 'Managing Director',
-      email: 'michael.chen@jpm.com',
-      phone: '+1 (212) 555-0789',
-      linkedin: 'https://linkedin.com/in/michaelchen',
-      firm: 'JPMorgan Chase',
-      location: 'New York, NY',
-      networkingStatus: 'Initial Outreach Sent',
-      networkingDate: 'Jun 28, 2025',
-      nextSteps: 'Follow up Email',
-      nextStepsDate: 'Jul 05, 2025',
-      referred: true,
-      referredBy: 'Kevin Burns',
-      notes: 'Senior MD in healthcare group. Potential mentor opportunity.',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      callHistory: [
-        {
-          id: 1,
-          type: 'Email',
-          date: '2025-06-28',
-          duration: '',
-          notes: 'Initial outreach email sent through Kevin Burns referral.',
-          outcome: 'Sent'
         }
       ]
     }
@@ -849,7 +833,7 @@ export default function App() {
         ...newContact,
         id: Date.now(),
         callHistory: [],
-        avatar: `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?w=150&h=150&fit=crop&crop=face`
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
       };
       setContacts([...contacts, contact]);
       setNewContact({
@@ -1267,4 +1251,34 @@ export default function App() {
 
                 <div className="space-y-3">
                   <div>
-                    <span className={`inline-flex items
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(contact.networkingStatus)}`}>
+                      {contact.networkingStatus}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-gray-600">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {contact.location}
+                  </div>
+
+                  {contact.referred && (
+                    <div className="flex items-center text-sm text-green-600">
+                      <Check className="w-4 h-4 mr-2" />
+                      Referred by {contact.referredBy}
+                    </div>
+                  )}
+
+                  <div className="pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Next Steps:</span>
+                      <span className="font-medium text-gray-900">{contact.nextStepsDate}</span>
+                    </div>
+                    <p className="text-sm text-gray-700 mt-1">{contact.nextSteps}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3">
+                    <div className="flex items-center space-x-3">
+                      <a href={`mailto:${contact.email}`} className="text-gray-400 hover:text-blue-600 transition-colors">
+                        <Mail className="w-4 h-4" />
+                      </a>
+                      <a href={`tel:${contact.phone}`} className="text-gray-400
