@@ -32,10 +32,10 @@ export default function App() {
       phone: '+1 (212) 555-0123',
       linkedin: 'https://linkedin.com/in/kevinburns',
       firm: 'Evercore',
-      networkingStatus: 'Follow up Call Scheduled',
+      networkingStatus: 'Intro Call Scheduled',
       networkingDate: '2025-06-15',
       nextSteps: 'Prepare for Upcoming Call',
-      nextStepsDate: '2025-06-20',
+      nextStepsDate: '2025-07-20',
       referred: true,
       notes: 'Very interested in TMT deals. Strong technical background.',
       interactions: [
@@ -64,10 +64,10 @@ export default function App() {
       phone: '+1 (212) 555-0456',
       linkedin: 'https://linkedin.com/in/sarahjohnson',
       firm: 'Morgan Stanley',
-      networkingStatus: 'Regular Contact',
-      networkingDate: '2025-06-25',
-      nextSteps: 'Monthly Check-in Call',
-      nextStepsDate: '2025-07-25',
+      networkingStatus: 'Follow-Up Call Complete',
+      networkingDate: '2025-05-25',
+      nextSteps: '',
+      nextStepsDate: '',
       referred: false,
       notes: 'Senior contact who provides market insights.',
       interactions: [
@@ -91,7 +91,7 @@ export default function App() {
       firm: 'JPMorgan Chase',
       networkingStatus: 'Initial Outreach Sent',
       networkingDate: '2025-07-01',
-      nextSteps: 'Follow up Email',
+      nextSteps: 'Send Follow-Up Email',
       nextStepsDate: '2025-07-08',
       referred: true,
       notes: 'Alumni connection, interested in FIG deals.',
@@ -105,12 +105,10 @@ export default function App() {
       firm: 'Goldman Sachs',
       position: 'Investment Banking Analyst',
       group: 'TMT',
-      stage: 'Final Round',
+      stage: 'Superday',
       stageDate: '2025-07-10',
       nextSteps: 'Send Thank You Email',
       nextStepsDate: '2025-07-11',
-      priority: 'High',
-      applicationDate: '2025-06-01',
       notes: 'Technical interview focus on valuation models',
       referralContactId: 1,
       rounds: [
@@ -143,8 +141,6 @@ export default function App() {
       stageDate: '2025-07-15',
       nextSteps: 'Schedule Next Round',
       nextStepsDate: '2025-07-16',
-      priority: 'Medium',
-      applicationDate: '2025-06-10',
       notes: 'Initial screening call',
       referralContactId: 2,
       rounds: [
@@ -161,56 +157,52 @@ export default function App() {
     }
   ]);
 
-  // Constants
+  // Constants - Updated networking statuses and next steps
   const networkingStatuses = [
-    'To Be Contacted',
+    'Not Yet Contacted',
     'Initial Outreach Sent',
-    'Follow up Call Scheduled',
+    'Intro Call Scheduled',
     'Intro Call Complete',
-    'Follow up Email Sent',
-    'Meeting Scheduled',
-    'Regular Contact'
+    'Follow-Up Email Sent',
+    'Follow-Up Call Scheduled',
+    'Follow-Up Call Complete'
   ];
 
   const nextStepsOptions = [
     'Send Initial Outreach',
-    'Follow up Email',
-    'Schedule Call',
+    'Schedule Intro Call',
     'Prepare for Upcoming Call',
     'Send Thank You Email',
-    'Schedule Intro Call',
     'Send Resume',
-    'Send Thank You Note',
-    'Schedule Follow-up Meeting',
-    'Send Proposal',
-    'Prepare Interview Materials',
-    'Complete Application',
-    'No Action Required'
+    'Send Follow-Up Email',
+    'Schedule Follow-Up Call'
   ];
 
+  // Updated interview stages and next steps
   const interviewStages = [
+    'Not Yet Applied',
     'Applied',
     'Phone Screen',
     'First Round',
     'Second Round',
-    'Final Round',
+    'Third Round',
     'Case Study',
-    'Offer',
-    'Rejected',
-    'Withdrawn'
+    'Superday',
+    'Offer Received',
+    'Withdrawn',
+    'Rejected'
   ];
 
   const interviewNextSteps = [
-    'Wait for Response',
-    'Schedule Next Round',
-    'Prepare Case Study',
-    'Follow Up on Application',
+    'Submit Application',
+    'Follow-Up on Application',
+    'Prepare for Upcoming Interview',
     'Send Thank You Email',
     'Submit Additional Materials',
-    'Schedule Call with Team',
-    'Complete Assessment',
-    'Negotiate Offer',
-    'Make Decision'
+    'Follow-Up on Status',
+    'Schedule Next Round',
+    'Complete Case Study',
+    'Negotiate Offer'
   ];
 
   const groups = ['TMT', 'Healthcare', 'Financial Services', 'Real Estate', 'Energy', 'Consumer'];
@@ -238,9 +230,15 @@ export default function App() {
   };
 
   const addInterview = (interviewData) => {
+    // Auto-match referral contact by firm
+    const matchingContact = contacts.find(contact => 
+      contact.firm.toLowerCase() === interviewData.firm.toLowerCase()
+    );
+    
     const interview = {
       ...interviewData,
       id: Date.now(),
+      referralContactId: matchingContact ? matchingContact.id : interviewData.referralContactId,
       rounds: []
     };
     setInterviews([...interviews, interview]);
