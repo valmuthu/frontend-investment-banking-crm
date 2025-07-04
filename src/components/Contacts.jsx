@@ -3,7 +3,7 @@ import {
   Search, Plus, Filter, ArrowUpDown, Grid, List, 
   Edit2, Trash2, Eye, Mail, Phone, ExternalLink, 
   Check, ChevronRight, X, ChevronDown, Linkedin,
-  Building2, Calendar, Users
+  Building2, Calendar, Users, Copy, CheckCircle
 } from 'lucide-react';
 
 const Contacts = ({ 
@@ -23,6 +23,7 @@ const Contacts = ({
   const [showFilters, setShowFilters] = useState(false);
   const [showSortOptions, setShowSortOptions] = useState(false);
   const [hoveredContact, setHoveredContact] = useState(null);
+  const [copiedInfo, setCopiedInfo] = useState(null);
   
   // Filter states
   const [filters, setFilters] = useState({
@@ -44,6 +45,17 @@ const Contacts = ({
     { field: 'nextSteps', label: 'Next Steps' },
     { field: 'nextStepsDate', label: 'Next Steps Date' }
   ];
+
+  // Copy to clipboard function
+  const copyToClipboard = async (text, type) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedInfo(type);
+      setTimeout(() => setCopiedInfo(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   // Get unique values for filters
   const filterOptions = useMemo(() => ({
@@ -129,13 +141,13 @@ const Contacts = ({
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'To Be Contacted': return 'bg-gray-50 text-gray-700 border-gray-200';
+      case 'Not Yet Contacted': return 'bg-gray-50 text-gray-700 border-gray-200';
       case 'Initial Outreach Sent': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'Follow up Call Scheduled': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'Intro Call Scheduled': return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'Intro Call Complete': return 'bg-green-50 text-green-700 border-green-200';
-      case 'Follow up Email Sent': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'Meeting Scheduled': return 'bg-orange-50 text-orange-700 border-orange-200';
-      case 'Regular Contact': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'Follow-Up Email Sent': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'Follow-Up Call Scheduled': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'Follow-Up Call Complete': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
@@ -151,6 +163,16 @@ const Contacts = ({
     return 'text-gray-600';
   };
 
+  const getDateUrgency = (date) => {
+    if (!date) return 'text-gray-600';
+    const today = new Date();
+    const dateObj = new Date(date);
+    const diffDays = Math.ceil((dateObj - today) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return 'text-red-600 font-bold';
+    return 'text-gray-800 font-medium';
+  };
+
   const FilterDropdown = ({ title, options, selected, onChange, filterKey }) => {
     const [isOpen, setIsOpen] = useState(false);
     
@@ -158,28 +180,28 @@ const Contacts = ({
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
+          className={`flex items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium transition-all duration-200 ${
             selected.length > 0 
-              ? 'bg-blue-50 border-blue-200 text-blue-700' 
-              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' 
+              : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
           }`}
         >
           {title} {selected.length > 0 && `(${selected.length})`}
-          <ChevronDown className="w-4 h-4 ml-1" />
+          <ChevronDown className="w-4 h-4 ml-2" />
         </button>
         
         {isOpen && (
-          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-10 max-h-60 overflow-y-auto">
             <div className="p-2">
               {options.map(option => (
-                <label key={option} className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
+                <label key={option} className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
                   <input
                     type="checkbox"
                     checked={selected.includes(option)}
                     onChange={() => onChange(filterKey, option)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                   />
-                  <span className="ml-2 text-sm text-gray-900">{option}</span>
+                  <span className="ml-3 text-sm text-gray-900">{option}</span>
                 </label>
               ))}
             </div>
@@ -193,24 +215,24 @@ const Contacts = ({
     <div className="relative">
       <button
         onClick={() => setShowSortOptions(!showSortOptions)}
-        className={`flex items-center px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
-          sortField ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+        className={`flex items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium transition-all duration-200 ${
+          sortField ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
         }`}
       >
         <ArrowUpDown className="w-4 h-4 mr-2" />
         Sort {sortField && `(${sortField})`}
-        <ChevronDown className="w-4 h-4 ml-1" />
+        <ChevronDown className="w-4 h-4 ml-2" />
       </button>
       
       {showSortOptions && (
-        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
           <div className="p-2">
             {sortOptions.map(option => (
               <button
                 key={option.field}
                 onClick={() => handleSort(option.field)}
-                className={`w-full text-left p-2 hover:bg-gray-50 rounded text-sm ${
-                  sortField === option.field ? 'bg-blue-50 text-blue-700' : 'text-gray-900'
+                className={`w-full text-left p-3 hover:bg-gray-50 rounded-lg text-sm transition-colors ${
+                  sortField === option.field ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-900'
                 }`}
               >
                 {option.label}
@@ -228,7 +250,7 @@ const Contacts = ({
   );
 
   const ContactCard = ({ contact }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 cursor-pointer group"
          onClick={() => onShowContactDetail(contact.id)}>
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
@@ -238,11 +260,11 @@ const Contacts = ({
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">{contact.name}</h3>
-              <p className="text-gray-600 font-medium">{contact.position}</p>
               <div className="flex items-center mt-1">
                 <Building2 className="w-4 h-4 text-gray-400 mr-1" />
                 <p className="text-sm font-semibold text-gray-900">{contact.firm}</p>
               </div>
+              <p className="text-gray-600 font-medium text-sm">{contact.position}</p>
               {contact.group && <p className="text-xs text-gray-500 mt-1 font-medium">{contact.group}</p>}
             </div>
           </div>
@@ -283,7 +305,7 @@ const Contacts = ({
                 </div>
               )}
             </div>
-            <p className="text-xs text-gray-500">
+            <p className={`text-xs ${getDateUrgency(contact.networkingDate)}`}>
               Status Date: {contact.networkingDate}
             </p>
           </div>
@@ -301,22 +323,26 @@ const Contacts = ({
           )}
 
           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               <div className="relative">
                 <button
                   onMouseEnter={() => setHoveredContact(`email-${contact.id}`)}
                   onMouseLeave={() => setHoveredContact(null)}
-                  className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                  className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50 group/btn"
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.open(`mailto:${contact.email}`, '_blank');
+                    copyToClipboard(contact.email, `email-${contact.id}`);
                   }}
                 >
-                  <Mail className="w-4 h-4" />
+                  {copiedInfo === `email-${contact.id}` ? (
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <Mail className="w-4 h-4" />
+                  )}
                 </button>
                 {hoveredContact === `email-${contact.id}` && (
-                  <div className="absolute bottom-10 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                    {contact.email}
+                  <div className="absolute bottom-10 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                    Click to copy: {contact.email}
                   </div>
                 )}
               </div>
@@ -327,14 +353,18 @@ const Contacts = ({
                   className="text-gray-400 hover:text-green-600 transition-colors p-2 rounded-lg hover:bg-green-50"
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.open(`tel:${contact.phone}`, '_blank');
+                    copyToClipboard(contact.phone, `phone-${contact.id}`);
                   }}
                 >
-                  <Phone className="w-4 h-4" />
+                  {copiedInfo === `phone-${contact.id}` ? (
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <Phone className="w-4 h-4" />
+                  )}
                 </button>
                 {hoveredContact === `phone-${contact.id}` && (
-                  <div className="absolute bottom-10 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                    {contact.phone}
+                  <div className="absolute bottom-10 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                    Click to copy: {contact.phone}
                   </div>
                 )}
               </div>
@@ -345,14 +375,18 @@ const Contacts = ({
                   className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50"
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.open(contact.linkedin, '_blank');
+                    copyToClipboard(contact.linkedin, `linkedin-${contact.id}`);
                   }}
                 >
-                  <Linkedin className="w-4 h-4" />
+                  {copiedInfo === `linkedin-${contact.id}` ? (
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <Linkedin className="w-4 h-4" />
+                  )}
                 </button>
                 {hoveredContact === `linkedin-${contact.id}` && (
-                  <div className="absolute bottom-10 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                    LinkedIn Profile
+                  <div className="absolute bottom-10 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                    Click to copy LinkedIn
                   </div>
                 )}
               </div>
@@ -382,28 +416,28 @@ const Contacts = ({
         <table className="w-full">
           <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Contact</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Company & Role</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Next Steps</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Contact Info</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Contact</th>
+              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Company & Role</th>
+              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Status</th>
+              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Next Steps</th>
+              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Contact Info</th>
+              <th className="px-8 py-5 text-center text-sm font-semibold text-gray-700">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filteredAndSortedContacts.map(contact => (
               <tr key={contact.id} className="hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={() => onShowContactDetail(contact.id)}>
-                <td className="px-6 py-4">
+                <td className="px-8 py-6">
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4 shadow-sm">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4 shadow-sm">
                       {contact.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900 hover:text-blue-600 transition-colors">{contact.name}</div>
-                      <div className="flex items-center mt-1">
+                      <div className="font-semibold text-gray-900 hover:text-blue-600 transition-colors text-base">{contact.name}</div>
+                      <div className="flex items-center mt-2 space-x-3">
                         {contact.referred && (
-                          <div className="flex items-center text-xs text-green-600 mr-2">
+                          <div className="flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-200">
                             <Check className="w-3 h-3 mr-1" />
                             Referred
                           </div>
@@ -416,49 +450,55 @@ const Contacts = ({
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-8 py-6">
                   <div>
-                    <div className="flex items-center font-semibold text-gray-900">
+                    <div className="flex items-center font-semibold text-gray-900 text-base">
                       <Building2 className="w-4 h-4 text-gray-400 mr-2" />
                       {contact.firm}
                     </div>
-                    <div className="text-sm text-gray-600 mt-1">{contact.position}</div>
+                    <div className="text-sm text-gray-600 mt-1 font-medium">{contact.position}</div>
                     {contact.group && <div className="text-xs text-gray-500 mt-1 font-medium">{contact.group}</div>}
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(contact.networkingStatus)}`}>
-                    {contact.networkingStatus}
-                  </span>
-                  <div className="text-xs text-gray-500 mt-1">{contact.networkingDate}</div>
+                <td className="px-8 py-6 text-center">
+                  <div>
+                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStatusColor(contact.networkingStatus)}`}>
+                      {contact.networkingStatus}
+                    </span>
+                    <div className={`text-sm mt-2 ${getDateUrgency(contact.networkingDate)}`}>{contact.networkingDate}</div>
+                  </div>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-8 py-6">
                   {contact.nextSteps && (
                     <div>
                       <div className="text-sm text-gray-900 font-medium">{contact.nextSteps}</div>
-                      <div className={`text-xs mt-1 ${getPriorityColor(contact.nextStepsDate)}`}>
+                      <div className={`text-sm mt-1 font-medium ${getPriorityColor(contact.nextStepsDate)}`}>
                         Due: {contact.nextStepsDate}
                       </div>
                     </div>
                   )}
                 </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center space-x-2">
+                <td className="px-8 py-6">
+                  <div className="flex items-center space-x-3">
                     <div className="relative">
                       <button
                         onMouseEnter={() => setHoveredContact(`table-email-${contact.id}`)}
                         onMouseLeave={() => setHoveredContact(null)}
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(`mailto:${contact.email}`, '_blank');
+                          copyToClipboard(contact.email, `table-email-${contact.id}`);
                         }}
-                        className="text-gray-400 hover:text-blue-600 transition-colors p-1.5 rounded hover:bg-blue-50"
+                        className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50"
                       >
-                        <Mail className="w-4 h-4" />
+                        {copiedInfo === `table-email-${contact.id}` ? (
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                        ) : (
+                          <Mail className="w-4 h-4" />
+                        )}
                       </button>
                       {hoveredContact === `table-email-${contact.id}` && (
-                        <div className="absolute bottom-8 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                          {contact.email}
+                        <div className="absolute bottom-8 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                          Click to copy: {contact.email}
                         </div>
                       )}
                     </div>
@@ -468,15 +508,19 @@ const Contacts = ({
                         onMouseLeave={() => setHoveredContact(null)}
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(`tel:${contact.phone}`, '_blank');
+                          copyToClipboard(contact.phone, `table-phone-${contact.id}`);
                         }}
-                        className="text-gray-400 hover:text-green-600 transition-colors p-1.5 rounded hover:bg-green-50"
+                        className="text-gray-400 hover:text-green-600 transition-colors p-2 rounded-lg hover:bg-green-50"
                       >
-                        <Phone className="w-4 h-4" />
+                        {copiedInfo === `table-phone-${contact.id}` ? (
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                        ) : (
+                          <Phone className="w-4 h-4" />
+                        )}
                       </button>
                       {hoveredContact === `table-phone-${contact.id}` && (
-                        <div className="absolute bottom-8 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                          {contact.phone}
+                        <div className="absolute bottom-8 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                          Click to copy: {contact.phone}
                         </div>
                       )}
                     </div>
@@ -486,39 +530,45 @@ const Contacts = ({
                         onMouseLeave={() => setHoveredContact(null)}
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(contact.linkedin, '_blank');
+                          copyToClipboard(contact.linkedin, `table-linkedin-${contact.id}`);
                         }}
-                        className="text-gray-400 hover:text-blue-600 transition-colors p-1.5 rounded hover:bg-blue-50"
+                        className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50"
                       >
-                        <Linkedin className="w-4 h-4" />
+                        {copiedInfo === `table-linkedin-${contact.id}` ? (
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                        ) : (
+                          <Linkedin className="w-4 h-4" />
+                        )}
                       </button>
                       {hoveredContact === `table-linkedin-${contact.id}` && (
-                        <div className="absolute bottom-8 left-0 bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                          LinkedIn Profile
+                        <div className="absolute bottom-8 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                          Click to copy LinkedIn
                         </div>
                       )}
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center space-x-3">
+                <td className="px-8 py-6">
+                  <div className="flex items-center justify-center space-x-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onEdit(contact);
                       }}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                      className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                      title="Edit"
                     >
-                      Edit
+                      <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onDelete(contact.id);
                       }}
-                      className="text-red-600 hover:text-red-800 text-sm font-medium hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                      className="text-gray-400 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50"
+                      title="Delete"
                     >
-                      Delete
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </td>
@@ -533,45 +583,45 @@ const Contacts = ({
   return (
     <div className="flex-1 bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-6">
+      <div className="bg-white border-b border-gray-200 px-8 py-8">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
-            <p className="text-gray-600 mt-1">Manage your investment banking network</p>
-            <div className="flex items-center mt-3 text-sm text-gray-500">
-              <Users className="w-4 h-4 mr-1" />
+            <p className="text-gray-600 mt-2">Manage your investment banking network</p>
+            <div className="flex items-center mt-4 text-sm text-gray-500">
+              <Users className="w-4 h-4 mr-2" />
               {filteredAndSortedContacts.length} contacts
             </div>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             {/* View Toggle */}
             <div className="flex items-center bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('cards')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
                   viewMode === 'cards' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <Grid className="w-4 h-4 mr-1" />
+                <Grid className="w-4 h-4 mr-2" />
                 Cards
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
                   viewMode === 'table' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <List className="w-4 h-4 mr-1" />
+                <List className="w-4 h-4 mr-2" />
                 Table
               </button>
             </div>
             <button
               onClick={onAdd}
-              className="bg-blue-600 text-white px-6 py-2.5 rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm font-medium"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm font-medium"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Contact
@@ -581,16 +631,16 @@ const Contacts = ({
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-gray-200 px-8 py-6">
         <div className="flex items-center space-x-4 mb-4">
           <div className="flex-1 relative">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search contacts..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
           </div>
           
@@ -598,8 +648,8 @@ const Contacts = ({
           
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center px-4 py-3 border rounded-lg hover:bg-gray-50 transition-colors font-medium ${
-              Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-gray-300'
+            className={`flex items-center px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium ${
+              Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'text-gray-700'
             }`}
           >
             <Filter className="w-4 h-4 mr-2" />
@@ -609,7 +659,7 @@ const Contacts = ({
 
         {/* Filter Dropdowns */}
         {showFilters && (
-          <div className="flex flex-wrap items-center gap-3 p-4 bg-gray-50 rounded-lg">
+          <div className="flex flex-wrap items-center gap-4 p-6 bg-gray-50 rounded-xl border border-gray-200">
             <FilterDropdown
               title="Firm"
               options={filterOptions.firms}
@@ -649,9 +699,9 @@ const Contacts = ({
             {Object.values(filters).some(f => f.length > 0) && (
               <button
                 onClick={clearFilters}
-                className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg transition-colors"
+                className="flex items-center px-4 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg transition-colors border border-gray-300"
               >
-                <X className="w-4 h-4 mr-1" />
+                <X className="w-4 h-4 mr-2" />
                 Clear All
               </button>
             )}
@@ -660,7 +710,7 @@ const Contacts = ({
       </div>
 
       {/* Content */}
-      <div className="p-6">
+      <div className="p-8">
         {viewMode === 'cards' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAndSortedContacts.map(contact => (
@@ -672,9 +722,9 @@ const Contacts = ({
         )}
 
         {filteredAndSortedContacts.length === 0 && (
-          <div className="text-center py-16">
-            <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No contacts found</h3>
+          <div className="text-center py-20">
+            <Search className="w-16 h-16 text-gray-300 mx-auto mb-6" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">No contacts found</h3>
             <p className="text-gray-500 mb-8 max-w-md mx-auto">
               {searchTerm || Object.values(filters).some(f => f.length > 0)
                 ? 'Try adjusting your search or filters to find what you\'re looking for.'
