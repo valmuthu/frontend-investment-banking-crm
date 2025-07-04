@@ -5,7 +5,7 @@ import {
   ArrowUp, ArrowDown, Eye, Building2
 } from 'lucide-react';
 
-const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactDetail, setActiveTab }) => {
+const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) => {
   // Calculate KPIs
   const kpis = useMemo(() => {
     const totalInteractions = contacts.reduce((sum, contact) => sum + (contact.interactions?.length || 0), 0);
@@ -251,10 +251,7 @@ const Dashboard = ({ contacts, interviews, setSelectedContactId, setShowContactD
               <div 
                 key={contact.id} 
                 className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
-                onClick={() => {
-                  setSelectedContactId(contact.id);
-                  setShowContactDetail(true);
-                }}
+                onClick={() => onShowContactDetail(contact.id)}
               >
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-3">
                   {contact.name.split(' ').map(n => n[0]).join('')}
