@@ -3,11 +3,14 @@ import { Building2 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Contacts from './components/Contacts';
 import Interviews from './components/Interviews';
+import ContactDetailPage from './components/ContactDetailPage';
+import InterviewDetailPage from './components/InterviewDetailPage';
 import Navigation from './components/Navigation';
-import { ContactModal, EditContactModal, InterviewModal, EditInterviewModal, CallModal, ContactDetailModal, InterviewHistoryModal } from './components/Modals';
+import { ContactModal, EditContactModal, InterviewModal, EditInterviewModal, CallModal } from './components/Modals';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [currentView, setCurrentView] = useState('main'); // 'main', 'contact-detail', 'interview-detail'
   
   // Modal states
   const [showContactModal, setShowContactModal] = useState(false);
@@ -16,8 +19,7 @@ export default function App() {
   const [editingInterview, setEditingInterview] = useState(null);
   const [showCallModal, setShowCallModal] = useState(false);
   const [selectedContactId, setSelectedContactId] = useState(null);
-  const [showContactDetail, setShowContactDetail] = useState(false);
-  const [showInterviewHistory, setShowInterviewHistory] = useState(null);
+  const [selectedInterviewId, setSelectedInterviewId] = useState(null);
 
   // Enhanced sample data
   const [contacts, setContacts] = useState([
@@ -40,12 +42,14 @@ export default function App() {
         {
           id: 1,
           type: 'Email',
+          title: 'Initial outreach',
           date: '2025-06-10',
           notes: 'Initial outreach about summer internship opportunities'
         },
         {
           id: 2,
           type: 'Call',
+          title: 'Phone conversation',
           date: '2025-06-15',
           notes: 'Had a great conversation about the tech banking group'
         }
@@ -70,6 +74,7 @@ export default function App() {
         {
           id: 1,
           type: 'Meeting',
+          title: 'Coffee chat',
           date: '2025-06-01',
           notes: 'Coffee chat to discuss market trends'
         }
@@ -253,16 +258,44 @@ export default function App() {
     }
   };
 
-  const addCallRecord = (callData) => {
-    if (callData.notes && selectedContactId) {
+  const addInteraction = (contactId, interactionData) => {
+    const updatedContacts = contacts.map(contact => {
+      if (contact.id === contactId) {
+        return {
+          ...contact,
+          interactions: [{
+            id: Date.now(),
+            ...interactionData
+          }, ...contact.interactions]
+        };
+      }
+      return contact;
+    });
+    setContacts(updatedContacts);
+  };
+
+  const updateInteraction = (contactId, interactionId, updatedInteraction) => {
+    const updatedContacts = contacts.map(contact => {
+      if (contact.id === contactId) {
+        return {
+          ...contact,
+          interactions: contact.interactions.map(interaction =>
+            interaction.id === interactionId ? { ...interaction, ...updatedInteraction } : interaction
+          )
+        };
+      }
+      return contact;
+    });
+    setContacts(updatedContacts);
+  };
+
+  const deleteInteraction = (contactId, interactionId) => {
+    if (window.confirm('Are you sure you want to delete this interaction?')) {
       const updatedContacts = contacts.map(contact => {
-        if (contact.id === selectedContactId) {
+        if (contact.id === contactId) {
           return {
             ...contact,
-            interactions: [{
-              id: Date.now(),
-              ...callData
-            }, ...contact.interactions]
+            interactions: contact.interactions.filter(interaction => interaction.id !== interactionId)
           };
         }
         return contact;
@@ -271,7 +304,150 @@ export default function App() {
     }
   };
 
+  const addInterviewRound = (interviewId, roundData) => {
+    const updatedInterviews = interviews.map(interview => {
+      if (interview.id === interviewId) {
+        return {
+          ...interview,
+          rounds: [...interview.rounds, {
+            id: Date.now(),
+            ...roundData
+          }]
+        };
+      }
+      return interview;
+    });
+    setInterviews(updatedInterviews);
+  };
+
+  const updateInterviewRound = (interviewId, roundId, updatedRound) => {
+    const updatedInterviews = interviews.map(interview => {
+      if (interview.id === interviewId) {
+        return {
+          ...interview,
+          rounds: interview.rounds.map(round =>
+            round.id === roundId ? { ...round, ...updatedRound } : round
+          )
+        };
+      }
+      return interview;
+    });
+    setInterviews(updatedInterviews);
+  };
+
+  const deleteInterviewRound = (interviewId, roundId) => {
+    if (window.confirm('Are you sure you want to delete this interview round?')) {
+      const updatedInterviews = interviews.map(interview => {
+        if (interview.id === interviewId) {
+          return {
+            ...interview,
+            rounds: interview.rounds.filter(round => round.id !== roundId)
+          };
+        }
+        return interview;
+      });
+      setInterviews(updatedInterviews);
+    }
+  };
+
+  const showContactDetail = (contactId) => {
+    setSelectedContactId(contactId);
+    setCurrentView('contact-detail');
+  };
+
+  const showInterviewDetail = (interviewId) => {
+    setSelectedInterviewId(interviewId);
+    setCurrentView('interview-detail');
+  };
+
+  const goBack = () => {
+    setCurrentView('main');
+    setSelectedContactId(null);
+    setSelectedInterviewId(null);
+  };
+
   const selectedContact = contacts.find(c => c.id === selectedContactId);
+  const selectedInterview = interviews.find(i => i.id === selectedInterviewId);
+
+  // Render based on current view
+  if (currentView === 'contact-detail' && selectedContact) {
+    return (
+      <div className="flex bg-gray-50 min-h-screen">
+        <Navigation 
+          activeTab={activeTab} 
+          setActiveTab={(tab) => {
+            setActiveTab(tab);
+            goBack();
+          }}
+          setSelectedContactId={setSelectedContactId}
+        />
+        <ContactDetailPage
+          contact={selectedContact}
+          onBack={goBack}
+          onEdit={setEditingContact}
+          onUpdateContact={updateContact}
+          onAddInteraction={addInteraction}
+          onUpdateInteraction={updateInteraction}
+          onDeleteInteraction={deleteInteraction}
+          networkingStatuses={networkingStatuses}
+          nextStepsOptions={nextStepsOptions}
+          groups={groups}
+        />
+        
+        {/* Edit Contact Modal */}
+        <EditContactModal 
+          isOpen={!!editingContact}
+          contact={editingContact}
+          onClose={() => setEditingContact(null)}
+          onSubmit={updateContact}
+          networkingStatuses={networkingStatuses}
+          nextStepsOptions={nextStepsOptions}
+          groups={groups}
+        />
+      </div>
+    );
+  }
+
+  if (currentView === 'interview-detail' && selectedInterview) {
+    return (
+      <div className="flex bg-gray-50 min-h-screen">
+        <Navigation 
+          activeTab={activeTab} 
+          setActiveTab={(tab) => {
+            setActiveTab(tab);
+            goBack();
+          }}
+          setSelectedContactId={setSelectedContactId}
+        />
+        <InterviewDetailPage
+          interview={selectedInterview}
+          contacts={contacts}
+          onBack={goBack}
+          onEdit={setEditingInterview}
+          onUpdateInterview={updateInterview}
+          onAddRound={addInterviewRound}
+          onUpdateRound={updateInterviewRound}
+          onDeleteRound={deleteInterviewRound}
+          onShowContactDetail={showContactDetail}
+          interviewStages={interviewStages}
+          interviewNextSteps={interviewNextSteps}
+          groups={groups}
+        />
+        
+        {/* Edit Interview Modal */}
+        <EditInterviewModal 
+          isOpen={!!editingInterview}
+          interview={editingInterview}
+          onClose={() => setEditingInterview(null)}
+          onSubmit={updateInterview}
+          interviewStages={interviewStages}
+          interviewNextSteps={interviewNextSteps}
+          groups={groups}
+          contacts={contacts}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex bg-gray-50 min-h-screen">
@@ -286,8 +462,7 @@ export default function App() {
           <Dashboard 
             contacts={contacts}
             interviews={interviews}
-            setSelectedContactId={setSelectedContactId}
-            setShowContactDetail={setShowContactDetail}
+            onShowContactDetail={showContactDetail}
             setActiveTab={setActiveTab}
           />
         )}
@@ -301,8 +476,7 @@ export default function App() {
             onEdit={setEditingContact}
             onDelete={deleteContact}
             onAdd={() => setShowContactModal(true)}
-            setSelectedContactId={setSelectedContactId}
-            setShowContactDetail={setShowContactDetail}
+            onShowContactDetail={showContactDetail}
           />
         )}
         
@@ -316,9 +490,8 @@ export default function App() {
             onEdit={setEditingInterview}
             onDelete={deleteInterview}
             onAdd={() => setShowInterviewModal(true)}
-            setSelectedContactId={setSelectedContactId}
-            setShowContactDetail={setShowContactDetail}
-            setShowInterviewHistory={setShowInterviewHistory}
+            onShowContactDetail={showContactDetail}
+            onShowInterviewDetail={showInterviewDetail}
           />
         )}
       </div>
@@ -362,42 +535,6 @@ export default function App() {
         interviewNextSteps={interviewNextSteps}
         groups={groups}
         contacts={contacts}
-      />
-
-      <CallModal 
-        isOpen={showCallModal}
-        onClose={() => setShowCallModal(false)}
-        onSubmit={addCallRecord}
-      />
-
-      <ContactDetailModal 
-        isOpen={showContactDetail}
-        contact={selectedContact}
-        onClose={() => {
-          setShowContactDetail(false);
-          setSelectedContactId(null);
-        }}
-        onEdit={() => {
-          setEditingContact(selectedContact);
-          setShowContactDetail(false);
-        }}
-        onAddCall={() => {
-          setShowCallModal(true);
-          setShowContactDetail(false);
-        }}
-      />
-
-      <InterviewHistoryModal
-        isOpen={!!showInterviewHistory}
-        interview={showInterviewHistory}
-        contacts={contacts}
-        onClose={() => setShowInterviewHistory(null)}
-        onEdit={() => {
-          setEditingInterview(showInterviewHistory);
-          setShowInterviewHistory(null);
-        }}
-        setSelectedContactId={setSelectedContactId}
-        setShowContactDetail={setShowContactDetail}
       />
     </div>
   );
