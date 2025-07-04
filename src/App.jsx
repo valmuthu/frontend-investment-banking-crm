@@ -4,7 +4,7 @@ import Dashboard from './components/Dashboard';
 import Contacts from './components/Contacts';
 import Interviews from './components/Interviews';
 import Navigation from './components/Navigation';
-import { ContactModal, EditContactModal, InterviewModal, EditInterviewModal, CallModal, ContactDetailModal } from './components/Modals';
+import { ContactModal, EditContactModal, InterviewModal, EditInterviewModal, CallModal, ContactDetailModal, InterviewHistoryModal } from './components/Modals';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -17,8 +17,9 @@ export default function App() {
   const [showCallModal, setShowCallModal] = useState(false);
   const [selectedContactId, setSelectedContactId] = useState(null);
   const [showContactDetail, setShowContactDetail] = useState(false);
+  const [showInterviewHistory, setShowInterviewHistory] = useState(null);
 
-  // Sample data - you can move this to a separate data file
+  // Enhanced sample data
   const [contacts, setContacts] = useState([
     {
       id: 1,
@@ -30,29 +31,23 @@ export default function App() {
       linkedin: 'https://linkedin.com/in/kevinburns',
       firm: 'Evercore',
       networkingStatus: 'Follow up Call Scheduled',
-      networkingStatusDate: '2025-06-15',
+      networkingDate: '2025-06-15',
       nextSteps: 'Prepare for Upcoming Call',
       nextStepsDate: '2025-06-20',
       referred: true,
-      referredBy: 'Sarah Johnson',
       notes: 'Very interested in TMT deals. Strong technical background.',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      networkingHistory: [
+      interactions: [
         {
           id: 1,
-          status: 'Initial Outreach Sent',
+          type: 'Email',
           date: '2025-06-10',
-          notes: 'Sent LinkedIn connection request'
-        }
-      ],
-      callHistory: [
+          notes: 'Initial outreach about summer internship opportunities'
+        },
         {
-          id: 1,
+          id: 2,
           type: 'Call',
-          date: '2025-06-20',
-          duration: '25 min',
-          notes: 'Great conversation about TMT deals.',
-          outcome: 'Positive'
+          date: '2025-06-15',
+          notes: 'Had a great conversation about the tech banking group'
         }
       ]
     },
@@ -66,75 +61,109 @@ export default function App() {
       linkedin: 'https://linkedin.com/in/sarahjohnson',
       firm: 'Morgan Stanley',
       networkingStatus: 'Regular Contact',
-      networkingStatusDate: '2025-06-25',
+      networkingDate: '2025-06-25',
       nextSteps: 'Monthly Check-in Call',
       nextStepsDate: '2025-07-25',
       referred: false,
-      referredBy: '',
       notes: 'Senior contact who provides market insights.',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b12c?w=150&h=150&fit=crop&crop=face',
-      networkingHistory: [],
-      callHistory: []
+      interactions: [
+        {
+          id: 1,
+          type: 'Meeting',
+          date: '2025-06-01',
+          notes: 'Coffee chat to discuss market trends'
+        }
+      ]
+    },
+    {
+      id: 3,
+      name: 'Michael Chen',
+      position: 'Analyst',
+      group: 'Financial Services',
+      email: 'mchen@jpmorgan.com',
+      phone: '+1 (212) 555-0789',
+      linkedin: 'https://linkedin.com/in/michaelchen',
+      firm: 'JPMorgan Chase',
+      networkingStatus: 'Initial Outreach Sent',
+      networkingDate: '2025-07-01',
+      nextSteps: 'Follow up Email',
+      nextStepsDate: '2025-07-08',
+      referred: true,
+      notes: 'Alumni connection, interested in FIG deals.',
+      interactions: []
     }
   ]);
 
   const [interviews, setInterviews] = useState([
     {
       id: 1,
-      company: 'Goldman Sachs',
+      firm: 'Goldman Sachs',
       position: 'Investment Banking Analyst',
       group: 'TMT',
-      date: '2025-07-10',
-      time: '10:00 AM',
-      interviewer: 'John Smith',
-      status: 'Scheduled',
-      stage: 'Super Day',
+      stage: 'Final Round',
+      stageDate: '2025-07-10',
       nextSteps: 'Send Thank You Email',
       nextStepsDate: '2025-07-11',
+      priority: 'High',
+      applicationDate: '2025-06-01',
       notes: 'Technical interview focus on valuation models',
       referralContactId: 1,
-      interviewHistory: [
+      rounds: [
         {
           id: 1,
-          stage: 'First Round',
+          stage: 'Phone Screen',
           date: '2025-06-15',
           interviewer: 'Jane Doe',
-          outcome: 'Advanced'
+          format: 'Phone',
+          outcome: 'Passed',
+          notes: 'Initial screening went well'
+        },
+        {
+          id: 2,
+          stage: 'First Round',
+          date: '2025-07-01',
+          interviewer: 'John Smith',
+          format: 'Video',
+          outcome: 'Passed',
+          notes: 'Technical questions on DCF models'
         }
       ]
     },
     {
       id: 2,
-      company: 'Morgan Stanley',
+      firm: 'Morgan Stanley',
       position: 'Investment Banking Analyst',
       group: 'Healthcare',
-      date: '2025-07-15',
-      time: '2:00 PM',
-      interviewer: 'Mike Chen',
-      status: 'Scheduled',
       stage: 'First Round',
+      stageDate: '2025-07-15',
       nextSteps: 'Schedule Next Round',
       nextStepsDate: '2025-07-16',
+      priority: 'Medium',
+      applicationDate: '2025-06-10',
       notes: 'Initial screening call',
       referralContactId: 2,
-      interviewHistory: []
+      rounds: [
+        {
+          id: 1,
+          stage: 'Phone Screen',
+          date: '2025-07-15',
+          interviewer: 'Mike Chen',
+          format: 'Phone',
+          outcome: 'Pending',
+          notes: 'Initial screening call'
+        }
+      ]
     }
   ]);
-
-  const [newCall, setNewCall] = useState({
-    type: 'Call',
-    date: new Date().toISOString().split('T')[0],
-    duration: '',
-    notes: '',
-    outcome: ''
-  });
 
   // Constants
   const networkingStatuses = [
     'To Be Contacted',
     'Initial Outreach Sent',
+    'Follow up Call Scheduled',
     'Intro Call Complete',
-    'Follow-Up Complete',
+    'Follow up Email Sent',
+    'Meeting Scheduled',
     'Regular Contact'
   ];
 
@@ -146,25 +175,37 @@ export default function App() {
     'Send Thank You Email',
     'Schedule Intro Call',
     'Send Resume',
-    'Monthly Check-in Call',
-    'Schedule Follow-up Meeting'
+    'Send Thank You Note',
+    'Schedule Follow-up Meeting',
+    'Send Proposal',
+    'Prepare Interview Materials',
+    'Complete Application',
+    'No Action Required'
   ];
 
   const interviewStages = [
     'Applied',
+    'Phone Screen',
     'First Round',
     'Second Round',
-    'Super Day',
-    'Offer'
+    'Final Round',
+    'Case Study',
+    'Offer',
+    'Rejected',
+    'Withdrawn'
   ];
 
   const interviewNextSteps = [
+    'Wait for Response',
     'Schedule Next Round',
+    'Prepare Case Study',
     'Follow Up on Application',
     'Send Thank You Email',
-    'Wait for Response',
+    'Submit Additional Materials',
+    'Schedule Call with Team',
+    'Complete Assessment',
     'Negotiate Offer',
-    'Accept/Decline Offer'
+    'Make Decision'
   ];
 
   const groups = ['TMT', 'Healthcare', 'Financial Services', 'Real Estate', 'Energy', 'Consumer'];
@@ -174,26 +215,12 @@ export default function App() {
     const contact = {
       ...contactData,
       id: Date.now(),
-      callHistory: [],
-      networkingHistory: [],
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+      interactions: []
     };
     setContacts([...contacts, contact]);
   };
 
   const updateContact = (updatedContact) => {
-    // Check if networking status changed to add to history
-    const oldContact = contacts.find(c => c.id === updatedContact.id);
-    if (oldContact && oldContact.networkingStatus !== updatedContact.networkingStatus) {
-      const historyEntry = {
-        id: Date.now(),
-        status: oldContact.networkingStatus,
-        date: oldContact.networkingStatusDate,
-        notes: `Changed from ${oldContact.networkingStatus} to ${updatedContact.networkingStatus}`
-      };
-      updatedContact.networkingHistory = [...(oldContact.networkingHistory || []), historyEntry];
-    }
-    
     setContacts(contacts.map(contact => 
       contact.id === updatedContact.id ? updatedContact : contact
     ));
@@ -209,7 +236,7 @@ export default function App() {
     const interview = {
       ...interviewData,
       id: Date.now(),
-      interviewHistory: []
+      rounds: []
     };
     setInterviews([...interviews, interview]);
   };
@@ -232,10 +259,10 @@ export default function App() {
         if (contact.id === selectedContactId) {
           return {
             ...contact,
-            callHistory: [{
+            interactions: [{
               id: Date.now(),
               ...callData
-            }, ...contact.callHistory]
+            }, ...contact.interactions]
           };
         }
         return contact;
@@ -261,6 +288,7 @@ export default function App() {
             interviews={interviews}
             setSelectedContactId={setSelectedContactId}
             setShowContactDetail={setShowContactDetail}
+            setActiveTab={setActiveTab}
           />
         )}
         
@@ -290,6 +318,7 @@ export default function App() {
             onAdd={() => setShowInterviewModal(true)}
             setSelectedContactId={setSelectedContactId}
             setShowContactDetail={setShowContactDetail}
+            setShowInterviewHistory={setShowInterviewHistory}
           />
         )}
       </div>
@@ -339,8 +368,6 @@ export default function App() {
         isOpen={showCallModal}
         onClose={() => setShowCallModal(false)}
         onSubmit={addCallRecord}
-        newCall={newCall}
-        setNewCall={setNewCall}
       />
 
       <ContactDetailModal 
@@ -358,6 +385,19 @@ export default function App() {
           setShowCallModal(true);
           setShowContactDetail(false);
         }}
+      />
+
+      <InterviewHistoryModal
+        isOpen={!!showInterviewHistory}
+        interview={showInterviewHistory}
+        contacts={contacts}
+        onClose={() => setShowInterviewHistory(null)}
+        onEdit={() => {
+          setEditingInterview(showInterviewHistory);
+          setShowInterviewHistory(null);
+        }}
+        setSelectedContactId={setSelectedContactId}
+        setShowContactDetail={setShowContactDetail}
       />
     </div>
   );
