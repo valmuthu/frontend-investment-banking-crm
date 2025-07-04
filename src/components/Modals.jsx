@@ -1184,3 +1184,5 @@ export const InterviewModal = ({
       </div>
     </div>
   );
+}; 
+export default InterviewModal; 
