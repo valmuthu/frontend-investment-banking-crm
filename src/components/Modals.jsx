@@ -524,9 +524,10 @@ export const ContactDetailModal = ({
       </div>
     </div>
   );
-};gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-            >
-              Cancel
+return(<div className="text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium px-6 py-3 cursor-pointer">
+  Cancel
+</div>
+       );
             </button>
             <button
               type="submit"
