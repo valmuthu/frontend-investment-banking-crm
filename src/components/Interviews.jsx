@@ -3,7 +3,7 @@ import {
   Search, Plus, Filter, ArrowUpDown, Grid, List, 
   Edit2, Trash2, Eye, Calendar, Clock, User, 
   ExternalLink, X, ChevronDown, Building2,
-  Award, AlertCircle
+  Award, AlertCircle, Target, TrendingUp
 } from 'lucide-react';
 
 const Interviews = ({ 
@@ -15,9 +15,8 @@ const Interviews = ({
   onEdit, 
   onDelete, 
   onAdd,
-  setSelectedContactId,
-  setShowContactDetail,
-  setShowInterviewHistory
+  onShowContactDetail,
+  onShowInterviewDetail
 }) => {
   const [viewMode, setViewMode] = useState('cards');
   const [searchTerm, setSearchTerm] = useState('');
@@ -130,7 +129,7 @@ const Interviews = ({
 
   const getStageColor = (stage) => {
     switch (stage) {
-      case 'Applied': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'Applied': return 'bg-gray-50 text-gray-700 border-gray-200';
       case 'Phone Screen': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'First Round': return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'Second Round': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
@@ -138,19 +137,28 @@ const Interviews = ({
       case 'Case Study': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'Offer': return 'bg-green-50 text-green-700 border-green-200';
       case 'Rejected': return 'bg-red-50 text-red-700 border-red-200';
-      case 'Withdrawn': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'Withdrawn': return 'bg-gray-50 text-gray-700 border-gray-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
-  const getPriorityColor = (date) => {
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'High': return 'bg-red-50 text-red-700 border-red-200';
+      case 'Medium': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'Low': return 'bg-green-50 text-green-700 border-green-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const getDateUrgency = (date) => {
     if (!date) return 'text-gray-600';
     const today = new Date();
     const taskDate = new Date(date);
     const diffDays = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return 'text-red-600';
-    if (diffDays <= 2) return 'text-orange-600';
+    if (diffDays < 0) return 'text-red-600 font-semibold';
+    if (diffDays <= 2) return 'text-orange-600 font-semibold';
     return 'text-gray-600';
   };
 
@@ -236,40 +244,37 @@ const Interviews = ({
       : null;
 
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+           onClick={() => onShowInterviewDetail(interview.id)}>
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
-            <div>
-              <div className="flex items-center mb-2">
-                <Building2 className="w-5 h-5 text-gray-400 mr-2" />
-                <button
-                  onClick={() => setShowInterviewHistory(interview)}
-                  className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors"
-                >
-                  {interview.firm}
-                </button>
+            <div className="flex items-center flex-1">
+              <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold mr-4 shadow-md">
+                <Building2 className="w-6 h-6" />
               </div>
-              <p className="text-sm text-gray-600">{interview.position}</p>
-              {interview.group && <p className="text-xs text-gray-500">{interview.group}</p>}
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">{interview.firm}</h3>
+                <p className="text-gray-600 font-medium">{interview.position}</p>
+                {interview.group && <p className="text-xs text-gray-500 mt-1 font-medium">{interview.group}</p>}
+              </div>
             </div>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => setShowInterviewHistory(interview)}
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                title="View History"
-              >
-                <Eye className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => onEdit(interview)}
-                className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(interview);
+                }}
+                className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
                 title="Edit"
               >
                 <Edit2 className="w-4 h-4" />
               </button>
               <button
-                onClick={() => onDelete(interview.id)}
-                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(interview.id);
+                }}
+                className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
                 title="Delete"
               >
                 <Trash2 className="w-4 h-4" />
@@ -277,23 +282,30 @@ const Interviews = ({
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStageColor(interview.stage)}`}>
+              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStageColor(interview.stage)}`}>
                 {interview.stage}
               </span>
-              <span className="text-xs text-gray-500">{interview.stageDate}</span>
+              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(interview.priority)}`}>
+                {interview.priority} Priority
+              </span>
+            </div>
+
+            <div className="text-xs text-gray-500 flex items-center justify-between">
+              <span>Stage Date: {interview.stageDate}</span>
+              <span>Applied: {interview.applicationDate}</span>
             </div>
 
             {referralContact && (
-              <div className="flex items-center text-sm text-green-600 bg-green-50 p-2 rounded">
-                <Award className="w-4 h-4 mr-2" />
+              <div className="flex items-center p-2 bg-green-50 rounded-lg border border-green-200">
+                <Award className="w-4 h-4 text-green-600 mr-2" />
                 <button
-                  onClick={() => {
-                    setSelectedContactId(referralContact.id);
-                    setShowContactDetail(true);
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShowContactDetail(referralContact.id);
                   }}
-                  className="hover:underline"
+                  className="text-green-600 hover:text-green-800 hover:underline text-sm font-medium"
                 >
                   Referred by {referralContact.name}
                 </button>
@@ -303,9 +315,9 @@ const Interviews = ({
             {interview.nextSteps && (
               <div className="pt-3 border-t border-gray-100">
                 <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-gray-600">Next Steps:</span>
+                  <span className="text-gray-600 font-medium">Next Steps:</span>
                   {interview.nextStepsDate && (
-                    <span className={`font-medium ${getPriorityColor(interview.nextStepsDate)}`}>
+                    <span className={`text-sm ${getDateUrgency(interview.nextStepsDate)}`}>
                       {interview.nextStepsDate}
                     </span>
                   )}
@@ -314,9 +326,20 @@ const Interviews = ({
               </div>
             )}
 
+            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+              <div className="flex items-center text-xs text-gray-500">
+                <Calendar className="w-3 h-3 mr-1" />
+                {interview.rounds?.length || 0} rounds completed
+              </div>
+              <div className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium group-hover:translate-x-1 transition-transform">
+                <span>View Details</span>
+                <Eye className="w-4 h-4 ml-1" />
+              </div>
+            </div>
+
             {interview.notes && (
-              <div className="pt-3 border-t border-gray-100">
-                <p className="text-sm text-gray-600">{interview.notes}</p>
+              <div className="pt-2">
+                <p className="text-sm text-gray-600 line-clamp-2">{interview.notes}</p>
               </div>
             )}
           </div>
@@ -329,39 +352,39 @@ const Interviews = ({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Company</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Position</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Stage & Date</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Next Steps & Due</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Company</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Position</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Stage & Priority</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Next Steps</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Progress</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-100">
             {filteredAndSortedInterviews.map(interview => {
               const referralContact = interview.referralContactId 
                 ? contacts.find(c => c.id === interview.referralContactId)
                 : null;
 
               return (
-                <tr key={interview.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
+                <tr key={interview.id} className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => onShowInterviewDetail(interview.id)}>
+                  <td className="px-6 py-4">
                     <div className="flex items-center">
+                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm mr-4 shadow-sm">
+                        <Building2 className="w-5 h-5" />
+                      </div>
                       <div>
-                        <button
-                          onClick={() => setShowInterviewHistory(interview)}
-                          className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
-                        >
-                          {interview.firm}
-                        </button>
+                        <div className="font-semibold text-gray-900 hover:text-blue-600 transition-colors">{interview.firm}</div>
                         {referralContact && (
                           <div className="flex items-center text-xs text-green-600 mt-1">
                             <Award className="w-3 h-3 mr-1" />
                             <button
-                              onClick={() => {
-                                setSelectedContactId(referralContact.id);
-                                setShowContactDetail(true);
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onShowContactDetail(referralContact.id);
                               }}
                               className="hover:underline"
                             >
@@ -372,45 +395,61 @@ const Interviews = ({
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="text-sm text-gray-900">{interview.position}</div>
-                    {interview.group && <div className="text-xs text-gray-500">{interview.group}</div>}
+                  <td className="px-6 py-4">
+                    <div>
+                      <div className="font-medium text-gray-900">{interview.position}</div>
+                      {interview.group && <div className="text-xs text-gray-500 mt-1 font-medium">{interview.group}</div>}
+                      <div className="text-xs text-gray-500 mt-1">Applied: {interview.applicationDate}</div>
+                    </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStageColor(interview.stage)}`}>
-                      {interview.stage}
-                    </span>
-                    <div className="text-xs text-gray-500 mt-1">{interview.stageDate}</div>
+                  <td className="px-6 py-4">
+                    <div className="space-y-2">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStageColor(interview.stage)}`}>
+                        {interview.stage}
+                      </span>
+                      <div>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(interview.priority)}`}>
+                          {interview.priority}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500">{interview.stageDate}</div>
+                    </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-6 py-4">
                     {interview.nextSteps && (
                       <div>
-                        <div className="text-sm text-gray-900">{interview.nextSteps}</div>
+                        <div className="text-sm text-gray-900 font-medium">{interview.nextSteps}</div>
                         {interview.nextStepsDate && (
-                          <div className={`text-xs ${getPriorityColor(interview.nextStepsDate)}`}>
+                          <div className={`text-xs mt-1 ${getDateUrgency(interview.nextStepsDate)}`}>
                             Due: {interview.nextStepsDate}
                           </div>
                         )}
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center space-x-2">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      {interview.rounds?.length || 0} rounds
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-3">
                       <button
-                        onClick={() => setShowInterviewHistory(interview)}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => onEdit(interview)}
-                        className="text-gray-600 hover:text-gray-800 text-sm font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(interview);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:bg-blue-50 px-2 py-1 rounded transition-colors"
                       >
                         Edit
                       </button>
                       <button
-                        onClick={() => onDelete(interview.id)}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(interview.id);
+                        }}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium hover:bg-red-50 px-2 py-1 rounded transition-colors"
                       >
                         Delete
                       </button>
@@ -428,18 +467,22 @@ const Interviews = ({
   return (
     <div className="flex-1 bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-gray-200 px-6 py-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Interviews</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Interviews</h1>
             <p className="text-gray-600 mt-1">Track your investment banking interviews</p>
+            <div className="flex items-center mt-3 text-sm text-gray-500">
+              <Target className="w-4 h-4 mr-1" />
+              {filteredAndSortedInterviews.length} interviews
+            </div>
           </div>
           <div className="flex items-center space-x-3">
             {/* View Toggle */}
             <div className="flex items-center bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('cards')}
-                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   viewMode === 'cards' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
@@ -450,7 +493,7 @@ const Interviews = ({
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   viewMode === 'table' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
@@ -462,7 +505,7 @@ const Interviews = ({
             </div>
             <button
               onClick={onAdd}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm"
+              className="bg-blue-600 text-white px-6 py-2.5 rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm font-medium"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Interview
@@ -481,7 +524,7 @@ const Interviews = ({
               placeholder="Search interviews..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           
@@ -489,7 +532,7 @@ const Interviews = ({
           
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center px-4 py-2.5 border rounded-lg hover:bg-gray-50 transition-colors ${
+            className={`flex items-center px-4 py-3 border rounded-lg hover:bg-gray-50 transition-colors font-medium ${
               Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-gray-300'
             }`}
           >
@@ -547,7 +590,7 @@ const Interviews = ({
             {Object.values(filters).some(f => f.length > 0) && (
               <button
                 onClick={clearFilters}
-                className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900"
+                className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg transition-colors"
               >
                 <X className="w-4 h-4 mr-1" />
                 Clear All
@@ -570,18 +613,18 @@ const Interviews = ({
         )}
 
         {filteredAndSortedInterviews.length === 0 && (
-          <div className="text-center py-12">
+          <div className="text-center py-16">
             <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No interviews found</h3>
-            <p className="text-gray-500 mb-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No interviews found</h3>
+            <p className="text-gray-500 mb-8 max-w-md mx-auto">
               {searchTerm || Object.values(filters).some(f => f.length > 0)
-                ? 'Try adjusting your search or filters'
-                : 'Get started by adding your first interview'
+                ? 'Try adjusting your search or filters to find what you\'re looking for.'
+                : 'Get started by adding your first interview to track your application progress.'
               }
             </p>
             <button
               onClick={onAdd}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
             >
               Add Your First Interview
             </button>
