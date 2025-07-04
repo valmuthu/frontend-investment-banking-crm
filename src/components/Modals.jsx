@@ -582,7 +582,11 @@ export const InterviewHistoryModal = ({ isOpen, interview, contacts, onClose, on
       </div>
     </div>
   );
-};<label className="block text-sm font-medium mb-2">Name *</label>
+};
+export function StrayForm({ formData, setFormData, groups, networkingStatuses, nextStepsOptions, onClose }) {
+  return (
+    <form>
+<label className="block text-sm font-medium mb-2">Name *</label>
               <input
                 type="text"
                 required
@@ -1235,3 +1239,6 @@ export const EditInterviewModal = ({ isOpen, interview, onClose, onSubmit, inter
               />
             </div>
             <div>
+               </form>
+  );
+}
