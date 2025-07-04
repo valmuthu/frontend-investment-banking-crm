@@ -1,174 +1,54 @@
-value={formData.group}
-              onChange={(e) => setFormData({ ...formData, group: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Group</option>
-              {groups.map(group => (
-                <option key={group} value={group}>{group}</option>
-              ))}
-            </select>
-          </div>
+import { useState, useEffect } from 'react';
+import { X, Calendar, User, Phone, Mail, Linkedin, Edit2, Plus, Award, ExternalLink } from 'lucide-react';
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Stage</label>
-              <select
-                value={formData.stage}
-                onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {interviewStages.map(stage => (
-                  <option key={stage} value={stage}>{stage}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Stage Date</label>
-              <input
-                type="date"
-                value={formData.stageDate}
-                onChange={(e) => setFormData({ ...formData, stageDate: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Next Steps</label>
-              <select
-                value={formData.nextSteps}
-                onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select Next Steps</option>
-                {interviewNextSteps.map(step => (
-                  <option key={step} value={step}>{step}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Next Steps Deadline</label>
-              <input
-                type="date"
-                value={formData.nextStepsDate}
-                onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Priority</label>
-              <select
-                value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Application Date</label>
-              <input
-                type="date"
-                value={formData.applicationDate}
-                onChange={(e) => setFormData({ ...formData, applicationDate: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Referral Contact</label>
-            <select
-              value={formData.referralContactId}
-              onChange={(e) => setFormData({ ...formData, referralContactId: e.target.value ? parseInt(e.target.value) : '' })}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">No referral</option>
-              {contacts.map(contact => (
-                <option key={contact.id} value={contact.id}>{contact.name} - {contact.firm}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Notes</label>
-            <textarea
-              rows="3"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
-              Cancel
-            </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              Add Interview
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-export const EditInterviewModal = ({ isOpen, interview, onClose, onSubmit, interviewStages, interviewNextSteps, groups, contacts }) => {
+export const ContactModal = ({ isOpen, onClose, onSubmit, networkingStatuses, nextStepsOptions, groups }) => {
   const [formData, setFormData] = useState({
+    name: '',
     firm: '',
     position: '',
     group: '',
-    stage: 'Applied',
-    stageDate: '',
+    email: '',
+    phone: '',
+    linkedin: '',
+    networkingStatus: 'To Be Contacted',
+    networkingDate: new Date().toISOString().split('T')[0],
     nextSteps: '',
     nextStepsDate: '',
-    priority: 'Medium',
-    applicationDate: '',
-    notes: '',
-    referralContactId: ''
+    referred: false,
+    notes: ''
   });
-
-  useEffect(() => {
-    if (interview) {
-      setFormData({
-        firm: interview.firm || '',
-        position: interview.position || '',
-        group: interview.group || '',
-        stage: interview.stage || 'Applied',
-        stageDate: interview.stageDate || '',
-        nextSteps: interview.nextSteps || '',
-        nextStepsDate: interview.nextStepsDate || '',
-        priority: interview.priority || 'Medium',
-        applicationDate: interview.applicationDate || '',
-        notes: interview.notes || '',
-        referralContactId: interview.referralContactId || ''
-      });
-    }
-  }, [interview]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.firm && formData.position) {
-      onSubmit({ ...interview, ...formData });
+    if (formData.name && formData.firm) {
+      onSubmit(formData);
+      setFormData({
+        name: '',
+        firm: '',
+        position: '',
+        group: '',
+        email: '',
+        phone: '',
+        linkedin: '',
+        networkingStatus: 'To Be Contacted',
+        networkingDate: new Date().toISOString().split('T')[0],
+        nextSteps: '',
+        nextStepsDate: '',
+        referred: false,
+        notes: ''
+      });
       onClose();
     }
   };
 
-  if (!isOpen || !interview) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Edit Interview</h2>
+            <h2 className="text-xl font-bold text-gray-900">Add Contact</h2>
             <button onClick={onClose}>
               <X className="w-5 h-5" />
             </button>
@@ -178,22 +58,12 @@ export const EditInterviewModal = ({ isOpen, interview, onClose, onSubmit, inter
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Firm *</label>
+              <label className="block text-sm font-medium mb-2">Name *</label>
               <input
                 type="text"
                 required
-                value={formData.firm}
-                onChange={(e) => setFormData({ ...formData, firm: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Position *</label>
-              <input
-                type="text"
-                required
-                value={formData.position}
-                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -203,21 +73,6 @@ export const EditInterviewModal = ({ isOpen, interview, onClose, onSubmit, inter
             <label className="block text-sm font-medium mb-2">Group</label>
             <select
               value={formData.group}
-              onChange={(e) => setFormData({ ...formData, group: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Group</option>
-              {groups.map(group => (
-                <option key={group} value={group}>{group}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Stage</label>
-              <select
-                value={formData.stage}
               onChange={(e) => setFormData({ ...formData, group: e.target.value })}
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -732,75 +587,6 @@ export const InterviewHistoryModal = ({ isOpen, interview, contacts, onClose, on
     </div>
   );
 };
-                          import { useState, useEffect } from 'react';
-import { X, Calendar, User, Phone, Mail, Linkedin, Edit2, Plus, Award, ExternalLink } from 'lucide-react';
-
-export const ContactModal = ({ isOpen, onClose, onSubmit, networkingStatuses, nextStepsOptions, groups }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    firm: '',
-    position: '',
-    group: '',
-    email: '',
-    phone: '',
-    linkedin: '',
-    networkingStatus: 'To Be Contacted',
-    networkingDate: new Date().toISOString().split('T')[0],
-    nextSteps: '',
-    nextStepsDate: '',
-    referred: false,
-    notes: ''
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (formData.name && formData.firm) {
-      onSubmit(formData);
-      setFormData({
-        name: '',
-        firm: '',
-        position: '',
-        group: '',
-        email: '',
-        phone: '',
-        linkedin: '',
-        networkingStatus: 'To Be Contacted',
-        networkingDate: new Date().toISOString().split('T')[0],
-        nextSteps: '',
-        nextStepsDate: '',
-        referred: false,
-        notes: ''
-      });
-      onClose();
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Add Contact</h2>
-            <button onClick={onClose}>
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Name *</label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
             <div>
               <label className="block text-sm font-medium mb-2">Firm *</label>
               <input
@@ -1256,3 +1042,200 @@ export const InterviewModal = ({ isOpen, onClose, onSubmit, interviewStages, int
             <label className="block text-sm font-medium mb-2">Group</label>
             <select
               value={formData.group}
+              onChange={(e) => setFormData({ ...formData, group: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Group</option>
+              {groups.map(group => (
+                <option key={group} value={group}>{group}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Stage</label>
+              <select
+                value={formData.stage}
+                onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {interviewStages.map(stage => (
+                  <option key={stage} value={stage}>{stage}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Stage Date</label>
+              <input
+                type="date"
+                value={formData.stageDate}
+                onChange={(e) => setFormData({ ...formData, stageDate: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Next Steps</label>
+              <select
+                value={formData.nextSteps}
+                onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Next Steps</option>
+                {interviewNextSteps.map(step => (
+                  <option key={step} value={step}>{step}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Next Steps Deadline</label>
+              <input
+                type="date"
+                value={formData.nextStepsDate}
+                onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Priority</label>
+              <select
+                value={formData.priority}
+                onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Application Date</label>
+              <input
+                type="date"
+                value={formData.applicationDate}
+                onChange={(e) => setFormData({ ...formData, applicationDate: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Referral Contact</label>
+            <select
+              value={formData.referralContactId}
+              onChange={(e) => setFormData({ ...formData, referralContactId: e.target.value ? parseInt(e.target.value) : '' })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">No referral</option>
+              {contacts.map(contact => (
+                <option key={contact.id} value={contact.id}>{contact.name} - {contact.firm}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Notes</label>
+            <textarea
+              rows="3"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <button type="button" onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              Add Interview
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export const EditInterviewModal = ({ isOpen, interview, onClose, onSubmit, interviewStages, interviewNextSteps, groups, contacts }) => {
+  const [formData, setFormData] = useState({
+    firm: '',
+    position: '',
+    group: '',
+    stage: 'Applied',
+    stageDate: '',
+    nextSteps: '',
+    nextStepsDate: '',
+    priority: 'Medium',
+    applicationDate: '',
+    notes: '',
+    referralContactId: ''
+  });
+
+  useEffect(() => {
+    if (interview) {
+      setFormData({
+        firm: interview.firm || '',
+        position: interview.position || '',
+        group: interview.group || '',
+        stage: interview.stage || 'Applied',
+        stageDate: interview.stageDate || '',
+        nextSteps: interview.nextSteps || '',
+        nextStepsDate: interview.nextStepsDate || '',
+        priority: interview.priority || 'Medium',
+        applicationDate: interview.applicationDate || '',
+        notes: interview.notes || '',
+        referralContactId: interview.referralContactId || ''
+      });
+    }
+  }, [interview]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (formData.firm && formData.position) {
+      onSubmit({ ...interview, ...formData });
+      onClose();
+    }
+  };
+
+  if (!isOpen || !interview) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900">Edit Interview</h2>
+            <button onClick={onClose}>
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Firm *</label>
+              <input
+                type="text"
+                required
+                value={formData.firm}
+                onChange={(e) => setFormData({ ...formData, firm: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Position *</label>
+              <input
+                type="text"
+                required
+                value={formData.position}
+                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
