@@ -7,8 +7,8 @@ import {
 
 const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState('uploadDate');
-  const [sortDirection, setSortDirection] = useState('desc');
+  const [sortField, setSortField] = useState(''); // No default sort
+  const [sortDirection, setSortDirection] = useState('asc');
   const [showFilters, setShowFilters] = useState(false);
   const [showSortOptions, setShowSortOptions] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -187,9 +187,18 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
   };
 
   const handleDownload = (document) => {
-    // Create a fake download for demo purposes
-    console.log('Downloading document:', document);
-    alert('Download feature would be implemented here');
+    // Create a blob URL for demo purposes
+    const content = `Document: ${document.name}\nType: ${document.type}\nUpload Date: ${document.uploadDate}\nNotes: ${document.notes || 'No notes'}`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${document.name}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleTagInput = (value, field) => {
@@ -229,18 +238,17 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`btn-secondary text-sm ${
-            selected.length > 0 
-              ? 'bg-blue-50 border-blue-200 text-blue-700' 
-              : ''
-          }`}
+          className={`btn-control ${selected.length > 0 ? 'active' : ''}`}
         >
-          {title} {selected.length > 0 && `(${selected.length})`}
-          <ChevronDown className="icon-sm ml-2" />
+          {title}
+          {selected.length > 0 && (
+            <span className="ml-1">({selected.length})</span>
+          )}
+          <ChevronDown className="icon-sm" />
         </button>
         
         {isOpen && (
-          <div className="absolute top-full left-0 mt-2 w-64 card-base shadow-lg z-10 max-h-60 overflow-y-auto">
+          <div className="filter-dropdown">
             <div className="p-2">
               {options.map(option => (
                 <label key={option} className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
@@ -264,24 +272,25 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
     <div className="relative">
       <button
         onClick={() => setShowSortOptions(!showSortOptions)}
-        className={`btn-secondary text-sm ${
-          sortField ? 'bg-blue-50 border-blue-200 text-blue-700' : ''
-        }`}
+        className={`btn-control ${sortField ? 'active' : ''}`}
       >
-        <ArrowUpDown className="icon-sm mr-2" />
-        Sort {sortField && `(${sortField})`}
-        <ChevronDown className="icon-sm ml-2" />
+        <ArrowUpDown className="icon-sm" />
+        Sort
+        {sortField && (
+          <span className="ml-1">({sortField})</span>
+        )}
+        <ChevronDown className="icon-sm" />
       </button>
       
       {showSortOptions && (
-        <div className="absolute top-full left-0 mt-2 w-48 card-base shadow-lg z-10">
+        <div className="filter-dropdown">
           <div className="p-2">
             {sortOptions.map(option => (
               <button
                 key={option.field}
                 onClick={() => handleSort(option.field)}
                 className={`w-full text-left p-3 hover:bg-gray-50 rounded-lg text-sm transition-colors ${
-                  sortField === option.field ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-900'
+                  sortField === option.field ? 'bg-primary-50 text-primary-700 font-semibold' : 'text-gray-900'
                 }`}
               >
                 {option.label}
@@ -315,7 +324,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
         </button>
         
         {isOpen && (
-          <div className="absolute top-full left-0 mt-1 w-full card-base shadow-lg z-10 max-h-60 overflow-y-auto">
+          <div className="filter-dropdown">
             <div className="p-2">
               {options.map(option => {
                 const optionValue = isContacts ? option.name : option;
@@ -341,12 +350,12 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
   };
 
   const UploadModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="card-base w-full max-w-2xl max-h-screen overflow-y-auto">
+    <div className="modal-backdrop">
+      <div className="modal-content max-w-2xl">
         <div className="section-padding border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-heading-2">Upload Document</h2>
-            <button onClick={() => setShowUploadModal(false)}>
+            <button onClick={() => setShowUploadModal(false)} className="btn-tertiary p-2">
               <X className="icon-md" />
             </button>
           </div>
@@ -367,7 +376,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
           <div>
             <label className="block text-sm font-medium mb-2">File Upload</label>
             <div 
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer"
+              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
               <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
@@ -426,7 +435,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
                       <button
                         type="button"
                         onClick={() => removeTag(contact, 'associatedContacts')}
-                        className="ml-1 text-blue-600 hover:text-blue-800"
+                        className="ml-1 text-primary-600 hover:text-primary-800"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -557,19 +566,49 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
   );
 
   const EditModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="card-base w-full max-w-2xl max-h-screen overflow-y-auto">
+    <div className="modal-backdrop">
+      <div className="modal-content max-w-2xl">
         <div className="section-padding border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-heading-2">Edit Document</h2>
-            <button onClick={() => setEditingDocument(null)}>
+            <button onClick={() => setEditingDocument(null)} className="btn-tertiary p-2">
               <X className="icon-md" />
             </button>
           </div>
         </div>
         <div className="section-padding">
-          <p className="text-gray-600">Edit functionality would be implemented here</p>
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Document Name</label>
+              <input
+                type="text"
+                defaultValue={editingDocument?.name}
+                className="form-input"
+                placeholder="Enter document name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Document Type</label>
+              <select
+                defaultValue={editingDocument?.type}
+                className="form-select"
+              >
+                {documentTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Notes</label>
+              <textarea
+                rows="3"
+                defaultValue={editingDocument?.notes}
+                className="form-textarea"
+                placeholder="Additional notes..."
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 pt-6">
             <button 
               onClick={() => setEditingDocument(null)} 
               className="btn-secondary"
@@ -577,7 +616,11 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
               Cancel
             </button>
             <button 
-              onClick={() => setEditingDocument(null)}
+              onClick={() => {
+                // Here you would implement the actual edit functionality
+                onEdit(editingDocument);
+                setEditingDocument(null);
+              }}
               className="btn-primary"
             >
               Save Changes
@@ -589,36 +632,94 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
   );
 
   const ViewModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="card-base w-full max-w-4xl max-h-screen overflow-y-auto">
+    <div className="modal-backdrop">
+      <div className="modal-content max-w-4xl">
         <div className="section-padding border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-heading-2">{viewingDocument?.name}</h2>
-            <button onClick={() => setViewingDocument(null)}>
+            <button onClick={() => setViewingDocument(null)} className="btn-tertiary p-2">
               <X className="icon-md" />
             </button>
           </div>
         </div>
         <div className="section-padding">
-          <p className="text-gray-600 mb-4">Document viewer would be implemented here</p>
-          <div className="bg-gray-100 p-8 rounded-lg text-center">
-            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Document preview</p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Document Info */}
+            <div className="lg:col-span-1 space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-900 mb-3">Document Details</h3>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-600">Type:</span>
+                    <span className="ml-2">{viewingDocument?.type}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">Uploaded:</span>
+                    <span className="ml-2">{viewingDocument?.uploadDate}</span>
+                  </div>
+                  {viewingDocument?.tags && viewingDocument.tags.length > 0 && (
+                    <div>
+                      <span className="font-medium text-gray-600">Tags:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {viewingDocument.tags.map(tag => (
+                          <span key={tag} className="status-badge status-emerald text-xs">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {viewingDocument?.notes && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-gray-900 mb-2">Notes</h3>
+                  <p className="text-sm text-gray-700">{viewingDocument.notes}</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Document Preview */}
+            <div className="lg:col-span-2">
+              <div className="bg-gray-100 p-8 rounded-lg text-center min-h-96 flex items-center justify-center">
+                <div>
+                  <div className="w-20 h-20 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <FileText className="w-10 h-10 text-primary-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Document Preview</h3>
+                  <p className="text-gray-600 mb-4">
+                    Preview functionality for {viewingDocument?.type?.toLowerCase()} documents
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-500">
+                    <p>• PDF viewer integration</p>
+                    <p>• Text document rendering</p>
+                    <p>• Image preview capabilities</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex justify-end space-x-3 pt-4">
-            <button 
-              onClick={() => setViewingDocument(null)} 
-              className="btn-secondary"
-            >
-              Close
-            </button>
-            <button 
-              onClick={() => handleDownload(viewingDocument)}
-              className="btn-primary"
-            >
-              <Download className="icon-sm mr-2" />
-              Download
-            </button>
+          
+          <div className="flex justify-between items-center pt-6 border-t border-gray-200 mt-6">
+            <div className="text-sm text-gray-500">
+              File size: ~2.4 MB • Last modified: {viewingDocument?.uploadDate}
+            </div>
+            <div className="flex space-x-3">
+              <button 
+                onClick={() => setViewingDocument(null)} 
+                className="btn-secondary"
+              >
+                Close
+              </button>
+              <button 
+                onClick={() => handleDownload(viewingDocument)}
+                className="btn-primary"
+              >
+                <Download className="icon-sm" />
+                Download
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -642,7 +743,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
             onClick={() => setShowUploadModal(true)}
             className="btn-primary"
           >
-            <Plus className="icon-sm mr-2" />
+            <Plus className="icon-sm" />
             Upload Document
           </button>
         </div>
@@ -650,7 +751,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
 
       {/* Search and Filters */}
       <div className="bg-white border-b border-gray-200 section-padding">
-        <div className="flex items-center space-x-4 mb-4">
+        <div className="flex items-center space-x-3 mb-4">
           <div className="flex-1 relative">
             <Search className="icon-md absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -662,22 +763,22 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
             />
           </div>
           
-          <SortDropdown />
-          
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`btn-secondary ${
-              Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-200 text-blue-700' : ''
-            }`}
-          >
-            <Filter className="icon-sm mr-2" />
-            Filters
-          </button>
+          <div className="controls-container">
+            <SortDropdown />
+            
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`btn-control ${Object.values(filters).some(f => f.length > 0) ? 'active' : ''}`}
+            >
+              <Filter className="icon-sm" />
+              Filters
+            </button>
+          </div>
         </div>
 
         {/* Filter Dropdowns */}
         {showFilters && (
-          <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex flex-wrap items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <FilterDropdown
               title="Type"
               options={filterOptions.types}
@@ -710,9 +811,9 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
             {Object.values(filters).some(f => f.length > 0) && (
               <button
                 onClick={clearFilters}
-                className="btn-secondary text-sm"
+                className="btn-control"
               >
-                <X className="icon-sm mr-2" />
+                <X className="icon-sm" />
                 Clear All
               </button>
             )}
@@ -737,7 +838,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredAndSortedDocuments.map(document => (
-                  <tr key={document.id} className="hover:bg-blue-50 transition-colors">
+                  <tr key={document.id} className="hover:bg-primary-50 transition-colors">
                     <td>
                       <div className="flex items-center">
                         <div className="w-12 h-12 gradient-blue rounded-lg flex items-center justify-center text-white text-lg mr-4 shadow-sm">
@@ -798,31 +899,31 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
                       </div>
                     </td>
                     <td>
-                      <div className="flex items-center justify-center space-x-1">
+                      <div className="action-buttons justify-center">
                         <button
                           onClick={() => handleView(document)}
-                          className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                          className="action-button"
                           title="View"
                         >
                           <Eye className="icon-sm" />
                         </button>
                         <button
                           onClick={() => handleDownload(document)}
-                          className="p-1.5 text-gray-400 hover:text-emerald-600 transition-colors rounded-lg hover:bg-emerald-50"
+                          className="action-button"
                           title="Download"
                         >
                           <Download className="icon-sm" />
                         </button>
                         <button
                           onClick={() => handleEdit(document)}
-                          className="p-1.5 text-gray-400 hover:text-amber-600 transition-colors rounded-lg hover:bg-amber-50"
+                          className="action-button"
                           title="Edit"
                         >
                           <Edit2 className="icon-sm" />
                         </button>
                         <button
                           onClick={() => onDelete(document.id)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                          className="action-button delete"
                           title="Delete"
                         >
                           <Trash2 className="icon-sm" />
