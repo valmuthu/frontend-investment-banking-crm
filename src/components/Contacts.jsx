@@ -163,6 +163,14 @@ const Contacts = ({
     return 'text-gray-600';
   };
 
+  // Helper function to format position and group
+  const formatPositionGroup = (position, group) => {
+    if (group) {
+      return `${position}, ${group}`;
+    }
+    return position;
+  };
+
   const FilterDropdown = ({ title, options, selected, onChange, filterKey }) => {
     const [isOpen, setIsOpen] = useState(false);
     
@@ -170,7 +178,7 @@ const Contacts = ({
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`btn-secondary text-sm ${
+          className={`btn-secondary text-sm min-w-[120px] ${
             selected.length > 0 
               ? 'bg-blue-50 border-blue-200 text-blue-700' 
               : ''
@@ -205,7 +213,7 @@ const Contacts = ({
     <div className="relative">
       <button
         onClick={() => setShowSortOptions(!showSortOptions)}
-        className={`btn-secondary text-sm ${
+        className={`btn-secondary text-sm min-w-[140px] ${
           sortField ? 'bg-blue-50 border-blue-200 text-blue-700' : ''
         }`}
       >
@@ -255,8 +263,7 @@ const Contacts = ({
                   <Building2 className="icon-sm text-gray-400 mr-1" />
                   <p className="text-body-strong truncate">{contact.firm}</p>
                 </div>
-                <p className="text-body truncate">{contact.position}</p>
-                {contact.group && <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">{contact.group}</span>}
+                <p className="text-body truncate">{formatPositionGroup(contact.position, contact.group)}</p>
               </div>
             </div>
             <div className="flex items-center space-x-1 ml-4">
@@ -417,8 +424,7 @@ const Contacts = ({
                       <Building2 className="icon-sm text-gray-400 mr-2" />
                       {contact.firm}
                     </div>
-                    <div className="text-sm text-gray-600 mt-1 font-medium text-truncate">{contact.position}</div>
-                    {contact.group && <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">{contact.group}</span>}
+                    <div className="text-sm text-gray-600 mt-1 font-medium text-truncate">{formatPositionGroup(contact.position, contact.group)}</div>
                   </div>
                 </td>
                 <td>
@@ -558,7 +564,7 @@ const Contacts = ({
             </div>
             <button
               onClick={onAdd}
-              className="btn-primary"
+              className="btn-primary min-w-[140px]"
             >
               <Plus className="icon-sm mr-2" />
               Add Contact
@@ -585,7 +591,7 @@ const Contacts = ({
           
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`btn-secondary ${
+            className={`btn-secondary min-w-[120px] ${
               Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-200 text-blue-700' : ''
             }`}
           >
