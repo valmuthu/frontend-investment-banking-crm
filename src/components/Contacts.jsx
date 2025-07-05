@@ -212,47 +212,48 @@ const Contacts = ({
   };
 
   const SortDropdown = () => (
-    <div className="relative">
-      <button
-        onClick={() => setShowSortOptions(!showSortOptions)}
-        className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-md ${
-          sortField ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
-        }`}
-      >
-        <ArrowUpDown className="w-4 h-4 mr-2" />
-        Sort {sortField && `(${sortField})`}
-        <ChevronDown className="w-4 h-4 ml-2" />
-      </button>
-      
-      {showSortOptions && (
-        <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-10">
-          <div className="p-2">
-            {sortOptions.map(option => (
-              <button
-                key={option}
-                onClick={() => setViewMode('table')}
-                className={`flex items-center px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                  viewMode === 'table' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <List className="w-4 h-4 mr-2" />
-                Table
-              </button>
-          ))}
-            </div>
-            <button
-              onClick={onAdd}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl flex items-center hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Contact
-            </button>
-          </div>
-        </div>
-      </div>
+  <div className="relative">
+    <button
+      onClick={() => setShowSortOptions(!showSortOptions)}
+      className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-md ${
+        sortField ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+      }`}
+    >
+      <ArrowUpDown className="w-4 h-4 mr-2" />
+      Sort {sortField && `(${sortField})`}
+      <ChevronDown className="w-4 h-4 ml-2" />
+    </button>
 
+    {showSortOptions && (
+      <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-10">
+        <div className="p-2">
+          {sortOptions.map(option => (
+            <button
+              key={option}
+              onClick={() => setViewMode('table')}
+              className={`flex items-center px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                viewMode === 'table'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <List className="w-4 h-4 mr-2" />
+              Table
+            </button>
+          ))} {/* <-- Close sortOptions.map here */}
+        </div>
+        <button
+          onClick={onAdd}
+          className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl flex items-center hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Contact
+        </button>
+      </div>
+    )}
+  </div>
+) // <-- Close arrow function here
+  
       {/* Search and Filters */}
       <div className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
         <div className="flex items-center space-x-4 mb-4">
