@@ -135,7 +135,7 @@ html, body, #root {
 
 /* Enhanced focus states */
 .focus-ring {
-  @apply focus:outline-none focus:ring-3 focus:ring-primary-500/30 focus:border-primary-500 transition-all duration-200;
+  @apply focus:outline-none focus:ring-4 focus:ring-primary-500/30 focus:border-primary-500 transition-all duration-200;
 }
 
 /* Card hover animations */
@@ -150,7 +150,7 @@ html, body, #root {
 
 /* Modern button styles */
 .btn-primary {
-  @apply bg-primary-600 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 hover:bg-primary-700 hover:shadow-md active:scale-[0.98] focus:outline-none focus:ring-3 focus:ring-primary-500/30 border border-transparent;
+  @apply bg-primary-600 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 hover:bg-primary-700 hover:shadow-md active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-primary-500/30 border border-transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -160,7 +160,7 @@ html, body, #root {
 }
 
 .btn-secondary {
-  @apply bg-white text-gray-700 px-4 py-2.5 rounded-lg font-medium border border-gray-200 transition-all duration-200 hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm active:scale-[0.98] focus:outline-none focus:ring-3 focus:ring-primary-500/30;
+  @apply bg-white text-gray-700 px-4 py-2.5 rounded-lg font-medium border border-gray-200 transition-all duration-200 hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-primary-500/30;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -170,7 +170,7 @@ html, body, #root {
 }
 
 .btn-tertiary {
-  @apply bg-transparent text-gray-600 px-3 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 active:scale-[0.98] focus:outline-none focus:ring-3 focus:ring-primary-500/30;
+  @apply bg-transparent text-gray-600 px-3 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-primary-500/30;
   display: inline-flex;
   align-items: center;
   justify-content: center;
