@@ -22,7 +22,10 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
     const contactsWithReferrals = contacts.filter(c => c.referred).length;
     const referralPercentage = contacts.length > 0 ? ((contactsWithReferrals / contacts.length) * 100).toFixed(1) : 0;
     
-    const referralInterviews = interviews.filter(i => i.referralContactId).length;
+    // Application success rate (% interviewed out of total applications)
+    const appliedInterviews = interviews.filter(i => ['Applied', 'Phone Screen', 'First Round', 'Second Round', 'Third Round', 'Case Study', 'Superday', 'Offer Received'].includes(i.stage)).length;
+    const interviewedCount = interviews.filter(i => ['Phone Screen', 'First Round', 'Second Round', 'Third Round', 'Case Study', 'Superday', 'Offer Received'].includes(i.stage)).length;
+    const applicationSuccessRate = appliedInterviews > 0 ? ((interviewedCount / appliedInterviews) * 100).toFixed(1) : 0;
 
     return {
       totalContacts: contacts.length,
@@ -30,17 +33,18 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
       totalInterviews,
       referrals: contactsWithReferrals,
       successRate,
-      referralPercentage
+      referralPercentage,
+      applicationSuccessRate
     };
   }, [contacts, interviews]);
 
   // Visual funnel data for interviews with consistent styling
   const interviewFunnel = useMemo(() => {
     const stages = [
-      { name: 'Applied', color: 'from-purple-400 to-purple-500' },
-      { name: 'Phone Screen', color: 'from-indigo-400 to-indigo-500' },
-      { name: 'First Round', color: 'from-blue-400 to-blue-500' },
-      { name: 'Second Round', color: 'from-cyan-400 to-cyan-500' },
+      { name: 'Applied', color: 'from-blue-400 to-blue-500' },
+      { name: 'Phone Screen', color: 'from-blue-500 to-blue-600' },
+      { name: 'First Round', color: 'from-amber-400 to-amber-500' },
+      { name: 'Second Round', color: 'from-amber-500 to-amber-600' },
       { name: 'Superday', color: 'from-orange-400 to-orange-500' },
       { name: 'Offer Received', color: 'from-emerald-400 to-emerald-500' }
     ];
@@ -56,10 +60,10 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
   const networkingFunnel = useMemo(() => {
     const stages = [
       { name: 'Not Yet Contacted', color: 'from-gray-400 to-gray-500' },
-      { name: 'Initial Outreach Sent', color: 'from-purple-400 to-purple-500' },
-      { name: 'Intro Call Scheduled', color: 'from-indigo-400 to-indigo-500' },
+      { name: 'Initial Outreach Sent', color: 'from-blue-400 to-blue-500' },
+      { name: 'Intro Call Scheduled', color: 'from-amber-400 to-amber-500' },
       { name: 'Intro Call Complete', color: 'from-emerald-400 to-emerald-500' },
-      { name: 'Follow-Up Call Complete', color: 'from-green-400 to-green-500' }
+      { name: 'Follow-Up Call Complete', color: 'from-emerald-500 to-emerald-600' }
     ];
     
     return stages.map(stage => ({
@@ -126,8 +130,8 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
     return [...interviewTasks, ...networkingTasks].sort((a, b) => new Date(a.date) - new Date(b.date));
   }, [contacts, interviews]);
 
-  const KPICard = ({ title, value, icon: Icon, color = 'purple', description }) => (
-    <div className={`bg-gradient-to-br from-white to-${color}-50 rounded-xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 hover:border-${color}-200 transform hover:-translate-y-1 p-6`}>
+  const KPICard = ({ title, value, icon: Icon, color = 'blue', description }) => (
+    <div className={`card-hover bg-white rounded-xl shadow-sm border border-gray-200 p-6`}>
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <div className="flex items-center mb-2">
@@ -143,21 +147,21 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
           </div>
           <p className="text-3xl font-bold text-gray-900 mb-2">{value}</p>
         </div>
-        <div className={`w-16 h-16 bg-gradient-to-br from-${color}-500 to-${color}-600 rounded-xl flex items-center justify-center shadow-lg`}>
-          <Icon className="w-8 h-8 text-white" />
+        <div className={`w-14 h-14 gradient-${color} rounded-xl flex items-center justify-center shadow-sm`}>
+          <Icon className="w-7 h-7 text-white" />
         </div>
       </div>
     </div>
   );
 
-  const DonutChart = ({ percentage, title, color = 'purple' }) => {
+  const DonutChart = ({ percentage, title, color = 'blue' }) => {
     const radius = 45;
     const circumference = 2 * Math.PI * radius;
     const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
 
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300">
-        <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">{title}</h3>
+      <div className="card-base p-6">
+        <h3 className="text-heading-3 mb-4 text-center">{title}</h3>
         <div className="flex items-center justify-center">
           <div className="relative">
             <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
@@ -191,13 +195,13 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
     );
   };
 
-  const FunnelChart = ({ data, title, color = 'purple' }) => {
+  const FunnelChart = ({ data, title, color = 'blue' }) => {
     const maxCount = Math.max(...data.map(d => d.count));
     
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300">
+      <div className="card-base p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+          <h3 className="text-heading-3">{title}</h3>
           <div className="text-sm text-gray-500">
             {data.reduce((sum, item) => sum + item.count, 0)} total
           </div>
@@ -236,9 +240,9 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
   };
 
   const TaskTimeline = ({ tasks, title }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300">
+    <div className="card-base p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+        <h3 className="text-heading-3">{title}</h3>
         <div className="flex items-center space-x-3">
           <Filter className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">{tasks.length} tasks</span>
@@ -247,16 +251,16 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
       {tasks.length > 0 ? (
         <div className="space-y-3 max-h-80 overflow-y-auto">
           {tasks.map((task) => (
-            <div key={`${task.type}-${task.id}`} className="flex items-start space-x-4 p-4 rounded-xl hover:bg-purple-50 transition-colors cursor-pointer border border-gray-100 hover:border-purple-200">
+            <div key={`${task.type}-${task.id}`} className="flex items-start space-x-4 p-4 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer border border-gray-100 hover:border-blue-200">
               <div className={`flex-shrink-0 w-3 h-3 rounded-full mt-2 ${
-                task.priority === 'high' ? 'bg-red-500 shadow-lg shadow-red-200' : 'bg-purple-500 shadow-lg shadow-purple-200'
+                task.priority === 'high' ? 'bg-red-500 shadow-sm' : 'bg-blue-500 shadow-sm'
               }`}></div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-3 mb-2">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                  <span className={`status-badge ${
                     task.category === 'Interview' 
-                      ? 'bg-purple-100 text-purple-700 border border-purple-200' 
-                      : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                      ? 'status-blue' 
+                      : 'status-emerald'
                   }`}>
                     {task.category}
                   </span>
@@ -289,12 +293,12 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
   );
 
   const FollowUpContacts = ({ contacts, title }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300">
+    <div className="card-base p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+        <h3 className="text-heading-3">{title}</h3>
         <button 
           onClick={() => setActiveTab('contacts')}
-          className="text-purple-600 hover:text-purple-800 text-sm font-semibold hover:underline transition-colors"
+          className="text-blue-600 hover:text-blue-800 text-sm font-semibold hover:underline transition-colors"
         >
           View All
         </button>
@@ -304,10 +308,10 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
           {contacts.map(contact => (
             <div 
               key={contact.id} 
-              className="flex items-center p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl hover:from-amber-100 hover:to-orange-100 transition-all duration-300 cursor-pointer group shadow-sm"
+              className="flex items-center p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg hover:from-amber-100 hover:to-orange-100 transition-all duration-300 cursor-pointer group shadow-sm"
               onClick={() => onShowContactDetail(contact.id)}
             >
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-sm font-bold mr-4 shadow-md">
+              <div className="w-12 h-12 gradient-blue rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4 shadow-sm">
                 {contact.name.split(' ').map(n => n[0]).join('')}
               </div>
               <div className="flex-1 min-w-0">
@@ -335,9 +339,9 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
   );
 
   return (
-    <div className="flex-1 bg-gradient-to-br from-slate-50 to-purple-50 p-8">
+    <div className="flex-1 bg-gray-50 section-padding-lg">
       <div className="mb-10">
-        <h1 className="text-4xl font-bold text-gray-900 mb-3">Dashboard</h1>
+        <h1 className="text-heading-1 mb-3">Dashboard</h1>
         <p className="text-lg text-gray-600">Investment Banking CRM Overview</p>
       </div>
 
@@ -347,14 +351,14 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
           title="Total Contacts" 
           value={kpis.totalContacts} 
           icon={Users} 
-          color="purple"
+          color="blue"
           description="Total number of networking contacts"
         />
         <KPICard 
           title="Unique Firms" 
           value={kpis.uniqueFirms} 
           icon={Building2} 
-          color="indigo"
+          color="blue"
           description="Number of unique investment banking firms"
         />
         <KPICard 
@@ -374,11 +378,11 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-10">
         <FunnelChart 
           data={interviewFunnel} 
           title="Interview Funnel" 
-          color="purple"
+          color="blue"
         />
         <FunnelChart 
           data={networkingFunnel} 
@@ -388,7 +392,12 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
         <DonutChart 
           percentage={parseFloat(kpis.referralPercentage)} 
           title="Referral Rate" 
-          color="purple"
+          color="blue"
+        />
+        <DonutChart 
+          percentage={parseFloat(kpis.applicationSuccessRate)} 
+          title="Application Success" 
+          color="amber"
         />
       </div>
 
@@ -408,12 +417,12 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
       {/* Recent Activity Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Contacts */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300">
+        <div className="card-base p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Recent Contacts</h3>
+            <h3 className="text-heading-3">Recent Contacts</h3>
             <button 
               onClick={() => setActiveTab('contacts')}
-              className="text-purple-600 hover:text-purple-800 text-sm font-semibold hover:underline transition-colors"
+              className="text-blue-600 hover:text-blue-800 text-sm font-semibold hover:underline transition-colors"
             >
               View All
             </button>
@@ -422,10 +431,10 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
             {contacts.slice(0, 6).map(contact => (
               <div 
                 key={contact.id} 
-                className="flex items-center p-4 bg-gray-50 rounded-xl hover:bg-purple-50 transition-colors cursor-pointer group border border-gray-100 hover:border-purple-200"
+                className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer group border border-gray-100 hover:border-blue-200"
                 onClick={() => onShowContactDetail(contact.id)}
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-sm font-bold mr-4 shadow-md">
+                <div className="w-12 h-12 gradient-blue rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4 shadow-sm">
                   {contact.name.split(' ').map(n => n[0]).join('')}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -433,19 +442,19 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
                   <p className="text-sm text-gray-600 truncate">{contact.firm} • {contact.position}</p>
                   {contact.group && <p className="text-xs text-gray-500 mt-1">{contact.group}</p>}
                 </div>
-                <Eye className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
+                <Eye className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
               </div>
             ))}
           </div>
         </div>
 
         {/* Recent Interviews */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300">
+        <div className="card-base p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900">Recent Interviews</h3>
+            <h3 className="text-heading-3">Recent Interviews</h3>
             <button 
               onClick={() => setActiveTab('interviews')}
-              className="text-purple-600 hover:text-purple-800 text-sm font-semibold hover:underline transition-colors"
+              className="text-blue-600 hover:text-blue-800 text-sm font-semibold hover:underline transition-colors"
             >
               View All
             </button>
@@ -454,32 +463,32 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
             {interviews.slice(0, 6).map(interview => {
               const getStageColor = (stage) => {
                 switch (stage) {
-                  case 'Applied': return 'bg-purple-100 text-purple-800 border-purple-200';
-                  case 'Phone Screen': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
-                  case 'First Round': return 'bg-blue-100 text-blue-800 border-blue-200';
-                  case 'Second Round': return 'bg-cyan-100 text-cyan-800 border-cyan-200';
-                  case 'Superday': return 'bg-orange-100 text-orange-800 border-orange-200';
-                  case 'Offer Received': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-                  case 'Rejected': return 'bg-red-100 text-red-800 border-red-200';
-                  default: return 'bg-gray-100 text-gray-800 border-gray-200';
+                  case 'Applied': return 'status-blue';
+                  case 'Phone Screen': return 'status-blue';
+                  case 'First Round': return 'status-amber';
+                  case 'Second Round': return 'status-amber';
+                  case 'Superday': return 'status-coral';
+                  case 'Offer Received': return 'status-emerald';
+                  case 'Rejected': return 'status-red';
+                  default: return 'status-gray';
                 }
               };
 
               return (
                 <div 
                   key={interview.id} 
-                  className="flex items-center p-4 bg-gray-50 rounded-xl hover:bg-purple-50 transition-colors cursor-pointer group border border-gray-100 hover:border-purple-200"
+                  className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer group border border-gray-100 hover:border-blue-200"
                   onClick={() => setActiveTab('interviews')}
                 >
                   <Building2 className="w-10 h-10 text-gray-400 mr-4" />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 truncate">{interview.firm}</p>
                     <p className="text-sm text-gray-600 truncate">{interview.position}</p>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold mt-2 border ${getStageColor(interview.stage)}`}>
+                    <span className={`status-badge mt-2 ${getStageColor(interview.stage)}`}>
                       {interview.stage}
                     </span>
                   </div>
-                  <Eye className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
+                  <Eye className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
                 </div>
               );
             })}
