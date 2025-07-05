@@ -212,160 +212,23 @@ const Contacts = ({
   };
 
   const SortDropdown = () => (
-  <div className="relative">
-    <button
-      onClick={() => setShowSortOptions(!showSortOptions)}
-      className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-md ${
-        sortField ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
-      }`}
-    >
-      <ArrowUpDown className="w-4 h-4 mr-2" />
-      Sort {sortField && `(${sortField})`}
-      <ChevronDown className="w-4 h-4 ml-2" />
-    </button>
+    <div className="relative">
+      <button
+        onClick={() => setShowSortOptions(!showSortOptions)}
+        className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-md ${
+          sortField ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+        }`}
+      >
+        <ArrowUpDown className="w-4 h-4 mr-2" />
+        Sort {sortField && `(${sortField})`}
+        <ChevronDown className="w-4 h-4 ml-2" />
+      </button>
 
-    {showSortOptions && (
-      <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-10">
-        <div className="p-2">
-          {sortOptions.map(option => (
-            <button
-              key={option}
-              onClick={() => setViewMode('table')}
-              className={`flex items-center px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                viewMode === 'table'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <List className="w-4 h-4 mr-2" />
-              Table
-            </button>
-          ))} {/* <-- Close sortOptions.map here */}
-        </div>
-        <button
-          onClick={onAdd}
-          className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl flex items-center hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Contact
-        </button>
-      </div>
-    )}
-  </div>
-); // <-- Close arrow function here
-  
-      {/* Search and Filters */}
-      <div className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
-        <div className="flex items-center space-x-4 mb-4">
-          <div className="flex-1 relative">
-            <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search contacts..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm"
-            />
-          </div>
-          
-          <SortDropdown />
-          
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold hover:shadow-md ${
-              Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'text-gray-700'
-            }`}
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filters
-          </button>
-        </div>
-
-        {/* Filter Dropdowns */}
-        {showFilters && (
-          <div className="flex flex-wrap items-center gap-4 p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
-            <FilterDropdown
-              title="Firm"
-              options={filterOptions.firms}
-              selected={filters.firms}
-              onChange={handleFilterChange}
-              filterKey="firms"
-            />
-            <FilterDropdown
-              title="Position"
-              options={filterOptions.positions}
-              selected={filters.positions}
-              onChange={handleFilterChange}
-              filterKey="positions"
-            />
-            <FilterDropdown
-              title="Group"
-              options={filterOptions.groups}
-              selected={filters.groups}
-              onChange={handleFilterChange}
-              filterKey="groups"
-            />
-            <FilterDropdown
-              title="Status"
-              options={filterOptions.networkingStatuses}
-              selected={filters.networkingStatuses}
-              onChange={handleFilterChange}
-              filterKey="networkingStatuses"
-            />
-            <FilterDropdown
-              title="Next Steps"
-              options={filterOptions.nextSteps}
-              selected={filters.nextSteps}
-              onChange={handleFilterChange}
-              filterKey="nextSteps"
-            />
-            
-            {Object.values(filters).some(f => f.length > 0) && (
+      {showSortOptions && (
+        <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-10">
+          <div className="p-2">
+            {sortOptions.map(option => (
               <button
-                onClick={clearFilters}
-                className="flex items-center px-4 py-3 text-sm text-gray-600 hover:text-gray-900 hover:bg-white rounded-xl transition-colors border border-gray-300 font-semibold"
-              >
-                <X className="w-4 h-4 mr-2" />
-                Clear All
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="p-8">
-        {viewMode === 'cards' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAndSortedContacts.map(contact => (
-              <ContactCard key={contact.id} contact={contact} />
-            ))}
-          </div>
-        ) : (
-          <ContactTable />
-        )}
-
-        {filteredAndSortedContacts.length === 0 && (
-          <div className="text-center py-20">
-            <Search className="w-16 h-16 text-gray-300 mx-auto mb-6" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">No contacts found</h3>
-            <p className="text-gray-500 mb-8 max-w-md mx-auto">
-              {searchTerm || Object.values(filters).some(f => f.length > 0)
-                ? 'Try adjusting your search or filters to find what you\'re looking for.'
-                : 'Get started by adding your first contact to begin building your network.'
-              }
-            </p>
-            <button
-              onClick={onAdd}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
-            >
-              Add Your First Contact
-            </button>
-          </div>
-        )}
-      </div>
- 
-export default Contacts;
                 key={option.field}
                 onClick={() => handleSort(option.field)}
                 className={`w-full text-left p-3 hover:bg-gray-50 rounded-lg text-sm transition-colors ${
@@ -743,3 +606,140 @@ export default Contacts;
                 Cards
               </button>
               <button
+                onClick={() => setViewMode('table')}
+                className={`flex items-center px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  viewMode === 'table'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <List className="w-4 h-4 mr-2" />
+                Table
+              </button>
+            </div>
+            <button
+              onClick={onAdd}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl flex items-center hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Contact
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Search and Filters */}
+      <div className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
+        <div className="flex items-center space-x-4 mb-4">
+          <div className="flex-1 relative">
+            <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search contacts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm"
+            />
+          </div>
+          
+          <SortDropdown />
+          
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold hover:shadow-md ${
+              Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'text-gray-700'
+            }`}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filters
+          </button>
+        </div>
+
+        {/* Filter Dropdowns */}
+        {showFilters && (
+          <div className="flex flex-wrap items-center gap-4 p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
+            <FilterDropdown
+              title="Firm"
+              options={filterOptions.firms}
+              selected={filters.firms}
+              onChange={handleFilterChange}
+              filterKey="firms"
+            />
+            <FilterDropdown
+              title="Position"
+              options={filterOptions.positions}
+              selected={filters.positions}
+              onChange={handleFilterChange}
+              filterKey="positions"
+            />
+            <FilterDropdown
+              title="Group"
+              options={filterOptions.groups}
+              selected={filters.groups}
+              onChange={handleFilterChange}
+              filterKey="groups"
+            />
+            <FilterDropdown
+              title="Status"
+              options={filterOptions.networkingStatuses}
+              selected={filters.networkingStatuses}
+              onChange={handleFilterChange}
+              filterKey="networkingStatuses"
+            />
+            <FilterDropdown
+              title="Next Steps"
+              options={filterOptions.nextSteps}
+              selected={filters.nextSteps}
+              onChange={handleFilterChange}
+              filterKey="nextSteps"
+            />
+            
+            {Object.values(filters).some(f => f.length > 0) && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center px-4 py-3 text-sm text-gray-600 hover:text-gray-900 hover:bg-white rounded-xl transition-colors border border-gray-300 font-semibold"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Clear All
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-8">
+        {viewMode === 'cards' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredAndSortedContacts.map(contact => (
+              <ContactCard key={contact.id} contact={contact} />
+            ))}
+          </div>
+        ) : (
+          <ContactTable />
+        )}
+
+        {filteredAndSortedContacts.length === 0 && (
+          <div className="text-center py-20">
+            <Search className="w-16 h-16 text-gray-300 mx-auto mb-6" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">No contacts found</h3>
+            <p className="text-gray-500 mb-8 max-w-md mx-auto">
+              {searchTerm || Object.values(filters).some(f => f.length > 0)
+                ? 'Try adjusting your search or filters to find what you\'re looking for.'
+                : 'Get started by adding your first contact to begin building your network.'
+              }
+            </p>
+            <button
+              onClick={onAdd}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
+            >
+              Add Your First Contact
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Contacts;
