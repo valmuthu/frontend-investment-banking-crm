@@ -3,6 +3,7 @@ import { Building2 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Contacts from './components/Contacts';
 import Interviews from './components/Interviews';
+import Documents from './components/Documents';
 import ContactDetailPage from './components/ContactDetailPage';
 import InterviewDetailPage from './components/InterviewDetailPage';
 import Navigation from './components/Navigation';
@@ -154,6 +155,30 @@ export default function App() {
           notes: 'Initial screening call'
         }
       ]
+    }
+  ]);
+
+  // Documents state
+  const [documents, setDocuments] = useState([
+    {
+      id: 1,
+      name: 'Resume - Investment Banking 2025',
+      type: 'Resume',
+      uploadDate: '2025-01-15',
+      associatedContacts: ['Kevin Burns', 'Sarah Johnson'],
+      associatedFirms: ['Evercore', 'Morgan Stanley'],
+      tags: ['current', 'analyst'],
+      notes: 'Latest version with TMT experience highlighted'
+    },
+    {
+      id: 2,
+      name: 'Coffee Chat Email Template',
+      type: 'Email Template',
+      uploadDate: '2025-01-10',
+      associatedContacts: [],
+      associatedFirms: [],
+      tags: ['networking', 'template'],
+      notes: 'Standard template for initial outreach'
     }
   ]);
 
@@ -348,6 +373,28 @@ export default function App() {
     }
   };
 
+  // Document management functions
+  const addDocument = (documentData) => {
+    const document = {
+      ...documentData,
+      id: Date.now(),
+      uploadDate: new Date().toISOString().split('T')[0]
+    };
+    setDocuments([...documents, document]);
+  };
+
+  const updateDocument = (updatedDocument) => {
+    setDocuments(documents.map(doc => 
+      doc.id === updatedDocument.id ? updatedDocument : doc
+    ));
+  };
+
+  const deleteDocument = (id) => {
+    if (window.confirm('Are you sure you want to delete this document?')) {
+      setDocuments(documents.filter(doc => doc.id !== id));
+    }
+  };
+
   const showContactDetail = (contactId) => {
     setSelectedContactId(contactId);
     setCurrentView('contact-detail');
@@ -490,6 +537,16 @@ export default function App() {
             onAdd={() => setShowInterviewModal(true)}
             onShowContactDetail={showContactDetail}
             onShowInterviewDetail={showInterviewDetail}
+          />
+        )}
+
+        {activeTab === 'documents' && (
+          <Documents 
+            documents={documents}
+            contacts={contacts}
+            onAdd={addDocument}
+            onEdit={updateDocument}
+            onDelete={deleteDocument}
           />
         )}
       </div>
