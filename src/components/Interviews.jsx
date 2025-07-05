@@ -74,6 +74,14 @@ const Interviews = ({
     return logoMap[firmName] || null;
   };
 
+  // Helper function to format position and group
+  const formatPositionGroup = (position, group) => {
+    if (group) {
+      return `${position}, ${group}`;
+    }
+    return position;
+  };
+
   // Filtered and sorted interviews
   const filteredAndSortedInterviews = useMemo(() => {
     let filtered = interviews.filter(interview => {
@@ -178,7 +186,7 @@ const Interviews = ({
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`btn-secondary text-sm ${
+          className={`btn-secondary text-sm min-w-[120px] ${
             selected.length > 0 
               ? 'bg-blue-50 border-blue-200 text-blue-700' 
               : ''
@@ -213,7 +221,7 @@ const Interviews = ({
     <div className="relative">
       <button
         onClick={() => setShowSortOptions(!showSortOptions)}
-        className={`btn-secondary text-sm ${
+        className={`btn-secondary text-sm min-w-[140px] ${
           sortField ? 'bg-blue-50 border-blue-200 text-blue-700' : ''
         }`}
       >
@@ -260,12 +268,12 @@ const Interviews = ({
         <div className="section-padding">
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center flex-1">
-              <div className="w-12 h-12 gradient-blue rounded-lg flex items-center justify-center text-white font-semibold mr-4 shadow-sm overflow-hidden">
+              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mr-4 shadow-sm overflow-hidden border border-gray-200">
                 {firmLogo ? (
                   <img 
                     src={firmLogo} 
                     alt={interview.firm}
-                    className="w-full h-full object-contain p-2"
+                    className="w-8 h-8 object-contain"
                     onError={(e) => {
                       e.target.style.display = 'none';
                       e.target.nextSibling.style.display = 'flex';
@@ -273,13 +281,12 @@ const Interviews = ({
                   />
                 ) : null}
                 <div className={`${firmLogo ? 'hidden' : 'flex'} w-full h-full items-center justify-center`}>
-                  <Building2 className="w-6 h-6" />
+                  <Building2 className="w-6 h-6 text-gray-400" />
                 </div>
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-heading-3 group-hover:text-blue-600 transition-colors truncate">{interview.firm}</h3>
-                <p className="text-body truncate">{interview.position}</p>
-                {interview.group && <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">{interview.group}</span>}
+                <p className="text-body truncate">{formatPositionGroup(interview.position, interview.group)}</p>
               </div>
             </div>
             <div className="flex items-center space-x-1 ml-4">
@@ -311,12 +318,6 @@ const Interviews = ({
               <span className={`status-badge ${getStageColor(interview.stage)}`}>
                 {interview.stage}
               </span>
-              {referralContact && (
-                <div className="flex items-center text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200">
-                  <Award className="icon-sm mr-1" />
-                  Referred
-                </div>
-              )}
             </div>
 
             <div className="text-xs text-gray-500">
@@ -324,14 +325,14 @@ const Interviews = ({
             </div>
 
             {referralContact && (
-              <div className="flex items-center p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                <Award className="w-4 h-4 text-emerald-600 mr-2" />
+              <div className="flex items-center p-2 bg-emerald-50 rounded-lg border border-emerald-200">
+                <Award className="w-3 h-3 text-emerald-600 mr-2" />
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onShowContactDetail(referralContact.id);
                   }}
-                  className="text-emerald-600 hover:text-emerald-800 hover:underline text-sm font-medium"
+                  className="text-emerald-600 hover:text-emerald-800 hover:underline text-xs font-medium truncate"
                 >
                   Referred by {referralContact.name}
                 </button>
@@ -400,12 +401,12 @@ const Interviews = ({
                     onClick={() => onShowInterviewDetail(interview.id)}>
                   <td>
                     <div className="flex items-center">
-                      <div className="w-8 h-8 gradient-blue rounded-lg flex items-center justify-center text-white text-xs mr-3 shadow-sm overflow-hidden">
+                      <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-3 shadow-sm overflow-hidden border border-gray-200">
                         {firmLogo ? (
                           <img 
                             src={firmLogo} 
                             alt={interview.firm}
-                            className="w-full h-full object-contain p-1"
+                            className="w-6 h-6 object-contain"
                             onError={(e) => {
                               e.target.style.display = 'none';
                               e.target.nextSibling.style.display = 'flex';
@@ -413,7 +414,7 @@ const Interviews = ({
                           />
                         ) : null}
                         <div className={`${firmLogo ? 'hidden' : 'flex'} w-full h-full items-center justify-center`}>
-                          <Building2 className="w-4 h-4" />
+                          <Building2 className="w-4 h-4 text-gray-400" />
                         </div>
                       </div>
                       <div className="min-w-0">
@@ -427,7 +428,7 @@ const Interviews = ({
                                   e.stopPropagation();
                                   onShowContactDetail(referralContact.id);
                                 }}
-                                className="hover:underline font-medium"
+                                className="hover:underline font-medium truncate"
                               >
                                 Referred by {referralContact.name}
                               </button>
@@ -439,8 +440,7 @@ const Interviews = ({
                   </td>
                   <td>
                     <div>
-                      <div className="font-medium text-gray-900 truncate">{interview.position}</div>
-                      {interview.group && <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">{interview.group}</span>}
+                      <div className="font-medium text-gray-900 truncate">{formatPositionGroup(interview.position, interview.group)}</div>
                     </div>
                   </td>
                   <td>
@@ -543,7 +543,7 @@ const Interviews = ({
             </div>
             <button
               onClick={onAdd}
-              className="btn-primary"
+              className="btn-primary min-w-[140px]"
             >
               <Plus className="icon-sm mr-2" />
               Add Interview
@@ -570,7 +570,7 @@ const Interviews = ({
           
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`btn-secondary ${
+            className={`btn-secondary min-w-[120px] ${
               Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-200 text-blue-700' : ''
             }`}
           >
