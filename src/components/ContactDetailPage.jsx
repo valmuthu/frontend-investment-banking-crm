@@ -59,13 +59,13 @@ const ContactDetailPage = ({
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'To Be Contacted': return 'bg-gray-50 text-gray-700 border-gray-200';
+      case 'Not Yet Contacted': return 'bg-gray-50 text-gray-700 border-gray-200';
       case 'Initial Outreach Sent': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'Follow up Call Scheduled': return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'Intro Call Complete': return 'bg-green-50 text-green-700 border-green-200';
-      case 'Follow up Email Sent': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'Meeting Scheduled': return 'bg-orange-50 text-orange-700 border-orange-200';
-      case 'Regular Contact': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'Intro Call Scheduled': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'Intro Call Complete': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'Follow-Up Email Sent': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'Follow-Up Call Scheduled': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'Follow-Up Call Complete': return 'bg-green-50 text-green-700 border-green-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
@@ -77,7 +77,7 @@ const ContactDetailPage = ({
     const diffDays = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
     
     if (diffDays < 0) return 'text-red-600 font-semibold';
-    if (diffDays <= 2) return 'text-orange-600 font-semibold';
+    if (diffDays <= 2) return 'text-amber-600 font-semibold';
     return 'text-gray-600';
   };
 
@@ -93,7 +93,7 @@ const ContactDetailPage = ({
 
   const getInteractionColor = (type) => {
     switch (type) {
-      case 'Call': return 'bg-green-100 text-green-600';
+      case 'Call': return 'bg-emerald-100 text-emerald-600';
       case 'Email': return 'bg-blue-100 text-blue-600';
       case 'Meeting': return 'bg-purple-100 text-purple-600';
       case 'Note': return 'bg-gray-100 text-gray-600';
@@ -114,7 +114,7 @@ const ContactDetailPage = ({
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-xl font-bold mr-4 shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xl font-bold mr-4 shadow-sm">
                 {contact.name.split(' ').map(n => n[0]).join('')}
               </div>
               <div>
@@ -153,7 +153,7 @@ const ContactDetailPage = ({
             {isEditingContact && (
               <button
                 onClick={handleSaveContact}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Save Changes
@@ -361,9 +361,9 @@ const ContactDetailPage = ({
                   )}
                   
                   {contact.referred && (
-                    <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                      <Award className="w-5 h-5 text-green-600 mr-2" />
-                      <span className="font-medium text-green-800">Referred Contact</span>
+                    <div className="flex items-center p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                      <Award className="w-5 h-5 text-emerald-600 mr-2" />
+                      <span className="font-medium text-emerald-800">Referred Contact</span>
                     </div>
                   )}
 
