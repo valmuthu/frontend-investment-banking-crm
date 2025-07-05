@@ -144,10 +144,10 @@ const Contacts = ({
       case 'Not Yet Contacted': return 'bg-gray-50 text-gray-700 border-gray-200';
       case 'Initial Outreach Sent': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'Intro Call Scheduled': return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'Intro Call Complete': return 'bg-green-50 text-green-700 border-green-200';
+      case 'Intro Call Complete': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'Follow-Up Email Sent': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'Follow-Up Call Scheduled': return 'bg-orange-50 text-orange-700 border-orange-200';
-      case 'Follow-Up Call Complete': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'Follow-Up Call Complete': return 'bg-green-50 text-green-700 border-green-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
@@ -180,7 +180,7 @@ const Contacts = ({
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium transition-all duration-200 ${
+          className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-md ${
             selected.length > 0 
               ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' 
               : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
@@ -191,7 +191,7 @@ const Contacts = ({
         </button>
         
         {isOpen && (
-          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-10 max-h-60 overflow-y-auto">
+          <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-10 max-h-60 overflow-y-auto">
             <div className="p-2">
               {options.map(option => (
                 <label key={option} className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
@@ -215,7 +215,7 @@ const Contacts = ({
     <div className="relative">
       <button
         onClick={() => setShowSortOptions(!showSortOptions)}
-        className={`flex items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium transition-all duration-200 ${
+        className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-md ${
           sortField ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
         }`}
       >
@@ -225,14 +225,151 @@ const Contacts = ({
       </button>
       
       {showSortOptions && (
-        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
+        <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-10">
           <div className="p-2">
             {sortOptions.map(option => (
               <button
+                onClick={() => setViewMode('table')}
+                className={`flex items-center px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  viewMode === 'table' 
+                    ? 'bg-white text-gray-900 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <List className="w-4 h-4 mr-2" />
+                Table
+              </button>
+            </div>
+            <button
+              onClick={onAdd}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl flex items-center hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Contact
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
+        <div className="flex items-center space-x-4 mb-4">
+          <div className="flex-1 relative">
+            <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search contacts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm"
+            />
+          </div>
+          
+          <SortDropdown />
+          
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold hover:shadow-md ${
+              Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'text-gray-700'
+            }`}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filters
+          </button>
+        </div>
+
+        {/* Filter Dropdowns */}
+        {showFilters && (
+          <div className="flex flex-wrap items-center gap-4 p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
+            <FilterDropdown
+              title="Firm"
+              options={filterOptions.firms}
+              selected={filters.firms}
+              onChange={handleFilterChange}
+              filterKey="firms"
+            />
+            <FilterDropdown
+              title="Position"
+              options={filterOptions.positions}
+              selected={filters.positions}
+              onChange={handleFilterChange}
+              filterKey="positions"
+            />
+            <FilterDropdown
+              title="Group"
+              options={filterOptions.groups}
+              selected={filters.groups}
+              onChange={handleFilterChange}
+              filterKey="groups"
+            />
+            <FilterDropdown
+              title="Status"
+              options={filterOptions.networkingStatuses}
+              selected={filters.networkingStatuses}
+              onChange={handleFilterChange}
+              filterKey="networkingStatuses"
+            />
+            <FilterDropdown
+              title="Next Steps"
+              options={filterOptions.nextSteps}
+              selected={filters.nextSteps}
+              onChange={handleFilterChange}
+              filterKey="nextSteps"
+            />
+            
+            {Object.values(filters).some(f => f.length > 0) && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center px-4 py-3 text-sm text-gray-600 hover:text-gray-900 hover:bg-white rounded-xl transition-colors border border-gray-300 font-semibold"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Clear All
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-8">
+        {viewMode === 'cards' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredAndSortedContacts.map(contact => (
+              <ContactCard key={contact.id} contact={contact} />
+            ))}
+          </div>
+        ) : (
+          <ContactTable />
+        )}
+
+        {filteredAndSortedContacts.length === 0 && (
+          <div className="text-center py-20">
+            <Search className="w-16 h-16 text-gray-300 mx-auto mb-6" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">No contacts found</h3>
+            <p className="text-gray-500 mb-8 max-w-md mx-auto">
+              {searchTerm || Object.values(filters).some(f => f.length > 0)
+                ? 'Try adjusting your search or filters to find what you\'re looking for.'
+                : 'Get started by adding your first contact to begin building your network.'
+              }
+            </p>
+            <button
+              onClick={onAdd}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
+            >
+              Add Your First Contact
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Contacts;
                 key={option.field}
                 onClick={() => handleSort(option.field)}
                 className={`w-full text-left p-3 hover:bg-gray-50 rounded-lg text-sm transition-colors ${
-                  sortField === option.field ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-900'
+                  sortField === option.field ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-900'
                 }`}
               >
                 {option.label}
@@ -250,7 +387,7 @@ const Contacts = ({
   );
 
   const ContactCard = ({ contact }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 cursor-pointer group"
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-blue-200"
          onClick={() => onShowContactDetail(contact.id)}>
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
@@ -265,7 +402,7 @@ const Contacts = ({
                 <p className="text-sm font-semibold text-gray-900">{contact.firm}</p>
               </div>
               <p className="text-gray-600 font-medium text-sm">{contact.position}</p>
-              {contact.group && <p className="text-xs text-gray-500 mt-1 font-medium">{contact.group}</p>}
+              {contact.group && <p className="text-xs text-gray-500 mt-1 font-medium bg-gray-100 px-2 py-1 rounded-full inline-block">{contact.group}</p>}
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -299,7 +436,7 @@ const Contacts = ({
                 {contact.networkingStatus}
               </span>
               {contact.referred && (
-                <div className="flex items-center text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-200">
+                <div className="flex items-center text-sm text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200">
                   <Check className="w-4 h-4 mr-1" />
                   Referred
                 </div>
@@ -322,88 +459,90 @@ const Contacts = ({
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-            <div className="flex items-center space-x-2">
-              <div className="relative">
-                <button
-                  onMouseEnter={() => setHoveredContact(`email-${contact.id}`)}
-                  onMouseLeave={() => setHoveredContact(null)}
-                  className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50 group/btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    copyToClipboard(contact.email, `email-${contact.id}`);
-                  }}
-                >
-                  {copiedInfo === `email-${contact.id}` ? (
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <Mail className="w-4 h-4" />
+          <div className="pt-3 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-1">
+                <div className="relative">
+                  <button
+                    onMouseEnter={() => setHoveredContact(`email-${contact.id}`)}
+                    onMouseLeave={() => setHoveredContact(null)}
+                    className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50 group/btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyToClipboard(contact.email, `email-${contact.id}`);
+                    }}
+                  >
+                    {copiedInfo === `email-${contact.id}` ? (
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <Mail className="w-4 h-4" />
+                    )}
+                  </button>
+                  {hoveredContact === `email-${contact.id}` && (
+                    <div className="absolute bottom-12 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                      Click to copy: {contact.email}
+                    </div>
                   )}
-                </button>
-                {hoveredContact === `email-${contact.id}` && (
-                  <div className="absolute bottom-10 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                    Click to copy: {contact.email}
-                  </div>
-                )}
+                </div>
+                <div className="relative">
+                  <button
+                    onMouseEnter={() => setHoveredContact(`phone-${contact.id}`)}
+                    onMouseLeave={() => setHoveredContact(null)}
+                    className="text-gray-400 hover:text-green-600 transition-colors p-2 rounded-lg hover:bg-green-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyToClipboard(contact.phone, `phone-${contact.id}`);
+                    }}
+                  >
+                    {copiedInfo === `phone-${contact.id}` ? (
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <Phone className="w-4 h-4" />
+                    )}
+                  </button>
+                  {hoveredContact === `phone-${contact.id}` && (
+                    <div className="absolute bottom-12 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                      Click to copy: {contact.phone}
+                    </div>
+                  )}
+                </div>
+                <div className="relative">
+                  <button
+                    onMouseEnter={() => setHoveredContact(`linkedin-${contact.id}`)}
+                    onMouseLeave={() => setHoveredContact(null)}
+                    className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyToClipboard(contact.linkedin, `linkedin-${contact.id}`);
+                    }}
+                  >
+                    {copiedInfo === `linkedin-${contact.id}` ? (
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <Linkedin className="w-4 h-4" />
+                    )}
+                  </button>
+                  {hoveredContact === `linkedin-${contact.id}` && (
+                    <div className="absolute bottom-12 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                      Click to copy LinkedIn
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="relative">
-                <button
-                  onMouseEnter={() => setHoveredContact(`phone-${contact.id}`)}
-                  onMouseLeave={() => setHoveredContact(null)}
-                  className="text-gray-400 hover:text-green-600 transition-colors p-2 rounded-lg hover:bg-green-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    copyToClipboard(contact.phone, `phone-${contact.id}`);
-                  }}
-                >
-                  {copiedInfo === `phone-${contact.id}` ? (
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <Phone className="w-4 h-4" />
-                  )}
-                </button>
-                {hoveredContact === `phone-${contact.id}` && (
-                  <div className="absolute bottom-10 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                    Click to copy: {contact.phone}
-                  </div>
-                )}
-              </div>
-              <div className="relative">
-                <button
-                  onMouseEnter={() => setHoveredContact(`linkedin-${contact.id}`)}
-                  onMouseLeave={() => setHoveredContact(null)}
-                  className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    copyToClipboard(contact.linkedin, `linkedin-${contact.id}`);
-                  }}
-                >
-                  {copiedInfo === `linkedin-${contact.id}` ? (
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <Linkedin className="w-4 h-4" />
-                  )}
-                </button>
-                {hoveredContact === `linkedin-${contact.id}` && (
-                  <div className="absolute bottom-10 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                    Click to copy LinkedIn
-                  </div>
-                )}
+              <div className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium group-hover:translate-x-1 transition-transform">
+                <span>View Details</span>
+                <ChevronRight className="w-4 h-4 ml-1" />
               </div>
             </div>
-            <div className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium group-hover:translate-x-1 transition-transform">
-              <span>View Details</span>
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </div>
-          </div>
 
-          {/* Interaction count */}
-          <div className="flex items-center justify-between pt-2">
-            <div className="flex items-center text-xs text-gray-500">
-              <Calendar className="w-3 h-3 mr-1" />
-              {contact.interactions?.length || 0} interactions
+            {/* Interaction count */}
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center text-xs text-gray-500">
+                <Calendar className="w-3 h-3 mr-1" />
+                {contact.interactions?.length || 0} interactions
+              </div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
-            <div className="w-2 h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
           </div>
         </div>
       </div>
@@ -411,17 +550,17 @@ const Contacts = ({
   );
 
   const ContactTable = () => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
             <tr>
-              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Contact</th>
-              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Company & Role</th>
-              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Status</th>
-              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Next Steps</th>
-              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Contact Info</th>
-              <th className="px-8 py-5 text-center text-sm font-semibold text-gray-700">Actions</th>
+              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-80">Contact</th>
+              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-72">Company & Role</th>
+              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-64">Status</th>
+              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-72">Next Steps</th>
+              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-48">Contact Info</th>
+              <th className="px-8 py-6 text-center text-sm font-bold text-gray-700 w-32">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -437,15 +576,11 @@ const Contacts = ({
                       <div className="font-semibold text-gray-900 hover:text-blue-600 transition-colors text-base">{contact.name}</div>
                       <div className="flex items-center mt-2 space-x-3">
                         {contact.referred && (
-                          <div className="flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-200">
+                          <div className="flex items-center text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200">
                             <Check className="w-3 h-3 mr-1" />
                             Referred
                           </div>
                         )}
-                        <div className="flex items-center text-xs text-gray-500">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          {contact.interactions?.length || 0} interactions
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -457,10 +592,10 @@ const Contacts = ({
                       {contact.firm}
                     </div>
                     <div className="text-sm text-gray-600 mt-1 font-medium">{contact.position}</div>
-                    {contact.group && <div className="text-xs text-gray-500 mt-1 font-medium">{contact.group}</div>}
+                    {contact.group && <div className="text-xs text-gray-500 mt-1 font-medium bg-gray-100 px-2 py-1 rounded-full inline-block">{contact.group}</div>}
                   </div>
                 </td>
-                <td className="px-8 py-6 text-center">
+                <td className="px-8 py-6">
                   <div>
                     <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStatusColor(contact.networkingStatus)}`}>
                       {contact.networkingStatus}
@@ -473,13 +608,13 @@ const Contacts = ({
                     <div>
                       <div className="text-sm text-gray-900 font-medium">{contact.nextSteps}</div>
                       <div className={`text-sm mt-1 font-medium ${getPriorityColor(contact.nextStepsDate)}`}>
-                        Due: {contact.nextStepsDate}
+                        {contact.nextStepsDate}
                       </div>
                     </div>
                   )}
                 </td>
                 <td className="px-8 py-6">
-                  <div className="flex items-center space-x-3">
+                  <div className="flex flex-col space-y-2">
                     <div className="relative">
                       <button
                         onMouseEnter={() => setHoveredContact(`table-email-${contact.id}`)}
@@ -549,7 +684,7 @@ const Contacts = ({
                   </div>
                 </td>
                 <td className="px-8 py-6">
-                  <div className="flex items-center justify-center space-x-2">
+                  <div className="flex items-center justify-center space-x-1">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -581,24 +716,24 @@ const Contacts = ({
   );
 
   return (
-    <div className="flex-1 bg-gray-50">
+    <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-8">
+      <div className="bg-white border-b border-gray-200 px-8 py-8 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
-            <p className="text-gray-600 mt-2">Manage your investment banking network</p>
-            <div className="flex items-center mt-4 text-sm text-gray-500">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Contacts</h1>
+            <p className="text-lg text-gray-600 mb-4">Manage your investment banking network</p>
+            <div className="flex items-center text-sm text-gray-500">
               <Users className="w-4 h-4 mr-2" />
               {filteredAndSortedContacts.length} contacts
             </div>
           </div>
           <div className="flex items-center space-x-4">
             {/* View Toggle */}
-            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center bg-gray-100 rounded-xl p-1.5">
               <button
                 onClick={() => setViewMode('cards')}
-                className={`flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
                   viewMode === 'cards' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
@@ -608,140 +743,3 @@ const Contacts = ({
                 Cards
               </button>
               <button
-                onClick={() => setViewMode('table')}
-                className={`flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                  viewMode === 'table' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <List className="w-4 h-4 mr-2" />
-                Table
-              </button>
-            </div>
-            <button
-              onClick={onAdd}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm font-medium"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Contact
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="bg-white border-b border-gray-200 px-8 py-6">
-        <div className="flex items-center space-x-4 mb-4">
-          <div className="flex-1 relative">
-            <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search contacts..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-          </div>
-          
-          <SortDropdown />
-          
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium ${
-              Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'text-gray-700'
-            }`}
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filters
-          </button>
-        </div>
-
-        {/* Filter Dropdowns */}
-        {showFilters && (
-          <div className="flex flex-wrap items-center gap-4 p-6 bg-gray-50 rounded-xl border border-gray-200">
-            <FilterDropdown
-              title="Firm"
-              options={filterOptions.firms}
-              selected={filters.firms}
-              onChange={handleFilterChange}
-              filterKey="firms"
-            />
-            <FilterDropdown
-              title="Position"
-              options={filterOptions.positions}
-              selected={filters.positions}
-              onChange={handleFilterChange}
-              filterKey="positions"
-            />
-            <FilterDropdown
-              title="Group"
-              options={filterOptions.groups}
-              selected={filters.groups}
-              onChange={handleFilterChange}
-              filterKey="groups"
-            />
-            <FilterDropdown
-              title="Status"
-              options={filterOptions.networkingStatuses}
-              selected={filters.networkingStatuses}
-              onChange={handleFilterChange}
-              filterKey="networkingStatuses"
-            />
-            <FilterDropdown
-              title="Next Steps"
-              options={filterOptions.nextSteps}
-              selected={filters.nextSteps}
-              onChange={handleFilterChange}
-              filterKey="nextSteps"
-            />
-            
-            {Object.values(filters).some(f => f.length > 0) && (
-              <button
-                onClick={clearFilters}
-                className="flex items-center px-4 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg transition-colors border border-gray-300"
-              >
-                <X className="w-4 h-4 mr-2" />
-                Clear All
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="p-8">
-        {viewMode === 'cards' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAndSortedContacts.map(contact => (
-              <ContactCard key={contact.id} contact={contact} />
-            ))}
-          </div>
-        ) : (
-          <ContactTable />
-        )}
-
-        {filteredAndSortedContacts.length === 0 && (
-          <div className="text-center py-20">
-            <Search className="w-16 h-16 text-gray-300 mx-auto mb-6" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">No contacts found</h3>
-            <p className="text-gray-500 mb-8 max-w-md mx-auto">
-              {searchTerm || Object.values(filters).some(f => f.length > 0)
-                ? 'Try adjusting your search or filters to find what you\'re looking for.'
-                : 'Get started by adding your first contact to begin building your network.'
-              }
-            </p>
-            <button
-              onClick={onAdd}
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-            >
-              Add Your First Contact
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default Contacts;
