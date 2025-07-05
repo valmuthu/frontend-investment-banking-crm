@@ -33,7 +33,7 @@ const Interviews = ({
     nextSteps: []
   });
 
-  // Sorting options (removed priority and application date)
+  // Sorting options
   const sortOptions = [
     { field: 'firm', label: 'Firm' },
     { field: 'position', label: 'Position' },
@@ -153,7 +153,7 @@ const Interviews = ({
       case 'Third Round': return 'bg-pink-50 text-pink-700 border-pink-200';
       case 'Case Study': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'Superday': return 'bg-orange-50 text-orange-700 border-orange-200';
-      case 'Offer Received': return 'bg-green-50 text-green-700 border-green-200';
+      case 'Offer Received': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'Withdrawn': return 'bg-gray-50 text-gray-700 border-gray-200';
       case 'Rejected': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
@@ -178,7 +178,7 @@ const Interviews = ({
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium transition-all duration-200 ${
+          className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-md ${
             selected.length > 0 
               ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' 
               : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
@@ -189,7 +189,7 @@ const Interviews = ({
         </button>
         
         {isOpen && (
-          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-10 max-h-60 overflow-y-auto">
+          <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-10 max-h-60 overflow-y-auto">
             <div className="p-2">
               {options.map(option => (
                 <label key={option} className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
@@ -213,7 +213,7 @@ const Interviews = ({
     <div className="relative">
       <button
         onClick={() => setShowSortOptions(!showSortOptions)}
-        className={`flex items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium transition-all duration-200 ${
+        className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-md ${
           sortField ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
         }`}
       >
@@ -223,14 +223,14 @@ const Interviews = ({
       </button>
       
       {showSortOptions && (
-        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
+        <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-10">
           <div className="p-2">
             {sortOptions.map(option => (
               <button
                 key={option.field}
                 onClick={() => handleSort(option.field)}
                 className={`w-full text-left p-3 hover:bg-gray-50 rounded-lg text-sm transition-colors ${
-                  sortField === option.field ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-900'
+                  sortField === option.field ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-900'
                 }`}
               >
                 {option.label}
@@ -255,7 +255,7 @@ const Interviews = ({
     const firmLogo = getFirmLogo(interview.firm);
 
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 cursor-pointer group"
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-blue-200"
            onClick={() => onShowInterviewDetail(interview.id)}>
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
@@ -279,7 +279,7 @@ const Interviews = ({
               <div className="flex-1">
                 <h3 className="font-bold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">{interview.firm}</h3>
                 <p className="text-gray-600 font-medium">{interview.position}</p>
-                {interview.group && <p className="text-xs text-gray-500 mt-1 font-medium">{interview.group}</p>}
+                {interview.group && <p className="text-xs text-gray-500 mt-1 font-medium bg-gray-100 px-2 py-1 rounded-full inline-block">{interview.group}</p>}
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -318,14 +318,14 @@ const Interviews = ({
             </div>
 
             {referralContact && (
-              <div className="flex items-center p-2 bg-green-50 rounded-lg border border-green-200">
-                <Award className="w-4 h-4 text-green-600 mr-2" />
+              <div className="flex items-center p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                <Award className="w-4 h-4 text-emerald-600 mr-2" />
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onShowContactDetail(referralContact.id);
                   }}
-                  className="text-green-600 hover:text-green-800 hover:underline text-sm font-medium"
+                  className="text-emerald-600 hover:text-emerald-800 hover:underline text-sm font-medium"
                 >
                   Referred by {referralContact.name}
                 </button>
@@ -369,17 +369,17 @@ const Interviews = ({
   };
 
   const InterviewTable = () => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
             <tr>
-              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Company</th>
-              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Position</th>
-              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Stage</th>
-              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Next Steps</th>
-              <th className="px-8 py-5 text-left text-sm font-semibold text-gray-700">Progress</th>
-              <th className="px-8 py-5 text-center text-sm font-semibold text-gray-700">Actions</th>
+              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-80">Company</th>
+              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-64">Position</th>
+              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-56">Stage</th>
+              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-72">Next Steps</th>
+              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-48">Progress</th>
+              <th className="px-8 py-6 text-center text-sm font-bold text-gray-700 w-32">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -413,7 +413,7 @@ const Interviews = ({
                       <div>
                         <div className="font-semibold text-gray-900 hover:text-blue-600 transition-colors text-base">{interview.firm}</div>
                         {referralContact && (
-                          <div className="flex items-center text-xs text-green-600 mt-1 bg-green-50 px-2 py-1 rounded-full border border-green-200 inline-block">
+                          <div className="flex items-center text-xs text-emerald-600 mt-1 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200 inline-block">
                             <Award className="w-3 h-3 mr-1" />
                             <button
                               onClick={(e) => {
@@ -432,10 +432,10 @@ const Interviews = ({
                   <td className="px-8 py-6">
                     <div>
                       <div className="font-medium text-gray-900 text-base">{interview.position}</div>
-                      {interview.group && <div className="text-xs text-gray-500 mt-1 font-medium">{interview.group}</div>}
+                      {interview.group && <div className="text-xs text-gray-500 mt-1 font-medium bg-gray-100 px-2 py-1 rounded-full inline-block">{interview.group}</div>}
                     </div>
                   </td>
-                  <td className="px-8 py-6 text-center">
+                  <td className="px-8 py-6">
                     <div>
                       <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStageColor(interview.stage)}`}>
                         {interview.stage}
@@ -449,7 +449,7 @@ const Interviews = ({
                         <div className="text-sm text-gray-900 font-medium">{interview.nextSteps}</div>
                         {interview.nextStepsDate && (
                           <div className={`text-sm mt-1 font-medium ${getDateUrgency(interview.nextStepsDate)}`}>
-                            Due: {interview.nextStepsDate}
+                            {interview.nextStepsDate}
                           </div>
                         )}
                       </div>
@@ -462,7 +462,7 @@ const Interviews = ({
                     </div>
                   </td>
                   <td className="px-8 py-6">
-                    <div className="flex items-center justify-center space-x-2">
+                    <div className="flex items-center justify-center space-x-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -495,24 +495,24 @@ const Interviews = ({
   );
 
   return (
-    <div className="flex-1 bg-gray-50">
+    <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-8">
+      <div className="bg-white border-b border-gray-200 px-8 py-8 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Interviews</h1>
-            <p className="text-gray-600 mt-2">Track your investment banking interviews</p>
-            <div className="flex items-center mt-4 text-sm text-gray-500">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Interviews</h1>
+            <p className="text-lg text-gray-600 mb-4">Track your investment banking interviews</p>
+            <div className="flex items-center text-sm text-gray-500">
               <Target className="w-4 h-4 mr-2" />
               {filteredAndSortedInterviews.length} interviews
             </div>
           </div>
           <div className="flex items-center space-x-4">
             {/* View Toggle */}
-            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center bg-gray-100 rounded-xl p-1.5">
               <button
                 onClick={() => setViewMode('cards')}
-                className={`flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
                   viewMode === 'cards' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
@@ -523,7 +523,7 @@ const Interviews = ({
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`flex items-center px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
                   viewMode === 'table' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
@@ -535,7 +535,7 @@ const Interviews = ({
             </div>
             <button
               onClick={onAdd}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm font-medium"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl flex items-center hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Interview
@@ -545,7 +545,7 @@ const Interviews = ({
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white border-b border-gray-200 px-8 py-6">
+      <div className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
         <div className="flex items-center space-x-4 mb-4">
           <div className="flex-1 relative">
             <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -554,7 +554,7 @@ const Interviews = ({
               placeholder="Search interviews..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm"
             />
           </div>
           
@@ -562,7 +562,7 @@ const Interviews = ({
           
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium ${
+            className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold hover:shadow-md ${
               Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'text-gray-700'
             }`}
           >
@@ -573,7 +573,7 @@ const Interviews = ({
 
         {/* Filter Dropdowns */}
         {showFilters && (
-          <div className="flex flex-wrap items-center gap-4 p-6 bg-gray-50 rounded-xl border border-gray-200">
+          <div className="flex flex-wrap items-center gap-4 p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
             <FilterDropdown
               title="Company"
               options={filterOptions.companies}
@@ -613,7 +613,7 @@ const Interviews = ({
             {Object.values(filters).some(f => f.length > 0) && (
               <button
                 onClick={clearFilters}
-                className="flex items-center px-4 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg transition-colors border border-gray-300"
+                className="flex items-center px-4 py-3 text-sm text-gray-600 hover:text-gray-900 hover:bg-white rounded-xl transition-colors border border-gray-300 font-semibold"
               >
                 <X className="w-4 h-4 mr-2" />
                 Clear All
@@ -647,7 +647,7 @@ const Interviews = ({
             </p>
             <button
               onClick={onAdd}
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
             >
               Add Your First Interview
             </button>
