@@ -267,8 +267,8 @@ const Interviews = ({
            onClick={() => onShowInterviewDetail(interview.id)}>
         <div className="section-padding">
           <div className="flex justify-between items-start mb-4">
-            <div className="flex items-center flex-1">
-              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mr-4 shadow-sm overflow-hidden border border-gray-200">
+            <div className="flex items-center flex-1 min-w-0 mr-3">
+              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mr-4 shadow-sm overflow-hidden border border-gray-200 flex-shrink-0">
                 {firmLogo ? (
                   <img 
                     src={firmLogo} 
@@ -289,7 +289,7 @@ const Interviews = ({
                 <p className="text-body truncate">{formatPositionGroup(interview.position, interview.group)}</p>
               </div>
             </div>
-            <div className="action-buttons">
+            <div className="action-buttons flex-shrink-0">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
