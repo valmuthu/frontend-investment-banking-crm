@@ -69,10 +69,10 @@ const InterviewDetailPage = ({
     switch (stage) {
       case 'Applied': return 'bg-gray-50 text-gray-700 border-gray-200';
       case 'Phone Screen': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'First Round': return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'Second Round': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'First Round': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'Second Round': return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'Third Round': return 'bg-violet-50 text-violet-700 border-violet-200';
-      case 'Case Study': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'Case Study': return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'Superday': return 'bg-orange-50 text-orange-700 border-orange-200';
       case 'Offer Received': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'Rejected': return 'bg-red-50 text-red-700 border-red-200';
@@ -86,7 +86,7 @@ const InterviewDetailPage = ({
       case 'Passed': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'Failed': return 'bg-red-50 text-red-700 border-red-200';
       case 'Cancelled': return 'bg-gray-50 text-gray-700 border-gray-200';
-      case 'Pending': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'Pending': return 'bg-amber-50 text-amber-700 border-amber-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
@@ -98,7 +98,7 @@ const InterviewDetailPage = ({
     const diffDays = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
     
     if (diffDays < 0) return 'text-red-600 font-semibold';
-    if (diffDays <= 2) return 'text-orange-600 font-semibold';
+    if (diffDays <= 2) return 'text-amber-600 font-semibold';
     return 'text-gray-600';
   };
 
@@ -131,7 +131,7 @@ const InterviewDetailPage = ({
   const firmLogo = getFirmLogo(interview.firm);
 
   return (
-    <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="flex-1 bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-8 py-8 shadow-sm">
         <div className="flex items-center justify-between">
@@ -143,12 +143,12 @@ const InterviewDetailPage = ({
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg mr-4 overflow-hidden">
+              <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-sm border border-gray-200 mr-4 overflow-hidden">
                 {firmLogo ? (
                   <img 
                     src={firmLogo} 
                     alt={interview.firm}
-                    className="w-full h-full object-contain p-2"
+                    className="w-12 h-12 object-contain"
                     onError={(e) => {
                       e.target.style.display = 'none';
                       e.target.nextSibling.style.display = 'flex';
@@ -156,7 +156,7 @@ const InterviewDetailPage = ({
                   />
                 ) : null}
                 <div className={`${firmLogo ? 'hidden' : 'flex'} w-full h-full items-center justify-center`}>
-                  <Building2 className="w-8 h-8" />
+                  <Building2 className="w-8 h-8 text-gray-400" />
                 </div>
               </div>
               <div>
@@ -181,7 +181,7 @@ const InterviewDetailPage = ({
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setIsEditingInterview(!isEditingInterview)}
-              className={`flex items-center px-4 py-2 rounded-xl transition-colors font-semibold ${
+              className={`flex items-center px-4 py-2 rounded-lg transition-colors font-medium ${
                 isEditingInterview 
                   ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
                   : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -202,7 +202,7 @@ const InterviewDetailPage = ({
             {isEditingInterview && (
               <button
                 onClick={handleSaveInterview}
-                className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-semibold"
+                className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Save Changes
@@ -217,7 +217,7 @@ const InterviewDetailPage = ({
           {/* Interview Information */}
           <div className="lg:col-span-1 space-y-6">
             {/* Interview Details Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">Interview Details</h3>
               
               {isEditingInterview ? (
@@ -282,7 +282,7 @@ const InterviewDetailPage = ({
             </div>
 
             {/* Next Steps Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">Next Steps</h3>
               
               {isEditingInterview ? (
@@ -348,13 +348,13 @@ const InterviewDetailPage = ({
 
                   {referralContact && (
                     <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                      <div className="flex items-center">
-                        <Award className="w-5 h-5 text-emerald-600 mr-2" />
+                      <div className="flex items-start">
+                        <Award className="w-5 h-5 text-emerald-600 mr-2 mt-0.5" />
                         <div>
                           <p className="text-emerald-800 font-medium text-sm">Referred by</p>
                           <button
                             onClick={() => onShowContactDetail(referralContact.id)}
-                            className="text-emerald-600 hover:text-emerald-800 hover:underline font-medium"
+                            className="text-emerald-600 hover:text-emerald-800 hover:underline font-medium text-left"
                           >
                             {referralContact.name} at {referralContact.firm}
                           </button>
@@ -376,7 +376,7 @@ const InterviewDetailPage = ({
 
           {/* Interview Rounds */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Interview Rounds</h3>
@@ -386,7 +386,7 @@ const InterviewDetailPage = ({
                 </div>
                 <button
                   onClick={() => setShowAddRound(!showAddRound)}
-                  className={`flex items-center px-4 py-2 rounded-xl transition-colors font-semibold ${
+                  className={`flex items-center px-4 py-2 rounded-lg transition-colors font-medium ${
                     showAddRound 
                       ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
                       : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -502,7 +502,7 @@ const InterviewDetailPage = ({
               {interview.rounds && interview.rounds.length > 0 ? (
                 <div className="space-y-4">
                   {interview.rounds.map((round, index) => (
-                    <div key={round.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow">
+                    <div key={round.id} className="border border-gray-200 rounded-lg overflow-hidden">
                       {editingRound && editingRound.id === round.id ? (
                         <form onSubmit={handleUpdateRound} className="p-4 bg-gray-50">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -658,7 +658,7 @@ const InterviewDetailPage = ({
                   <p className="text-gray-500 mb-6">Start tracking your interview progress by adding your first round.</p>
                   <button
                     onClick={() => setShowAddRound(true)}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors font-semibold"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                   >
                     Add Your First Round
                   </button>
