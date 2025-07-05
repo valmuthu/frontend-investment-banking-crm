@@ -146,12 +146,12 @@ const Interviews = ({
   const getStageColor = (stage) => {
     switch (stage) {
       case 'Not Yet Applied': return 'bg-gray-50 text-gray-700 border-gray-200';
-      case 'Applied': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'Phone Screen': return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'First Round': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-      case 'Second Round': return 'bg-violet-50 text-violet-700 border-violet-200';
-      case 'Third Round': return 'bg-pink-50 text-pink-700 border-pink-200';
-      case 'Case Study': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'Applied': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'Phone Screen': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'First Round': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Second Round': return 'bg-cyan-50 text-cyan-700 border-cyan-200';
+      case 'Third Round': return 'bg-teal-50 text-teal-700 border-teal-200';
+      case 'Case Study': return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'Superday': return 'bg-orange-50 text-orange-700 border-orange-200';
       case 'Offer Received': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'Withdrawn': return 'bg-gray-50 text-gray-700 border-gray-200';
@@ -180,7 +180,7 @@ const Interviews = ({
           onClick={() => setIsOpen(!isOpen)}
           className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-md ${
             selected.length > 0 
-              ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' 
+              ? 'bg-purple-50 border-purple-300 text-purple-700 shadow-sm' 
               : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
           }`}
         >
@@ -197,7 +197,7 @@ const Interviews = ({
                     type="checkbox"
                     checked={selected.includes(option)}
                     onChange={() => onChange(filterKey, option)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
                   />
                   <span className="ml-3 text-sm text-gray-900">{option}</span>
                 </label>
@@ -214,7 +214,7 @@ const Interviews = ({
       <button
         onClick={() => setShowSortOptions(!showSortOptions)}
         className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-md ${
-          sortField ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+          sortField ? 'bg-purple-50 border-purple-300 text-purple-700 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
         }`}
       >
         <ArrowUpDown className="w-4 h-4 mr-2" />
@@ -230,7 +230,7 @@ const Interviews = ({
                 key={option.field}
                 onClick={() => handleSort(option.field)}
                 className={`w-full text-left p-3 hover:bg-gray-50 rounded-lg text-sm transition-colors ${
-                  sortField === option.field ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-900'
+                  sortField === option.field ? 'bg-purple-50 text-purple-700 font-semibold' : 'text-gray-900'
                 }`}
               >
                 {option.label}
@@ -255,12 +255,12 @@ const Interviews = ({
     const firmLogo = getFirmLogo(interview.firm);
 
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-blue-200"
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-purple-200 transform hover:-translate-y-1"
            onClick={() => onShowInterviewDetail(interview.id)}>
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center flex-1">
-              <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold mr-4 shadow-md overflow-hidden">
+              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold mr-4 shadow-md overflow-hidden">
                 {firmLogo ? (
                   <img 
                     src={firmLogo} 
@@ -277,7 +277,7 @@ const Interviews = ({
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-gray-900 text-lg group-hover:text-blue-600 transition-colors">{interview.firm}</h3>
+                <h3 className="font-bold text-gray-900 text-lg group-hover:text-purple-600 transition-colors">{interview.firm}</h3>
                 <p className="text-gray-600 font-medium">{interview.position}</p>
                 {interview.group && <p className="text-xs text-gray-500 mt-1 font-medium bg-gray-100 px-2 py-1 rounded-full inline-block">{interview.group}</p>}
               </div>
@@ -288,7 +288,7 @@ const Interviews = ({
                   e.stopPropagation();
                   onEdit(interview);
                 }}
-                className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                className="p-2 text-gray-400 hover:text-purple-600 transition-colors rounded-lg hover:bg-purple-50"
                 title="Edit"
               >
                 <Edit2 className="w-4 h-4" />
@@ -311,6 +311,12 @@ const Interviews = ({
               <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStageColor(interview.stage)}`}>
                 {interview.stage}
               </span>
+              {referralContact && (
+                <div className="flex items-center text-sm text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200">
+                  <Award className="w-4 h-4 mr-1" />
+                  Referred
+                </div>
+              )}
             </div>
 
             <div className="text-xs text-gray-500">
@@ -351,7 +357,7 @@ const Interviews = ({
                 <Calendar className="w-3 h-3 mr-1" />
                 {interview.rounds?.length || 0} rounds completed
               </div>
-              <div className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium group-hover:translate-x-1 transition-transform">
+              <div className="flex items-center text-sm text-purple-600 hover:text-purple-800 font-medium group-hover:translate-x-1 transition-transform">
                 <span>View Details</span>
                 <Eye className="w-4 h-4 ml-1" />
               </div>
@@ -372,14 +378,14 @@ const Interviews = ({
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+          <thead className="bg-gradient-to-r from-gray-50 to-purple-50 border-b border-gray-200">
             <tr>
-              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-80">Company</th>
-              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-64">Position</th>
-              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-56">Stage</th>
-              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-72">Next Steps</th>
-              <th className="px-8 py-6 text-left text-sm font-bold text-gray-700 w-48">Progress</th>
-              <th className="px-8 py-6 text-center text-sm font-bold text-gray-700 w-32">Actions</th>
+              <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 w-80">Company</th>
+              <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 w-64">Position</th>
+              <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 w-56">Stage</th>
+              <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 w-72">Next Steps</th>
+              <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 w-48">Progress</th>
+              <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 w-32">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -390,11 +396,11 @@ const Interviews = ({
               const firmLogo = getFirmLogo(interview.firm);
 
               return (
-                <tr key={interview.id} className="hover:bg-gray-50 transition-colors cursor-pointer"
+                <tr key={interview.id} className="hover:bg-purple-50 transition-colors cursor-pointer h-16"
                     onClick={() => onShowInterviewDetail(interview.id)}>
-                  <td className="px-8 py-6">
+                  <td className="px-6 py-3">
                     <div className="flex items-center">
-                      <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm mr-4 shadow-sm overflow-hidden">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm mr-3 shadow-sm overflow-hidden">
                         {firmLogo ? (
                           <img 
                             src={firmLogo} 
@@ -411,39 +417,41 @@ const Interviews = ({
                         </div>
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900 hover:text-blue-600 transition-colors text-base">{interview.firm}</div>
-                        {referralContact && (
-                          <div className="flex items-center text-xs text-emerald-600 mt-1 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200 inline-block">
-                            <Award className="w-3 h-3 mr-1" />
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onShowContactDetail(referralContact.id);
-                              }}
-                              className="hover:underline font-medium"
-                            >
-                              Referred by {referralContact.name}
-                            </button>
-                          </div>
-                        )}
+                        <div className="font-semibold text-gray-900 hover:text-purple-600 transition-colors">{interview.firm}</div>
+                        <div className="flex items-center space-x-2 mt-1">
+                          {referralContact && (
+                            <div className="flex items-center text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200">
+                              <Award className="w-3 h-3 mr-1" />
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onShowContactDetail(referralContact.id);
+                                }}
+                                className="hover:underline font-medium"
+                              >
+                                Referred by {referralContact.name}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-8 py-6">
+                  <td className="px-6 py-3">
                     <div>
-                      <div className="font-medium text-gray-900 text-base">{interview.position}</div>
+                      <div className="font-medium text-gray-900">{interview.position}</div>
                       {interview.group && <div className="text-xs text-gray-500 mt-1 font-medium bg-gray-100 px-2 py-1 rounded-full inline-block">{interview.group}</div>}
                     </div>
                   </td>
-                  <td className="px-8 py-6">
+                  <td className="px-6 py-3">
                     <div>
                       <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStageColor(interview.stage)}`}>
                         {interview.stage}
                       </span>
-                      <div className="text-sm mt-2 text-gray-800 font-medium">{interview.stageDate}</div>
+                      <div className="text-sm mt-1 text-gray-800 font-medium">{interview.stageDate}</div>
                     </div>
                   </td>
-                  <td className="px-8 py-6">
+                  <td className="px-6 py-3">
                     {interview.nextSteps && (
                       <div>
                         <div className="text-sm text-gray-900 font-medium">{interview.nextSteps}</div>
@@ -455,20 +463,20 @@ const Interviews = ({
                       </div>
                     )}
                   </td>
-                  <td className="px-8 py-6">
+                  <td className="px-6 py-3">
                     <div className="flex items-center text-xs text-gray-500">
                       <Calendar className="w-3 h-3 mr-1" />
                       {interview.rounds?.length || 0} rounds
                     </div>
                   </td>
-                  <td className="px-8 py-6">
+                  <td className="px-6 py-3">
                     <div className="flex items-center justify-center space-x-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onEdit(interview);
                         }}
-                        className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                        className="text-gray-400 hover:text-purple-600 transition-colors p-2 rounded-lg hover:bg-purple-50"
                         title="Edit"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -495,7 +503,7 @@ const Interviews = ({
   );
 
   return (
-    <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="flex-1 bg-gradient-to-br from-slate-50 to-purple-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-8 py-8 shadow-sm">
         <div className="flex items-center justify-between">
@@ -535,7 +543,7 @@ const Interviews = ({
             </div>
             <button
               onClick={onAdd}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl flex items-center hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
+              className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-3 rounded-xl flex items-center hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Interview
@@ -554,7 +562,7 @@ const Interviews = ({
               placeholder="Search interviews..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm"
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm shadow-sm"
             />
           </div>
           
@@ -563,7 +571,7 @@ const Interviews = ({
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold hover:shadow-md ${
-              Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'text-gray-700'
+              Object.values(filters).some(f => f.length > 0) ? 'bg-purple-50 border-purple-300 text-purple-700 shadow-sm' : 'text-gray-700'
             }`}
           >
             <Filter className="w-4 h-4 mr-2" />
@@ -573,7 +581,7 @@ const Interviews = ({
 
         {/* Filter Dropdowns */}
         {showFilters && (
-          <div className="flex flex-wrap items-center gap-4 p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
+          <div className="flex flex-wrap items-center gap-4 p-6 bg-gradient-to-r from-gray-50 to-purple-50 rounded-xl border border-gray-200">
             <FilterDropdown
               title="Company"
               options={filterOptions.companies}
@@ -647,7 +655,7 @@ const Interviews = ({
             </p>
             <button
               onClick={onAdd}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
+              className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-8 py-3 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
             >
               Add Your First Interview
             </button>
