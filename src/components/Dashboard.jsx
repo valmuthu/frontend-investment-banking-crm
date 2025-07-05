@@ -130,24 +130,24 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
     return [...interviewTasks, ...networkingTasks].sort((a, b) => new Date(a.date) - new Date(b.date));
   }, [contacts, interviews]);
 
-  const KPICard = ({ title, value, icon: Icon, color = 'blue', description }) => (
-    <div className={`card-hover bg-white rounded-xl shadow-sm border border-gray-200 p-6`}>
+  const KPICard = ({ title, value, icon: Icon, color = 'blue', description, gradientFrom, gradientTo }) => (
+    <div className={`card-hover bg-gradient-to-br from-${gradientFrom} to-${gradientTo} rounded-xl shadow-sm border border-gray-200 p-6 text-white`}>
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <div className="flex items-center mb-2">
-            <p className="text-sm font-semibold text-gray-600">{title}</p>
+            <p className="text-sm font-semibold text-white/90">{title}</p>
             {description && (
               <div className="group relative ml-2">
-                <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                <Info className="w-4 h-4 text-white/70 cursor-help" />
                 <div className="absolute bottom-6 left-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                   {description}
                 </div>
               </div>
             )}
           </div>
-          <p className="text-3xl font-bold text-gray-900 mb-2">{value}</p>
+          <p className="text-3xl font-bold text-white mb-2">{value}</p>
         </div>
-        <div className={`w-14 h-14 gradient-${color} rounded-xl flex items-center justify-center shadow-sm`}>
+        <div className={`w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm`}>
           <Icon className="w-7 h-7 text-white" />
         </div>
       </div>
@@ -351,71 +351,84 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
           title="Total Contacts" 
           value={kpis.totalContacts} 
           icon={Users} 
-          color="blue"
+          gradientFrom="blue-500"
+          gradientTo="indigo-600"
           description="Total number of networking contacts"
         />
         <KPICard 
           title="Unique Firms" 
           value={kpis.uniqueFirms} 
           icon={Building2} 
-          color="blue"
+          gradientFrom="emerald-500"
+          gradientTo="teal-600"
           description="Number of unique investment banking firms"
         />
         <KPICard 
           title="Total Interviews" 
           value={kpis.totalInterviews} 
           icon={Calendar} 
-          color="blue"
+          gradientFrom="purple-500"
+          gradientTo="violet-600"
           description="All interview opportunities tracked"
         />
         <KPICard 
           title="Referrals" 
           value={kpis.referrals} 
           icon={Award} 
-          color="emerald"
+          gradientFrom="amber-500"
+          gradientTo="orange-600"
           description="Contacts that provided referrals"
         />
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-10">
-        <FunnelChart 
-          data={interviewFunnel} 
-          title="Interview Funnel" 
-          color="blue"
-        />
-        <FunnelChart 
-          data={networkingFunnel} 
-          title="Networking Funnel" 
-          color="emerald"
-        />
-        <DonutChart 
-          percentage={parseFloat(kpis.referralPercentage)} 
-          title="Referral Rate" 
-          color="blue"
-        />
-        <DonutChart 
-          percentage={parseFloat(kpis.applicationSuccessRate)} 
-          title="Application Success" 
-          color="amber"
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-8 mb-10">
+        <div className="xl:col-span-2">
+          <FunnelChart 
+            data={interviewFunnel} 
+            title="Interview Funnel" 
+            color="blue"
+          />
+        </div>
+        <div className="xl:col-span-2">
+          <FunnelChart 
+            data={networkingFunnel} 
+            title="Networking Funnel" 
+            color="emerald"
+          />
+        </div>
+      </div>
+
+      {/* Combined Chart Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+        <div className="lg:col-span-2">
+          <TaskTimeline 
+            tasks={upcomingTasks}
+            title="Upcoming Tasks (Next 7 Days)"
+          />
+        </div>
+        
+        <div className="space-y-6">
+          <DonutChart 
+            percentage={parseFloat(kpis.referralPercentage)} 
+            title="Referral Rate" 
+            color="blue"
+          />
+          <DonutChart 
+            percentage={parseFloat(kpis.applicationSuccessRate)} 
+            title="Application Success" 
+            color="amber"
+          />
+        </div>
       </div>
 
       {/* Tasks and Follow-ups Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-        <TaskTimeline 
-          tasks={upcomingTasks}
-          title="Upcoming Tasks (Next 7 Days)"
-        />
-        
         <FollowUpContacts 
           contacts={followUpContacts}
           title="Suggested Follow-Ups"
         />
-      </div>
 
-      {/* Recent Activity Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Contacts */}
         <div className="card-base p-6">
           <div className="flex items-center justify-between mb-6">
@@ -447,8 +460,10 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Recent Interviews */}
+      {/* Recent Interviews */}
+      <div className="grid grid-cols-1 gap-8">
         <div className="card-base p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-heading-3">Recent Interviews</h3>
@@ -459,7 +474,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
               View All
             </button>
           </div>
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {interviews.slice(0, 6).map(interview => {
               const getStageColor = (stage) => {
                 switch (stage) {
