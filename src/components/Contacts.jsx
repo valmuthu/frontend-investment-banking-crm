@@ -364,10 +364,7 @@ const Contacts = ({
           </div>
         )}
       </div>
-    </div>
-  );
-};
-
+ 
 export default Contacts;
                 key={option.field}
                 onClick={() => handleSort(option.field)}
