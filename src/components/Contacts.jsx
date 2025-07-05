@@ -178,18 +178,17 @@ const Contacts = ({
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`btn-secondary text-sm min-w-[120px] ${
-            selected.length > 0 
-              ? 'bg-blue-50 border-blue-200 text-blue-700' 
-              : ''
-          }`}
+          className={`btn-control ${selected.length > 0 ? 'active' : ''}`}
         >
-          {title} {selected.length > 0 && `(${selected.length})`}
-          <ChevronDown className="icon-sm ml-2" />
+          {title}
+          {selected.length > 0 && (
+            <span className="ml-1">({selected.length})</span>
+          )}
+          <ChevronDown className="icon-sm" />
         </button>
         
         {isOpen && (
-          <div className="absolute top-full left-0 mt-2 w-64 card-base shadow-lg z-10 max-h-60 overflow-y-auto">
+          <div className="filter-dropdown">
             <div className="p-2">
               {options.map(option => (
                 <label key={option} className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
@@ -213,24 +212,25 @@ const Contacts = ({
     <div className="relative">
       <button
         onClick={() => setShowSortOptions(!showSortOptions)}
-        className={`btn-secondary text-sm min-w-[140px] ${
-          sortField ? 'bg-blue-50 border-blue-200 text-blue-700' : ''
-        }`}
+        className={`btn-control ${sortField ? 'active' : ''}`}
       >
-        <ArrowUpDown className="icon-sm mr-2" />
-        Sort {sortField && `(${sortField})`}
-        <ChevronDown className="icon-sm ml-2" />
+        <ArrowUpDown className="icon-sm" />
+        Sort
+        {sortField && (
+          <span className="ml-1">({sortField})</span>
+        )}
+        <ChevronDown className="icon-sm" />
       </button>
 
       {showSortOptions && (
-        <div className="absolute top-full left-0 mt-2 w-48 card-base shadow-lg z-10">
+        <div className="filter-dropdown">
           <div className="p-2">
             {sortOptions.map(option => (
               <button
                 key={option.field}
                 onClick={() => handleSort(option.field)}
                 className={`w-full text-left p-3 hover:bg-gray-50 rounded-lg text-sm transition-colors ${
-                  sortField === option.field ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-900'
+                  sortField === option.field ? 'bg-primary-50 text-primary-700 font-semibold' : 'text-gray-900'
                 }`}
               >
                 {option.label}
@@ -258,7 +258,7 @@ const Contacts = ({
                 {contact.name.split(' ').map(n => n[0]).join('')}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-heading-3 group-hover:text-blue-600 transition-colors truncate">{contact.name}</h3>
+                <h3 className="text-heading-3 group-hover:text-primary-600 transition-colors truncate">{contact.name}</h3>
                 <div className="flex items-center mt-1">
                   <Building2 className="icon-sm text-gray-400 mr-1" />
                   <p className="text-body-strong truncate">{contact.firm}</p>
@@ -266,13 +266,13 @@ const Contacts = ({
                 <p className="text-body truncate">{formatPositionGroup(contact.position, contact.group)}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-1 ml-4">
+            <div className="action-buttons">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit(contact);
                 }}
-                className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                className="action-button"
                 title="Edit"
               >
                 <Edit2 className="icon-sm" />
@@ -282,7 +282,7 @@ const Contacts = ({
                   e.stopPropagation();
                   onDelete(contact.id);
                 }}
-                className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                className="action-button delete"
                 title="Delete"
               >
                 <Trash2 className="icon-sm" />
@@ -296,8 +296,8 @@ const Contacts = ({
                 {contact.networkingStatus}
               </span>
               {contact.referred && (
-                <div className="flex items-center text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-200">
-                  <Check className="icon-sm mr-1" />
+                <div className="referral-badge">
+                  <Check className="icon-sm" />
                   Referred
                 </div>
               )}
@@ -326,7 +326,7 @@ const Contacts = ({
                     e.stopPropagation();
                     copyToClipboard(contact.email, `email-${contact.id}`);
                   }}
-                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                  className="p-2 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
                   title={`Copy email: ${contact.email}`}
                 >
                   {copiedInfo === `email-${contact.id}` ? (
@@ -354,7 +354,7 @@ const Contacts = ({
                     e.stopPropagation();
                     copyToClipboard(contact.linkedin, `linkedin-${contact.id}`);
                   }}
-                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                  className="p-2 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
                   title="Copy LinkedIn"
                 >
                   {copiedInfo === `linkedin-${contact.id}` ? (
@@ -364,7 +364,7 @@ const Contacts = ({
                   )}
                 </button>
               </div>
-              <div className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium group-hover:translate-x-1 transition-transform">
+              <div className="flex items-center text-sm text-primary-600 hover:text-primary-800 font-medium group-hover:translate-x-1 transition-transform">
                 <span>View Details</span>
                 <ChevronRight className="icon-sm ml-1" />
               </div>
@@ -398,7 +398,7 @@ const Contacts = ({
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filteredAndSortedContacts.map(contact => (
-              <tr key={contact.id} className="hover:bg-blue-25 transition-colors cursor-pointer"
+              <tr key={contact.id} className="hover:bg-primary-50 transition-colors cursor-pointer"
                   onClick={() => onShowContactDetail(contact.id)}>
                 <td>
                   <div className="flex items-center">
@@ -406,11 +406,11 @@ const Contacts = ({
                       {contact.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div className="min-w-0">
-                      <div className="font-semibold text-gray-900 hover:text-blue-600 transition-colors text-truncate">{contact.name}</div>
+                      <div className="font-semibold text-gray-900 hover:text-primary-600 transition-colors text-truncate">{contact.name}</div>
                       <div className="flex items-center space-x-2 mt-1">
                         {contact.referred && (
-                          <div className="flex items-center text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                            <Check className="w-3 h-3 mr-1" />
+                          <div className="referral-badge">
+                            <Check className="w-3 h-3" />
                             Referred
                           </div>
                         )}
@@ -452,7 +452,7 @@ const Contacts = ({
                         e.stopPropagation();
                         copyToClipboard(contact.email, `table-email-${contact.id}`);
                       }}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                      className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
                       title={`Copy email: ${contact.email}`}
                     >
                       {copiedInfo === `table-email-${contact.id}` ? (
@@ -480,7 +480,7 @@ const Contacts = ({
                         e.stopPropagation();
                         copyToClipboard(contact.linkedin, `table-linkedin-${contact.id}`);
                       }}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                      className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
                       title="Copy LinkedIn"
                     >
                       {copiedInfo === `table-linkedin-${contact.id}` ? (
@@ -492,13 +492,13 @@ const Contacts = ({
                   </div>
                 </td>
                 <td>
-                  <div className="flex items-center justify-center space-x-1">
+                  <div className="action-buttons justify-center">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onEdit(contact);
                       }}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                      className="action-button"
                       title="Edit"
                     >
                       <Edit2 className="icon-sm" />
@@ -508,7 +508,7 @@ const Contacts = ({
                         e.stopPropagation();
                         onDelete(contact.id);
                       }}
-                      className="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                      className="action-button delete"
                       title="Delete"
                     >
                       <Trash2 className="icon-sm" />
@@ -538,35 +538,27 @@ const Contacts = ({
           </div>
           <div className="flex items-center space-x-4">
             {/* View Toggle */}
-            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <div className="view-toggle">
               <button
                 onClick={() => setViewMode('cards')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  viewMode === 'cards' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={`view-toggle-button ${viewMode === 'cards' ? 'active' : ''}`}
               >
-                <Grid className="icon-sm mr-2" />
+                <Grid className="icon-sm" />
                 Cards
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  viewMode === 'table'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={`view-toggle-button ${viewMode === 'table' ? 'active' : ''}`}
               >
-                <List className="icon-sm mr-2" />
+                <List className="icon-sm" />
                 Table
               </button>
             </div>
             <button
               onClick={onAdd}
-              className="btn-primary min-w-[140px]"
+              className="btn-primary"
             >
-              <Plus className="icon-sm mr-2" />
+              <Plus className="icon-sm" />
               Add Contact
             </button>
           </div>
@@ -575,7 +567,7 @@ const Contacts = ({
       
       {/* Search and Filters */}
       <div className="bg-white border-b border-gray-200 section-padding">
-        <div className="flex items-center space-x-4 mb-4">
+        <div className="flex items-center space-x-3 mb-4">
           <div className="flex-1 relative">
             <Search className="icon-md absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -587,22 +579,22 @@ const Contacts = ({
             />
           </div>
           
-          <SortDropdown />
-          
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`btn-secondary min-w-[120px] ${
-              Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-200 text-blue-700' : ''
-            }`}
-          >
-            <Filter className="icon-sm mr-2" />
-            Filters
-          </button>
+          <div className="controls-container">
+            <SortDropdown />
+            
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`btn-control ${Object.values(filters).some(f => f.length > 0) ? 'active' : ''}`}
+            >
+              <Filter className="icon-sm" />
+              Filters
+            </button>
+          </div>
         </div>
 
         {/* Filter Dropdowns */}
         {showFilters && (
-          <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex flex-wrap items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <FilterDropdown
               title="Firm"
               options={filterOptions.firms}
@@ -642,9 +634,9 @@ const Contacts = ({
             {Object.values(filters).some(f => f.length > 0) && (
               <button
                 onClick={clearFilters}
-                className="btn-secondary text-sm"
+                className="btn-control"
               >
-                <X className="icon-sm mr-2" />
+                <X className="icon-sm" />
                 Clear All
               </button>
             )}
