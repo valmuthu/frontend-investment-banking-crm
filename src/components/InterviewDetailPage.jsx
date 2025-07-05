@@ -32,7 +32,7 @@ const InterviewDetailPage = ({
     notes: ''
   });
 
-  const roundStages = ['Phone Screen', 'First Round', 'Second Round', 'Final Round', 'Case Study', 'Other'];
+  const roundStages = ['Phone Screen', 'First Round', 'Second Round', 'Third Round', 'Case Study', 'Superday'];
   const roundFormats = ['Phone', 'Video', 'In-Person', 'Assessment'];
   const roundOutcomes = ['Pending', 'Passed', 'Failed', 'Cancelled'];
 
@@ -71,27 +71,19 @@ const InterviewDetailPage = ({
       case 'Phone Screen': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'First Round': return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'Second Round': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-      case 'Final Round': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'Third Round': return 'bg-violet-50 text-violet-700 border-violet-200';
       case 'Case Study': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'Offer': return 'bg-green-50 text-green-700 border-green-200';
+      case 'Superday': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'Offer Received': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'Rejected': return 'bg-red-50 text-red-700 border-red-200';
       case 'Withdrawn': return 'bg-gray-50 text-gray-700 border-gray-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'High': return 'bg-red-50 text-red-700 border-red-200';
-      case 'Medium': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'Low': return 'bg-green-50 text-green-700 border-green-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
-  };
-
   const getOutcomeColor = (outcome) => {
     switch (outcome) {
-      case 'Passed': return 'bg-green-50 text-green-700 border-green-200';
+      case 'Passed': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'Failed': return 'bg-red-50 text-red-700 border-red-200';
       case 'Cancelled': return 'bg-gray-50 text-gray-700 border-gray-200';
       case 'Pending': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
@@ -114,10 +106,34 @@ const InterviewDetailPage = ({
     ? contacts.find(c => c.id === interview.referralContactId)
     : null;
 
+  // Get firm logo URL
+  const getFirmLogo = (firmName) => {
+    const logoMap = {
+      'Goldman Sachs': 'https://logo.clearbit.com/goldmansachs.com',
+      'Morgan Stanley': 'https://logo.clearbit.com/morganstanley.com',
+      'JPMorgan Chase': 'https://logo.clearbit.com/jpmorgan.com',
+      'Deutsche Bank': 'https://logo.clearbit.com/db.com',
+      'Credit Suisse': 'https://logo.clearbit.com/credit-suisse.com',
+      'UBS': 'https://logo.clearbit.com/ubs.com',
+      'Barclays': 'https://logo.clearbit.com/barclays.com',
+      'Citi': 'https://logo.clearbit.com/citigroup.com',
+      'Bank of America': 'https://logo.clearbit.com/bankofamerica.com',
+      'Wells Fargo': 'https://logo.clearbit.com/wellsfargo.com',
+      'Evercore': 'https://logo.clearbit.com/evercore.com',
+      'Lazard': 'https://logo.clearbit.com/lazard.com',
+      'Rothschild': 'https://logo.clearbit.com/rothschild.com',
+      'Jefferies': 'https://logo.clearbit.com/jefferies.com',
+      'PJT Partners': 'https://logo.clearbit.com/pjtpartners.com'
+    };
+    return logoMap[firmName] || null;
+  };
+
+  const firmLogo = getFirmLogo(interview.firm);
+
   return (
-    <div className="flex-1 bg-gray-50">
+    <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-6">
+      <div className="bg-white border-b border-gray-200 px-8 py-8 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <button
@@ -127,13 +143,26 @@ const InterviewDetailPage = ({
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg mr-4">
-                <Building2 className="w-8 h-8" />
+              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg mr-4 overflow-hidden">
+                {firmLogo ? (
+                  <img 
+                    src={firmLogo} 
+                    alt={interview.firm}
+                    className="w-full h-full object-contain p-2"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div className={`${firmLogo ? 'hidden' : 'flex'} w-full h-full items-center justify-center`}>
+                  <Building2 className="w-8 h-8" />
+                </div>
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{interview.firm}</h1>
+                <h1 className="text-4xl font-bold text-gray-900">{interview.firm}</h1>
                 <div className="flex items-center text-gray-600 mt-1">
-                  <span className="font-medium">{interview.position}</span>
+                  <span className="font-medium text-lg">{interview.position}</span>
                   {interview.group && (
                     <>
                       <span className="mx-2">•</span>
@@ -141,12 +170,9 @@ const InterviewDetailPage = ({
                     </>
                   )}
                 </div>
-                <div className="flex items-center mt-2 space-x-3">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStageColor(interview.stage)}`}>
+                <div className="flex items-center mt-3">
+                  <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold border ${getStageColor(interview.stage)}`}>
                     {interview.stage}
-                  </span>
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(interview.priority)}`}>
-                    {interview.priority} Priority
                   </span>
                 </div>
               </div>
@@ -155,7 +181,7 @@ const InterviewDetailPage = ({
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setIsEditingInterview(!isEditingInterview)}
-              className={`flex items-center px-4 py-2 rounded-lg transition-colors font-medium ${
+              className={`flex items-center px-4 py-2 rounded-xl transition-colors font-semibold ${
                 isEditingInterview 
                   ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
                   : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -176,7 +202,7 @@ const InterviewDetailPage = ({
             {isEditingInterview && (
               <button
                 onClick={handleSaveInterview}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-semibold"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Save Changes
@@ -186,12 +212,12 @@ const InterviewDetailPage = ({
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Interview Information */}
           <div className="lg:col-span-1 space-y-6">
             {/* Interview Details Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">Interview Details</h3>
               
               {isEditingInterview ? (
@@ -239,27 +265,6 @@ const InterviewDetailPage = ({
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                    <select
-                      value={editedInterview.priority}
-                      onChange={(e) => setEditedInterview({...editedInterview, priority: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="Low">Low</option>
-                      <option value="Medium">Medium</option>
-                      <option value="High">High</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Application Date</label>
-                    <input
-                      type="date"
-                      value={editedInterview.applicationDate}
-                      onChange={(e) => setEditedInterview({...editedInterview, applicationDate: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -272,26 +277,12 @@ const InterviewDetailPage = ({
                       <span className="ml-3 text-sm text-gray-500">({interview.stageDate})</span>
                     </div>
                   </div>
-                  
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Application Date:</span>
-                    <p className="mt-1 text-gray-900 font-medium">{interview.applicationDate}</p>
-                  </div>
-
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Priority:</span>
-                    <div className="mt-1">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(interview.priority)}`}>
-                        {interview.priority}
-                      </span>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
 
             {/* Next Steps Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">Next Steps</h3>
               
               {isEditingInterview ? (
@@ -356,14 +347,14 @@ const InterviewDetailPage = ({
                   )}
 
                   {referralContact && (
-                    <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                    <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
                       <div className="flex items-center">
-                        <Award className="w-5 h-5 text-green-600 mr-2" />
+                        <Award className="w-5 h-5 text-emerald-600 mr-2" />
                         <div>
-                          <p className="text-green-800 font-medium text-sm">Referred by</p>
+                          <p className="text-emerald-800 font-medium text-sm">Referred by</p>
                           <button
                             onClick={() => onShowContactDetail(referralContact.id)}
-                            className="text-green-600 hover:text-green-800 hover:underline font-medium"
+                            className="text-emerald-600 hover:text-emerald-800 hover:underline font-medium"
                           >
                             {referralContact.name} at {referralContact.firm}
                           </button>
@@ -385,7 +376,7 @@ const InterviewDetailPage = ({
 
           {/* Interview Rounds */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Interview Rounds</h3>
@@ -395,7 +386,7 @@ const InterviewDetailPage = ({
                 </div>
                 <button
                   onClick={() => setShowAddRound(!showAddRound)}
-                  className={`flex items-center px-4 py-2 rounded-lg transition-colors font-medium ${
+                  className={`flex items-center px-4 py-2 rounded-xl transition-colors font-semibold ${
                     showAddRound 
                       ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
                       : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -511,7 +502,7 @@ const InterviewDetailPage = ({
               {interview.rounds && interview.rounds.length > 0 ? (
                 <div className="space-y-4">
                   {interview.rounds.map((round, index) => (
-                    <div key={round.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div key={round.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow">
                       {editingRound && editingRound.id === round.id ? (
                         <form onSubmit={handleUpdateRound} className="p-4 bg-gray-50">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -667,7 +658,7 @@ const InterviewDetailPage = ({
                   <p className="text-gray-500 mb-6">Start tracking your interview progress by adding your first round.</p>
                   <button
                     onClick={() => setShowAddRound(true)}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors font-semibold"
                   >
                     Add Your First Round
                   </button>
@@ -681,4 +672,4 @@ const InterviewDetailPage = ({
   );
 };
 
-export default InterviewDetailPage; 
+export default InterviewDetailPage;
