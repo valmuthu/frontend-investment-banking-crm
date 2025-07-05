@@ -15,6 +15,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
   const [editingDocument, setEditingDocument] = useState(null);
   const [viewingDocument, setViewingDocument] = useState(null);
   const fileInputRef = useRef(null);
+  const editFileInputRef = useRef(null);
   
   const [filters, setFilters] = useState({
     types: [],
@@ -24,6 +25,16 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
   });
 
   const [newDocument, setNewDocument] = useState({
+    name: '',
+    type: 'Resume',
+    associatedContacts: [],
+    associatedFirms: [],
+    tags: [],
+    notes: '',
+    file: null
+  });
+
+  const [editingFormData, setEditingFormData] = useState({
     name: '',
     type: 'Resume',
     associatedContacts: [],
@@ -151,17 +162,30 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
     });
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = (e, isEdit = false) => {
     const file = e.target.files[0];
     if (file) {
-      setNewDocument(prev => ({ ...prev, file }));
+      if (isEdit) {
+        setEditingFormData(prev => ({ ...prev, file }));
+      } else {
+        setNewDocument(prev => ({ ...prev, file }));
+      }
     }
   };
 
   const handleUpload = (e) => {
     e.preventDefault();
     if (newDocument.name && newDocument.type) {
-      onAdd(newDocument);
+      const documentToAdd = {
+        ...newDocument,
+        fileData: newDocument.file ? {
+          name: newDocument.file.name,
+          size: newDocument.file.size,
+          type: newDocument.file.type,
+          content: newDocument.file // Store the actual file for download
+        } : null
+      };
+      onAdd(documentToAdd);
       setNewDocument({
         name: '',
         type: 'Resume',
@@ -180,6 +204,45 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
 
   const handleEdit = (document) => {
     setEditingDocument(document);
+    setEditingFormData({
+      name: document.name || '',
+      type: document.type || 'Resume',
+      associatedContacts: document.associatedContacts || [],
+      associatedFirms: document.associatedFirms || [],
+      tags: document.tags || [],
+      notes: document.notes || '',
+      file: null
+    });
+  };
+
+  const handleEditSubmit = (e) => {
+    e.preventDefault();
+    if (editingFormData.name && editingFormData.type) {
+      const updatedDocument = {
+        ...editingDocument,
+        ...editingFormData,
+        fileData: editingFormData.file ? {
+          name: editingFormData.file.name,
+          size: editingFormData.file.size,
+          type: editingFormData.file.type,
+          content: editingFormData.file
+        } : editingDocument.fileData
+      };
+      onEdit(updatedDocument);
+      setEditingDocument(null);
+      setEditingFormData({
+        name: '',
+        type: 'Resume',
+        associatedContacts: [],
+        associatedFirms: [],
+        tags: [],
+        notes: '',
+        file: null
+      });
+      if (editFileInputRef.current) {
+        editFileInputRef.current.value = '';
+      }
+    }
   };
 
   const handleView = (document) => {
@@ -187,35 +250,61 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
   };
 
   const handleDownload = (document) => {
-    // Create a blob URL for demo purposes
-    const content = `Document: ${document.name}\nType: ${document.type}\nUpload Date: ${document.uploadDate}\nNotes: ${document.notes || 'No notes'}`;
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${document.name}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleTagInput = (value, field) => {
-    if (value.includes(',')) {
-      const newTags = value.split(',').map(tag => tag.trim()).filter(tag => tag);
-      setNewDocument(prev => ({
-        ...prev,
-        [field]: [...new Set([...prev[field], ...newTags])]
-      }));
+    if (document.fileData && document.fileData.content) {
+      // Create download from actual file
+      const url = URL.createObjectURL(document.fileData.content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = document.fileData.name || `${document.name}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      // Fallback for demo purposes
+      const content = `Document: ${document.name}\nType: ${document.type}\nUpload Date: ${document.uploadDate}\nNotes: ${document.notes || 'No notes'}`;
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${document.name}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
   };
 
-  const removeTag = (tagToRemove, field) => {
-    setNewDocument(prev => ({
-      ...prev,
-      [field]: prev[field].filter(tag => tag !== tagToRemove)
-    }));
+  const handleTagInput = (value, field, isEdit = false) => {
+    if (value.includes(',')) {
+      const newTags = value.split(',').map(tag => tag.trim()).filter(tag => tag);
+      if (isEdit) {
+        setEditingFormData(prev => ({
+          ...prev,
+          [field]: [...new Set([...prev[field], ...newTags])]
+        }));
+      } else {
+        setNewDocument(prev => ({
+          ...prev,
+          [field]: [...new Set([...prev[field], ...newTags])]
+        }));
+      }
+    }
+  };
+
+  const removeTag = (tagToRemove, field, isEdit = false) => {
+    if (isEdit) {
+      setEditingFormData(prev => ({
+        ...prev,
+        [field]: prev[field].filter(tag => tag !== tagToRemove)
+      }));
+    } else {
+      setNewDocument(prev => ({
+        ...prev,
+        [field]: prev[field].filter(tag => tag !== tagToRemove)
+      }));
+    }
   };
 
   const getTypeIcon = (type) => {
@@ -349,6 +438,200 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
     );
   };
 
+  const DocumentFormFields = ({ formData, setFormData, fileInputRef, isEdit = false }) => (
+    <>
+      <div>
+        <label className="block text-sm font-medium mb-2">Document Title *</label>
+        <input
+          type="text"
+          required
+          value={formData.name}
+          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          placeholder="e.g., Resume - Investment Banking 2025"
+          className="form-input"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">File Upload</label>
+        <div 
+          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors cursor-pointer"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-600">
+            {formData.file ? formData.file.name : 'Click to browse files'}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Supports: PDF, DOC, DOCX, TXT (Max 10MB)
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={(e) => handleFileUpload(e, isEdit)}
+            accept=".pdf,.doc,.docx,.txt"
+            className="hidden"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Document Type *</label>
+        <select
+          value={formData.type}
+          onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
+          className="form-select"
+        >
+          {documentTypes.map(type => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-2">Associated Contacts</label>
+          <MultiSelectDropdown
+            title="Associated Contacts"
+            options={contacts}
+            selected={formData.associatedContacts}
+            onChange={(contactName) => {
+              setFormData(prev => ({
+                ...prev,
+                associatedContacts: prev.associatedContacts.includes(contactName)
+                  ? prev.associatedContacts.filter(c => c !== contactName)
+                  : [...prev.associatedContacts, contactName]
+              }));
+            }}
+            placeholder="Select contacts"
+            isContacts={true}
+          />
+          {formData.associatedContacts.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {formData.associatedContacts.map(contact => (
+                <span key={contact} className="status-badge status-blue">
+                  {contact}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(contact, 'associatedContacts', isEdit)}
+                    className="ml-1 text-primary-600 hover:text-primary-800"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">Associated Firms</label>
+          <MultiSelectDropdown
+            title="Associated Firms"
+            options={uniqueFirms}
+            selected={formData.associatedFirms}
+            onChange={(firmName) => {
+              setFormData(prev => ({
+                ...prev,
+                associatedFirms: prev.associatedFirms.includes(firmName)
+                  ? prev.associatedFirms.filter(f => f !== firmName)
+                  : [...prev.associatedFirms, firmName]
+              }));
+            }}
+            placeholder="Select firms"
+          />
+          {formData.associatedFirms.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {formData.associatedFirms.map(firm => (
+                <span key={firm} className="status-badge status-amber">
+                  {firm}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(firm, 'associatedFirms', isEdit)}
+                    className="ml-1 text-amber-600 hover:text-amber-800"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Tags</label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {commonTags.map(tag => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => {
+                if (formData.tags.includes(tag)) {
+                  removeTag(tag, 'tags', isEdit);
+                } else {
+                  setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+                }
+              }}
+              className={`px-2 py-1 text-xs rounded-full transition-colors ${
+                formData.tags.includes(tag)
+                  ? 'status-badge status-emerald'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+        <input
+          type="text"
+          placeholder="Add custom tags (separate with commas)"
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleTagInput(e.target.value + ',', 'tags', isEdit);
+              e.target.value = '';
+            }
+          }}
+          onChange={(e) => {
+            if (e.target.value.includes(',')) {
+              handleTagInput(e.target.value, 'tags', isEdit);
+              e.target.value = '';
+            }
+          }}
+          className="form-input"
+        />
+        {formData.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {formData.tags.map(tag => (
+              <span key={tag} className="status-badge status-emerald">
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag, 'tags', isEdit)}
+                  className="ml-1 text-emerald-600 hover:text-emerald-800"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Notes</label>
+        <textarea
+          rows="3"
+          value={formData.notes}
+          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+          placeholder="Additional notes about this document..."
+          className="form-textarea"
+        />
+      </div>
+    </>
+  );
+
   const UploadModal = () => (
     <div className="modal-backdrop">
       <div className="modal-content max-w-2xl">
@@ -361,190 +644,12 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
           </div>
         </div>
         <form onSubmit={handleUpload} className="section-padding space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">Document Title *</label>
-            <input
-              type="text"
-              required
-              value={newDocument.name}
-              onChange={(e) => setNewDocument({ ...newDocument, name: e.target.value })}
-              placeholder="e.g., Resume - Investment Banking 2025"
-              className="form-input"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">File Upload</label>
-            <div 
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors cursor-pointer"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">
-                {newDocument.file ? newDocument.file.name : 'Click to browse files'}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Supports: PDF, DOC, DOCX, TXT (Max 10MB)
-              </p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileUpload}
-                accept=".pdf,.doc,.docx,.txt"
-                className="hidden"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Document Type *</label>
-            <select
-              value={newDocument.type}
-              onChange={(e) => setNewDocument({ ...newDocument, type: e.target.value })}
-              className="form-select"
-            >
-              {documentTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Associated Contacts</label>
-              <MultiSelectDropdown
-                title="Associated Contacts"
-                options={contacts}
-                selected={newDocument.associatedContacts}
-                onChange={(contactName) => {
-                  setNewDocument(prev => ({
-                    ...prev,
-                    associatedContacts: prev.associatedContacts.includes(contactName)
-                      ? prev.associatedContacts.filter(c => c !== contactName)
-                      : [...prev.associatedContacts, contactName]
-                  }));
-                }}
-                placeholder="Select contacts"
-                isContacts={true}
-              />
-              {newDocument.associatedContacts.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {newDocument.associatedContacts.map(contact => (
-                    <span key={contact} className="status-badge status-blue">
-                      {contact}
-                      <button
-                        type="button"
-                        onClick={() => removeTag(contact, 'associatedContacts')}
-                        className="ml-1 text-primary-600 hover:text-primary-800"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Associated Firms</label>
-              <MultiSelectDropdown
-                title="Associated Firms"
-                options={uniqueFirms}
-                selected={newDocument.associatedFirms}
-                onChange={(firmName) => {
-                  setNewDocument(prev => ({
-                    ...prev,
-                    associatedFirms: prev.associatedFirms.includes(firmName)
-                      ? prev.associatedFirms.filter(f => f !== firmName)
-                      : [...prev.associatedFirms, firmName]
-                  }));
-                }}
-                placeholder="Select firms"
-              />
-              {newDocument.associatedFirms.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {newDocument.associatedFirms.map(firm => (
-                    <span key={firm} className="status-badge status-amber">
-                      {firm}
-                      <button
-                        type="button"
-                        onClick={() => removeTag(firm, 'associatedFirms')}
-                        className="ml-1 text-amber-600 hover:text-amber-800"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Tags</label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {commonTags.map(tag => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => {
-                    if (newDocument.tags.includes(tag)) {
-                      removeTag(tag, 'tags');
-                    } else {
-                      setNewDocument(prev => ({ ...prev, tags: [...prev.tags, tag] }));
-                    }
-                  }}
-                  className={`px-2 py-1 text-xs rounded-full transition-colors ${
-                    newDocument.tags.includes(tag)
-                      ? 'status-badge status-emerald'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-            <input
-              type="text"
-              placeholder="Add custom tags (separate with commas)"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleTagInput(e.target.value + ',', 'tags');
-                  e.target.value = '';
-                }
-              }}
-              className="form-input"
-            />
-            {newDocument.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {newDocument.tags.map(tag => (
-                  <span key={tag} className="status-badge status-emerald">
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag, 'tags')}
-                      className="ml-1 text-emerald-600 hover:text-emerald-800"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Notes</label>
-            <textarea
-              rows="3"
-              value={newDocument.notes}
-              onChange={(e) => setNewDocument({ ...newDocument, notes: e.target.value })}
-              placeholder="Additional notes about this document..."
-              className="form-textarea"
-            />
-          </div>
-
+          <DocumentFormFields 
+            formData={newDocument}
+            setFormData={setNewDocument}
+            fileInputRef={fileInputRef}
+            isEdit={false}
+          />
           <div className="flex justify-end space-x-3 pt-4">
             <button 
               type="button" 
@@ -576,57 +681,29 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
             </button>
           </div>
         </div>
-        <div className="section-padding">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Document Name</label>
-              <input
-                type="text"
-                defaultValue={editingDocument?.name}
-                className="form-input"
-                placeholder="Enter document name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Document Type</label>
-              <select
-                defaultValue={editingDocument?.type}
-                className="form-select"
-              >
-                {documentTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Notes</label>
-              <textarea
-                rows="3"
-                defaultValue={editingDocument?.notes}
-                className="form-textarea"
-                placeholder="Additional notes..."
-              />
-            </div>
-          </div>
-          <div className="flex justify-end space-x-3 pt-6">
+        <form onSubmit={handleEditSubmit} className="section-padding space-y-6">
+          <DocumentFormFields 
+            formData={editingFormData}
+            setFormData={setEditingFormData}
+            fileInputRef={editFileInputRef}
+            isEdit={true}
+          />
+          <div className="flex justify-end space-x-3 pt-4">
             <button 
+              type="button"
               onClick={() => setEditingDocument(null)} 
               className="btn-secondary"
             >
               Cancel
             </button>
             <button 
-              onClick={() => {
-                // Here you would implement the actual edit functionality
-                onEdit(editingDocument);
-                setEditingDocument(null);
-              }}
+              type="submit"
               className="btn-primary"
             >
               Save Changes
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
@@ -657,6 +734,12 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
                     <span className="font-medium text-gray-600">Uploaded:</span>
                     <span className="ml-2">{viewingDocument?.uploadDate}</span>
                   </div>
+                  {viewingDocument?.fileData && (
+                    <div>
+                      <span className="font-medium text-gray-600">File:</span>
+                      <span className="ml-2">{viewingDocument.fileData.name}</span>
+                    </div>
+                  )}
                   {viewingDocument?.tags && viewingDocument.tags.length > 0 && (
                     <div>
                       <span className="font-medium text-gray-600">Tags:</span>
@@ -689,13 +772,18 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Document Preview</h3>
                   <p className="text-gray-600 mb-4">
-                    Preview functionality for {viewingDocument?.type?.toLowerCase()} documents
+                    {viewingDocument?.fileData ? 
+                      `File: ${viewingDocument.fileData.name}` : 
+                      `Preview functionality for ${viewingDocument?.type?.toLowerCase()} documents`
+                    }
                   </p>
-                  <div className="space-y-2 text-sm text-gray-500">
-                    <p>• PDF viewer integration</p>
-                    <p>• Text document rendering</p>
-                    <p>• Image preview capabilities</p>
-                  </div>
+                  {viewingDocument?.fileData && (
+                    <div className="space-y-2 text-sm text-gray-500">
+                      <p>• File size: {Math.round(viewingDocument.fileData.size / 1024)} KB</p>
+                      <p>• Type: {viewingDocument.fileData.type}</p>
+                      <p>• Preview available for supported formats</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -703,7 +791,10 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
           
           <div className="flex justify-between items-center pt-6 border-t border-gray-200 mt-6">
             <div className="text-sm text-gray-500">
-              File size: ~2.4 MB • Last modified: {viewingDocument?.uploadDate}
+              {viewingDocument?.fileData ? 
+                `File size: ${Math.round(viewingDocument.fileData.size / 1024)} KB • Last modified: ${viewingDocument?.uploadDate}` :
+                `Last modified: ${viewingDocument?.uploadDate}`
+              }
             </div>
             <div className="flex space-x-3">
               <button 
@@ -821,119 +912,120 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
         )}
       </div>
 
-      {/* Documents Table */}
+      {/* Documents Table - Fixed width container */}
       <div className="section-padding-lg">
-        <div className="card-base overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full table-compact">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left font-semibold text-gray-700 w-80">Document</th>
-                  <th className="text-left font-semibold text-gray-700 w-32">Type</th>
-                  <th className="text-left font-semibold text-gray-700 w-40">Upload Date</th>
-                  <th className="text-left font-semibold text-gray-700 w-96">Associated</th>
-                  <th className="text-left font-semibold text-gray-700 w-48">Tags</th>
-                  <th className="text-center font-semibold text-gray-700 w-32">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredAndSortedDocuments.map(document => (
-                  <tr key={document.id} className="hover:bg-primary-50 transition-colors">
-                    <td>
-                      <div className="flex items-center">
-                        <div className="w-12 h-12 gradient-blue rounded-lg flex items-center justify-center text-white text-lg mr-4 shadow-sm">
-                          {getTypeIcon(document.type)}
+        <div className="max-w-full overflow-hidden">
+          <div className="card-base overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full table-compact min-w-[1200px]">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left font-semibold text-gray-700 w-80">Document</th>
+                    <th className="text-left font-semibold text-gray-700 w-32">Type</th>
+                    <th className="text-left font-semibold text-gray-700 w-40">Upload Date</th>
+                    <th className="text-left font-semibold text-gray-700 w-96">Associated</th>
+                    <th className="text-left font-semibold text-gray-700 w-48">Tags</th>
+                    <th className="text-center font-semibold text-gray-700 w-32">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredAndSortedDocuments.map(document => (
+                    <tr key={document.id} className="hover:bg-primary-50 transition-colors">
+                      <td>
+                        <div className="flex items-center">
+                          <div className="w-12 h-12 gradient-blue rounded-lg flex items-center justify-center text-white text-lg mr-4 shadow-sm">
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-gray-900 text-base truncate">{document.name}</div>
+                            {document.notes && (
+                              <div className="text-sm text-gray-600 mt-1 truncate max-w-md">{document.notes}</div>
+                            )}
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <div className="font-semibold text-gray-900 text-base truncate">{document.name}</div>
-                          {document.notes && (
-                            <div className="text-sm text-gray-600 mt-1 truncate max-w-md">{document.notes}</div>
+                      </td>
+                      <td>
+                        <span className="status-badge status-blue text-nowrap">
+                          {document.type}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Calendar className="icon-sm mr-2" />
+                          {new Date(document.uploadDate).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="space-y-2">
+                          {document.associatedContacts.length > 0 && (
+                            <div className="flex items-center text-sm">
+                              <Users className="icon-sm mr-2 text-gray-400" />
+                              <span className="text-gray-600 truncate">
+                                {document.associatedContacts.slice(0, 2).join(', ')}
+                                {document.associatedContacts.length > 2 && ` +${document.associatedContacts.length - 2} more`}
+                              </span>
+                            </div>
+                          )}
+                          {document.associatedFirms.length > 0 && (
+                            <div className="flex items-center text-sm">
+                              <Building2 className="icon-sm mr-2 text-gray-400" />
+                              <span className="text-gray-600 truncate">
+                                {document.associatedFirms.slice(0, 2).join(', ')}
+                                {document.associatedFirms.length > 2 && ` +${document.associatedFirms.length - 2} more`}
+                              </span>
+                            </div>
                           )}
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="status-badge status-blue text-nowrap">
-                        {document.type}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Calendar className="icon-sm mr-2" />
-                        {new Date(document.uploadDate).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="space-y-2">
-                        {document.associatedContacts.length > 0 && (
-                          <div className="flex items-center text-sm">
-                            <Users className="icon-sm mr-2 text-gray-400" />
-                            <span className="text-gray-600 truncate">
-                              {document.associatedContacts.slice(0, 2).join(', ')}
-                              {document.associatedContacts.length > 2 && ` +${document.associatedContacts.length - 2} more`}
+                      </td>
+                      <td>
+                        <div className="flex flex-wrap gap-1">
+                          {document.tags.slice(0, 3).map(tag => (
+                            <span key={tag} className="status-badge status-emerald">
+                              <Tag className="w-3 h-3 mr-1" />
+                              {tag}
                             </span>
-                          </div>
-                        )}
-                        {document.associatedFirms.length > 0 && (
-                          <div className="flex items-center text-sm">
-                            <Building2 className="icon-sm mr-2 text-gray-400" />
-                            <span className="text-gray-600 truncate">
-                              {document.associatedFirms.slice(0, 2).join(', ')}
-                              {document.associatedFirms.length > 2 && ` +${document.associatedFirms.length - 2} more`}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="flex flex-wrap gap-1">
-                        {document.tags.slice(0, 3).map(tag => (
-                          <span key={tag} className="status-badge status-emerald">
-                            <Tag className="w-3 h-3 mr-1" />
-                            {tag}
-                          </span>
-                        ))}
-                        {document.tags.length > 3 && (
-                          <span className="text-xs text-gray-500">+{document.tags.length - 3} more</span>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="action-buttons justify-center">
-                        <button
-                          onClick={() => handleView(document)}
-                          className="action-button"
-                          title="View"
-                        >
-                          <Eye className="icon-sm" />
-                        </button>
-                        <button
-                          onClick={() => handleDownload(document)}
-                          className="action-button"
-                          title="Download"
-                        >
-                          <Download className="icon-sm" />
-                        </button>
-                        <button
-                          onClick={() => handleEdit(document)}
-                          className="action-button"
-                          title="Edit"
-                        >
-                          <Edit2 className="icon-sm" />
-                        </button>
-                        <button
-                          onClick={() => onDelete(document.id)}
-                          className="action-button delete"
-                          title="Delete"
-                        >
-                          <Trash2 className="icon-sm" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                          ))}
+                          {document.tags.length > 3 && (
+                            <span className="text-xs text-gray-500">+{document.tags.length - 3} more</span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="action-buttons justify-center">
+                          <button
+                            onClick={() => handleView(document)}
+                            className="action-button"
+                            title="View"
+                          >
+                            <Eye className="icon-sm" />
+                          </button>
+                          <button
+                            onClick={() => handleDownload(document)}
+                            className="action-button"
+                            title="Download"
+                          >
+                            <Download className="icon-sm" />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(document)}
+                            className="action-button"
+                            title="Edit"
+                          >
+                            <Edit2 className="icon-sm" />
+                          </button>
+                          <button
+                            onClick={() => onDelete(document.id)}
+                            className="action-button delete"
+                            title="Delete"
+                          >
+                            <Trash2 className="icon-sm" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
