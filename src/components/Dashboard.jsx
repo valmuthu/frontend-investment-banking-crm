@@ -38,15 +38,15 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
     };
   }, [contacts, interviews]);
 
-  // Visual funnel data for interviews with consistent styling
+  // Visual funnel data for interviews with softer colors
   const interviewFunnel = useMemo(() => {
     const stages = [
-      { name: 'Applied', color: 'from-blue-400 to-blue-500' },
-      { name: 'Phone Screen', color: 'from-blue-500 to-blue-600' },
-      { name: 'First Round', color: 'from-amber-400 to-amber-500' },
-      { name: 'Second Round', color: 'from-amber-500 to-amber-600' },
-      { name: 'Superday', color: 'from-orange-400 to-orange-500' },
-      { name: 'Offer Received', color: 'from-emerald-400 to-emerald-500' }
+      { name: 'Applied', color: 'from-slate-400 to-slate-500' },
+      { name: 'Phone Screen', color: 'from-blue-400 to-blue-500' },
+      { name: 'First Round', color: 'from-indigo-400 to-indigo-500' },
+      { name: 'Second Round', color: 'from-purple-400 to-purple-500' },
+      { name: 'Superday', color: 'from-emerald-400 to-emerald-500' },
+      { name: 'Offer Received', color: 'from-green-400 to-green-500' }
     ];
     
     return stages.map(stage => ({
@@ -56,14 +56,14 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
     }));
   }, [interviews]);
 
-  // Networking funnel data with consistent styling
+  // Networking funnel data with softer colors
   const networkingFunnel = useMemo(() => {
     const stages = [
-      { name: 'Not Yet Contacted', color: 'from-gray-400 to-gray-500' },
-      { name: 'Initial Outreach Sent', color: 'from-blue-400 to-blue-500' },
-      { name: 'Intro Call Scheduled', color: 'from-amber-400 to-amber-500' },
-      { name: 'Intro Call Complete', color: 'from-emerald-400 to-emerald-500' },
-      { name: 'Follow-Up Call Complete', color: 'from-emerald-500 to-emerald-600' }
+      { name: 'Not Yet Contacted', color: 'from-gray-300 to-gray-400' },
+      { name: 'Initial Outreach Sent', color: 'from-blue-300 to-blue-400' },
+      { name: 'Intro Call Scheduled', color: 'from-amber-300 to-amber-400' },
+      { name: 'Intro Call Complete', color: 'from-emerald-300 to-emerald-400' },
+      { name: 'Follow-Up Call Complete', color: 'from-green-400 to-green-500' }
     ];
     
     return stages.map(stage => ({
@@ -130,12 +130,12 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
     return [...interviewTasks, ...networkingTasks].sort((a, b) => new Date(a.date) - new Date(b.date));
   }, [contacts, interviews]);
 
-  const KPICard = ({ title, value, icon: Icon, color = 'blue', description, gradientFrom, gradientTo }) => (
-    <div className={`card-hover bg-gradient-to-br from-${gradientFrom} to-${gradientTo} rounded-xl shadow-sm border border-gray-200 p-6 text-white`}>
+  const KPICard = ({ title, value, icon: Icon, description, gradientFrom, gradientTo }) => (
+    <div className={`card-hover bg-gradient-to-br from-${gradientFrom} to-${gradientTo} rounded-xl shadow-sm border border-gray-100 p-6 text-white`}>
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <div className="flex items-center mb-2">
-            <p className="text-sm font-semibold text-white/90">{title}</p>
+            <p className="text-sm font-medium text-white/90">{title}</p>
             {description && (
               <div className="group relative ml-2">
                 <Info className="w-4 h-4 text-white/70 cursor-help" />
@@ -161,7 +161,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
 
     return (
       <div className="card-base p-6">
-        <h3 className="text-heading-3 mb-4 text-center">{title}</h3>
+        <h3 className="text-heading-3 mb-4 text-center text-gray-700">{title}</h3>
         <div className="flex items-center justify-center">
           <div className="relative">
             <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
@@ -183,11 +183,11 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
                 fill="transparent"
                 strokeDasharray={strokeDasharray}
                 strokeLinecap="round"
-                className={`text-${color}-500 transition-all duration-1000 ease-out`}
+                className={`text-${color}-400 transition-all duration-1000 ease-out`}
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-2xl font-bold text-gray-900">{percentage}%</span>
+              <span className="text-2xl font-bold text-gray-700">{percentage}%</span>
             </div>
           </div>
         </div>
@@ -195,13 +195,13 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
     );
   };
 
-  const FunnelChart = ({ data, title, color = 'blue' }) => {
+  const FunnelChart = ({ data, title }) => {
     const maxCount = Math.max(...data.map(d => d.count));
     
     return (
       <div className="card-base p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-heading-3">{title}</h3>
+          <h3 className="text-heading-3 text-gray-700">{title}</h3>
           <div className="text-sm text-gray-500">
             {data.reduce((sum, item) => sum + item.count, 0)} total
           </div>
@@ -213,22 +213,22 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
             
             return (
               <div key={item.stage} className="flex items-center">
-                <div className="w-32 text-sm font-medium text-gray-700 flex-shrink-0 text-right pr-4">
+                <div className="w-32 text-sm font-medium text-gray-600 flex-shrink-0 text-right pr-4">
                   {item.stage}
                 </div>
                 <div className="flex-1 mx-3">
                   <div className="bg-gray-100 rounded-full h-8 relative overflow-hidden">
                     <div 
-                      className={`bg-gradient-to-r ${item.color || `from-${color}-400 to-${color}-600`} h-full rounded-full transition-all duration-700 flex items-center justify-end pr-3 hover:shadow-md relative group`}
+                      className={`bg-gradient-to-r ${item.color} h-full rounded-full transition-all duration-700 flex items-center justify-end pr-3 hover:shadow-md relative group`}
                       style={{ width: `${width}%` }}
                     >
-                      <span className="text-white text-sm font-bold">
+                      <span className="text-white text-sm font-medium">
                         {item.count > 0 ? item.count : ''}
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className="w-8 text-sm font-bold text-gray-900 text-left">
+                <div className="w-8 text-sm font-medium text-gray-700 text-left">
                   {item.count}
                 </div>
               </div>
@@ -240,20 +240,20 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
   };
 
   const TaskTimeline = ({ tasks, title }) => (
-    <div className="card-base p-6">
+    <div className="card-base p-6 h-full">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-heading-3">{title}</h3>
+        <h3 className="text-heading-3 text-gray-700">{title}</h3>
         <div className="flex items-center space-x-3">
           <Filter className="w-4 h-4 text-gray-400" />
           <span className="text-sm text-gray-500">{tasks.length} tasks</span>
         </div>
       </div>
       {tasks.length > 0 ? (
-        <div className="space-y-3 max-h-80 overflow-y-auto">
+        <div className="space-y-3 max-h-96 overflow-y-auto">
           {tasks.map((task) => (
-            <div key={`${task.type}-${task.id}`} className="flex items-start space-x-4 p-4 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer border border-gray-100 hover:border-blue-200">
+            <div key={`${task.type}-${task.id}`} className="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-gray-100 hover:border-gray-200">
               <div className={`flex-shrink-0 w-3 h-3 rounded-full mt-2 ${
-                task.priority === 'high' ? 'bg-red-500 shadow-sm' : 'bg-blue-500 shadow-sm'
+                task.priority === 'high' ? 'bg-amber-400 shadow-sm' : 'bg-blue-400 shadow-sm'
               }`}></div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-3 mb-2">
@@ -266,12 +266,12 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
                   </span>
                   {task.priority === 'high' && (
                     <div className="flex items-center">
-                      <AlertCircle className="w-4 h-4 text-red-500" />
-                      <span className="text-xs font-semibold text-red-600 ml-1">Urgent</span>
+                      <AlertCircle className="w-4 h-4 text-amber-500" />
+                      <span className="text-xs font-medium text-amber-600 ml-1">Urgent</span>
                     </div>
                   )}
                 </div>
-                <p className="text-sm font-semibold text-gray-900 truncate mb-1">{task.title}</p>
+                <p className="text-sm font-medium text-gray-800 truncate mb-1">{task.title}</p>
                 <p className="text-sm text-gray-600 truncate mb-2">{task.subtitle}</p>
                 <p className="text-xs text-gray-500 font-medium">{new Date(task.date).toLocaleDateString('en-US', { 
                   weekday: 'short', 
@@ -285,7 +285,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
       ) : (
         <div className="text-center py-12">
           <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h4 className="text-lg font-semibold text-gray-900 mb-2">All caught up!</h4>
+          <h4 className="text-lg font-medium text-gray-700 mb-2">All caught up!</h4>
           <p className="text-gray-500">No upcoming tasks in the next 7 days</p>
         </div>
       )}
@@ -295,10 +295,10 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
   const FollowUpContacts = ({ contacts, title }) => (
     <div className="card-base p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-heading-3">{title}</h3>
+        <h3 className="text-heading-3 text-gray-700">{title}</h3>
         <button 
           onClick={() => setActiveTab('contacts')}
-          className="text-blue-600 hover:text-blue-800 text-sm font-semibold hover:underline transition-colors"
+          className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition-colors"
         >
           View All
         </button>
@@ -315,7 +315,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
                 {contact.name.split(' ').map(n => n[0]).join('')}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 truncate">{contact.name}</p>
+                <p className="font-medium text-gray-800 truncate">{contact.name}</p>
                 <p className="text-sm text-gray-600 truncate">{contact.firm} • {contact.position}</p>
                 <p className="text-xs text-amber-700 font-medium mt-1">
                   {contact.daysSinceLastContact} days since last contact
@@ -331,7 +331,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
       ) : (
         <div className="text-center py-12">
           <CheckCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h4 className="text-lg font-semibold text-gray-900 mb-2">Great work!</h4>
+          <h4 className="text-lg font-medium text-gray-700 mb-2">Great work!</h4>
           <p className="text-gray-500">All contacts have recent follow-ups</p>
         </div>
       )}
@@ -341,42 +341,42 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
   return (
     <div className="flex-1 bg-gray-50 section-padding-lg">
       <div className="mb-10">
-        <h1 className="text-heading-1 mb-3">Dashboard</h1>
+        <h1 className="text-heading-1 mb-3 text-gray-800">Dashboard</h1>
         <p className="text-lg text-gray-600">Investment Banking CRM Overview</p>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards with softer colors */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <KPICard 
           title="Total Contacts" 
           value={kpis.totalContacts} 
           icon={Users} 
-          gradientFrom="blue-500"
-          gradientTo="indigo-600"
+          gradientFrom="blue-400"
+          gradientTo="indigo-500"
           description="Total number of networking contacts"
         />
         <KPICard 
           title="Unique Firms" 
           value={kpis.uniqueFirms} 
           icon={Building2} 
-          gradientFrom="emerald-500"
-          gradientTo="teal-600"
+          gradientFrom="emerald-400"
+          gradientTo="teal-500"
           description="Number of unique investment banking firms"
         />
         <KPICard 
           title="Total Interviews" 
           value={kpis.totalInterviews} 
           icon={Calendar} 
-          gradientFrom="purple-500"
-          gradientTo="violet-600"
+          gradientFrom="purple-400"
+          gradientTo="violet-500"
           description="All interview opportunities tracked"
         />
         <KPICard 
           title="Referrals" 
           value={kpis.referrals} 
           icon={Award} 
-          gradientFrom="amber-500"
-          gradientTo="orange-600"
+          gradientFrom="amber-400"
+          gradientTo="orange-500"
           description="Contacts that provided referrals"
         />
       </div>
@@ -386,20 +386,18 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
         <div className="xl:col-span-2">
           <FunnelChart 
             data={interviewFunnel} 
-            title="Interview Funnel" 
-            color="blue"
+            title="Interview Funnel"
           />
         </div>
         <div className="xl:col-span-2">
           <FunnelChart 
             data={networkingFunnel} 
-            title="Networking Funnel" 
-            color="emerald"
+            title="Networking Funnel"
           />
         </div>
       </div>
 
-      {/* Combined Chart Section */}
+      {/* Combined Chart Section - Fixed height alignment */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
         <div className="lg:col-span-2">
           <TaskTimeline 
@@ -417,7 +415,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
           <DonutChart 
             percentage={parseFloat(kpis.applicationSuccessRate)} 
             title="Application Success" 
-            color="amber"
+            color="emerald"
           />
         </div>
       </div>
@@ -432,10 +430,10 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
         {/* Recent Contacts */}
         <div className="card-base p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-heading-3">Recent Contacts</h3>
+            <h3 className="text-heading-3 text-gray-700">Recent Contacts</h3>
             <button 
               onClick={() => setActiveTab('contacts')}
-              className="text-blue-600 hover:text-blue-800 text-sm font-semibold hover:underline transition-colors"
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition-colors"
             >
               View All
             </button>
@@ -451,7 +449,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
                   {contact.name.split(' ').map(n => n[0]).join('')}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">{contact.name}</p>
+                  <p className="font-medium text-gray-800 truncate">{contact.name}</p>
                   <p className="text-sm text-gray-600 truncate">{contact.firm} • {contact.position}</p>
                   {contact.group && <p className="text-xs text-gray-500 mt-1">{contact.group}</p>}
                 </div>
@@ -466,10 +464,10 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
       <div className="grid grid-cols-1 gap-8">
         <div className="card-base p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-heading-3">Recent Interviews</h3>
+            <h3 className="text-heading-3 text-gray-700">Recent Interviews</h3>
             <button 
               onClick={() => setActiveTab('interviews')}
-              className="text-blue-600 hover:text-blue-800 text-sm font-semibold hover:underline transition-colors"
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline transition-colors"
             >
               View All
             </button>
@@ -497,7 +495,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
                 >
                   <Building2 className="w-10 h-10 text-gray-400 mr-4" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 truncate">{interview.firm}</p>
+                    <p className="font-medium text-gray-800 truncate">{interview.firm}</p>
                     <p className="text-sm text-gray-600 truncate">{interview.position}</p>
                     <span className={`status-badge mt-2 ${getStageColor(interview.stage)}`}>
                       {interview.stage}
