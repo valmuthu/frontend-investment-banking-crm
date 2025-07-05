@@ -14,28 +14,30 @@ const Navigation = ({ activeTab, setActiveTab, setSelectedContactId }) => {
   };
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
+    <div className="w-64 bg-white border-r border-gray-200 min-h-screen shadow-sm">
       <div className="p-6">
         <div className="flex items-center mb-8">
-          <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-            <Building2 className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+            <Building2 className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-xl font-bold text-gray-900">IB CRM</h1>
         </div>
-        <nav className="space-y-1">
+        <nav className="space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center px-3 py-2.5 rounded-lg transition-colors text-sm font-medium ${
+                className={`w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 text-sm font-semibold group ${
                   activeTab === item.id 
-                    ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 border border-purple-200 shadow-sm' 
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-purple-600'
                 }`}
               >
-                <Icon className="w-5 h-5 mr-3" />
+                <Icon className={`w-5 h-5 mr-3 transition-colors ${
+                  activeTab === item.id ? 'text-purple-600' : 'text-gray-500 group-hover:text-purple-500'
+                }`} />
                 {item.label}
               </button>
             );
