@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { 
   Search, Plus, Filter, ArrowUpDown, Edit2, Trash2, Eye, 
   Download, FileText, Calendar, Building2, Users, X, 
-  ChevronDown, Upload, Tag, File
+  ChevronDown, Upload, Tag, File, Check
 } from 'lucide-react';
 
 const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
@@ -12,6 +12,8 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
   const [showFilters, setShowFilters] = useState(false);
   const [showSortOptions, setShowSortOptions] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [editingDocument, setEditingDocument] = useState(null);
+  const fileInputRef = useRef(null);
   
   const [filters, setFilters] = useState({
     types: [],
@@ -26,7 +28,8 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
     associatedContacts: [],
     associatedFirms: [],
     tags: [],
-    notes: ''
+    notes: '',
+    file: null
   });
 
   const documentTypes = [
@@ -142,6 +145,13 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
     });
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewDocument(prev => ({ ...prev, file }));
+    }
+  };
+
   const handleUpload = (e) => {
     e.preventDefault();
     if (newDocument.name && newDocument.type) {
@@ -152,10 +162,28 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
         associatedContacts: [],
         associatedFirms: [],
         tags: [],
-        notes: ''
+        notes: '',
+        file: null
       });
       setShowUploadModal(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
+  };
+
+  const handleEdit = (document) => {
+    setEditingDocument(document);
+  };
+
+  const handleView = (document) => {
+    // Implement view functionality
+    console.log('Viewing document:', document);
+  };
+
+  const handleDownload = (document) => {
+    // Implement download functionality
+    console.log('Downloading document:', document);
   };
 
   const handleTagInput = (value, field) => {
@@ -197,7 +225,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
           onClick={() => setIsOpen(!isOpen)}
           className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-md ${
             selected.length > 0 
-              ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' 
+              ? 'bg-purple-50 border-purple-300 text-purple-700 shadow-sm' 
               : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
           }`}
         >
@@ -214,7 +242,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
                     type="checkbox"
                     checked={selected.includes(option)}
                     onChange={() => onChange(filterKey, option)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
                   />
                   <span className="ml-3 text-sm text-gray-900">{option}</span>
                 </label>
@@ -231,7 +259,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
       <button
         onClick={() => setShowSortOptions(!showSortOptions)}
         className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:shadow-md ${
-          sortField ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+          sortField ? 'bg-purple-50 border-purple-300 text-purple-700 shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400'
         }`}
       >
         <ArrowUpDown className="w-4 h-4 mr-2" />
@@ -247,7 +275,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
                 key={option.field}
                 onClick={() => handleSort(option.field)}
                 className={`w-full text-left p-3 hover:bg-gray-50 rounded-lg text-sm transition-colors ${
-                  sortField === option.field ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-900'
+                  sortField === option.field ? 'bg-purple-50 text-purple-700 font-semibold' : 'text-gray-900'
                 }`}
               >
                 {option.label}
@@ -263,6 +291,43 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
       )}
     </div>
   );
+
+  const MultiSelectDropdown = ({ title, options, selected, onChange, placeholder }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    
+    return (
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-left flex items-center justify-between"
+        >
+          <span className={selected.length > 0 ? 'text-gray-900' : 'text-gray-500'}>
+            {selected.length > 0 ? `${selected.length} selected` : placeholder}
+          </span>
+          <ChevronDown className="w-4 h-4" />
+        </button>
+        
+        {isOpen && (
+          <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+            <div className="p-2">
+              {options.map(option => (
+                <label key={option.value || option} className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(option.value || option)}
+                    onChange={() => onChange(option.value || option)}
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-900">{option.label || option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const UploadModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -284,21 +349,30 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
               value={newDocument.name}
               onChange={(e) => setNewDocument({ ...newDocument, name: e.target.value })}
               placeholder="e.g., Resume - Investment Banking 2025"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-2">File Upload</label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+            <div 
+              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+            >
               <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
               <p className="text-sm text-gray-600">
-                Drag and drop your file here, or 
-                <button type="button" className="text-blue-600 hover:underline ml-1">browse</button>
+                {newDocument.file ? newDocument.file.name : 'Click to browse files'}
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 Supports: PDF, DOC, DOCX, TXT (Max 10MB)
               </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileUpload}
+                accept=".pdf,.doc,.docx,.txt"
+                className="hidden"
+              />
             </div>
           </div>
 
@@ -307,7 +381,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
             <select
               value={newDocument.type}
               onChange={(e) => setNewDocument({ ...newDocument, type: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               {documentTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
@@ -318,22 +392,36 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Associated Contacts</label>
-              <select
-                multiple
-                value={newDocument.associatedContacts}
-                onChange={(e) => setNewDocument({ 
-                  ...newDocument, 
-                  associatedContacts: Array.from(e.target.selectedOptions, option => option.value)
-                })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-24"
-              >
-                {contacts.map(contact => (
-                  <option key={contact.id} value={contact.name}>
-                    {contact.name} - {contact.firm}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+              <MultiSelectDropdown
+                title="Associated Contacts"
+                options={contacts.map(contact => ({ value: contact.name, label: `${contact.name} - ${contact.firm}` }))}
+                selected={newDocument.associatedContacts}
+                onChange={(contactName) => {
+                  setNewDocument(prev => ({
+                    ...prev,
+                    associatedContacts: prev.associatedContacts.includes(contactName)
+                      ? prev.associatedContacts.filter(c => c !== contactName)
+                      : [...prev.associatedContacts, contactName]
+                  }));
+                }}
+                placeholder="Select contacts"
+              />
+              {newDocument.associatedContacts.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {newDocument.associatedContacts.map(contact => (
+                    <span key={contact} className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                      {contact}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(contact, 'associatedContacts')}
+                        className="ml-1 text-purple-600 hover:text-purple-800"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
@@ -343,7 +431,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
                 value={newDocument.associatedFirms.join(', ')}
                 onChange={(e) => handleTagInput(e.target.value, 'associatedFirms')}
                 placeholder="Goldman Sachs, Morgan Stanley..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <p className="text-xs text-gray-500 mt-1">Separate with commas</p>
               {newDocument.associatedFirms.length > 0 && (
@@ -381,7 +469,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
                   }}
                   className={`px-2 py-1 text-xs rounded-full transition-colors ${
                     newDocument.tags.includes(tag)
-                      ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                      ? 'bg-purple-100 text-purple-800 border border-purple-200'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -399,7 +487,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
                   e.target.value = '';
                 }
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
             {newDocument.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
@@ -426,7 +514,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
               value={newDocument.notes}
               onChange={(e) => setNewDocument({ ...newDocument, notes: e.target.value })}
               placeholder="Additional notes about this document..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -440,7 +528,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
             </button>
             <button 
               type="submit" 
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
               Upload Document
             </button>
@@ -451,7 +539,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
   );
 
   return (
-    <div className="flex-1 bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="flex-1 bg-gradient-to-br from-slate-50 to-purple-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-8 py-8 shadow-sm">
         <div className="flex items-center justify-between">
@@ -465,7 +553,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl flex items-center hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
+            className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-3 rounded-xl flex items-center hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
           >
             <Plus className="w-4 h-4 mr-2" />
             Upload Document
@@ -483,7 +571,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
               placeholder="Search documents..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm"
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm shadow-sm"
             />
           </div>
           
@@ -492,7 +580,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold hover:shadow-md ${
-              Object.values(filters).some(f => f.length > 0) ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-sm' : 'text-gray-700'
+              Object.values(filters).some(f => f.length > 0) ? 'bg-purple-50 border-purple-300 text-purple-700 shadow-sm' : 'text-gray-700'
             }`}
           >
             <Filter className="w-4 h-4 mr-2" />
@@ -502,7 +590,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
 
         {/* Filter Dropdowns */}
         {showFilters && (
-          <div className="flex flex-wrap items-center gap-4 p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
+          <div className="flex flex-wrap items-center gap-4 p-6 bg-gradient-to-r from-gray-50 to-purple-50 rounded-xl border border-gray-200">
             <FilterDropdown
               title="Type"
               options={filterOptions.types}
@@ -550,7 +638,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+              <thead className="bg-gradient-to-r from-gray-50 to-purple-50 border-b border-gray-200">
                 <tr>
                   <th className="px-8 py-6 text-left text-sm font-bold text-gray-700">Document</th>
                   <th className="px-8 py-6 text-left text-sm font-bold text-gray-700">Type</th>
@@ -562,10 +650,10 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredAndSortedDocuments.map(document => (
-                  <tr key={document.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={document.id} className="hover:bg-purple-50 transition-colors">
                     <td className="px-8 py-6">
                       <div className="flex items-center">
-                        <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-lg mr-4 shadow-sm">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-lg mr-4 shadow-sm">
                           {getTypeIcon(document.type)}
                         </div>
                         <div>
@@ -577,7 +665,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200">
                         {document.type}
                       </span>
                     </td>
@@ -625,21 +713,21 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
                     <td className="px-8 py-6">
                       <div className="flex items-center justify-center space-x-2">
                         <button
-                          onClick={() => {/* Handle view */}}
-                          className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                          onClick={() => handleView(document)}
+                          className="text-gray-400 hover:text-purple-600 transition-colors p-2 rounded-lg hover:bg-purple-50"
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => {/* Handle download */}}
+                          onClick={() => handleDownload(document)}
                           className="text-gray-400 hover:text-emerald-600 transition-colors p-2 rounded-lg hover:bg-emerald-50"
                           title="Download"
                         >
                           <Download className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => onEdit(document)}
+                          onClick={() => handleEdit(document)}
                           className="text-gray-400 hover:text-orange-600 transition-colors p-2 rounded-lg hover:bg-orange-50"
                           title="Edit"
                         >
@@ -673,7 +761,7 @@ const Documents = ({ documents, contacts, onAdd, onEdit, onDelete }) => {
             </p>
             <button
               onClick={() => setShowUploadModal(true)}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
+              className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-8 py-3 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
             >
               Upload Your First Document
             </button>
