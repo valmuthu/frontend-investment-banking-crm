@@ -252,7 +252,7 @@ const Contacts = ({
       </div>
     )}
   </div>
-) // <-- Close arrow function here
+); // <-- Close arrow function here
   
       {/* Search and Filters */}
       <div className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
