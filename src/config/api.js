@@ -1,6 +1,15 @@
 // src/config/api.js
+const getBaseURL = () => {
+  // Check if we're in development mode
+  if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+    return 'http://localhost:5000';
+  }
+  // Use environment variable or fallback to Heroku URL
+  return process.env.REACT_APP_API_URL || 'https://vm-investment-crm.herokuapp.com';
+};
+
 export const API_CONFIG = {
-  BASE_URL: process.env.REACT_APP_API_URL || 'https://vm-investment-crm.herokuapp.com',
+  BASE_URL: getBaseURL(),
   API_VERSION: '/api/v1',
   TIMEOUT: 30000,
 };
