@@ -6,41 +6,21 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "dev": "vite",
-    "dev:local": "REACT_APP_ENV=local vite",
+    "dev": "vite --host",
     "build": "vite build",
-    "build:staging": "REACT_APP_ENV=staging vite build",
-    "build:production": "REACT_APP_ENV=production vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint . --ext js,jsx --fix",
-    "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "setup": "npm install && echo \"Frontend setup complete\""
   },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "lucide-react": "^0.263.1",
-    "react-router-dom": "^6.14.1",
-    "@fullcalendar/core": "^5.11.5",
-    "@fullcalendar/daygrid": "^5.11.5",
-    "@fullcalendar/interaction": "^5.11.5"
+    "lucide-react": "^0.263.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.3",
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.24",
-    "tailwindcss": "^3.3.0",
     "vite": "^4.4.5",
-    "eslint": "^8.45.0",
-    "eslint-plugin-react": "^7.32.2",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.3",
-    "vitest": "^0.34.0"
-  },
-  "homepage": "https://your-app-name.vercel.app",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/investment-banking-crm.git"
+    "tailwindcss": "^3.3.0",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24"
   }
 }
