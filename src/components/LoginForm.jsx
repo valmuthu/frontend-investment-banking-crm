@@ -1,12 +1,13 @@
 // src/components/LoginForm.jsx
-import { useState } from 'react';
-import { Building2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Building2, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const LoginForm = () => {
-  const { login, signup, loading, error, clearError } = useAuth();
+  const { login, signup, loading, error, clearError, testConnection } = useAuth();
   const [isSignup, setIsSignup] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -16,6 +17,15 @@ const LoginForm = () => {
       lastName: ''
     }
   });
+
+  // Test API connection on component mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      const result = await testConnection();
+      setConnectionStatus(result);
+    };
+    checkConnection();
+  }, [testConnection]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -41,6 +51,13 @@ const LoginForm = () => {
     e.preventDefault();
     clearError();
 
+    console.log('📝 Form submission:', { isSignup, email: formData.email });
+
+    // Basic validation
+    if (!formData.email || !formData.password) {
+      return;
+    }
+
     if (isSignup) {
       if (formData.password !== formData.confirmPassword) {
         return;
@@ -53,7 +70,7 @@ const LoginForm = () => {
       });
       
       if (result.success) {
-        // User is automatically logged in after signup
+        console.log('✅ Signup successful, user logged in');
       }
     } else {
       const result = await login({
@@ -62,7 +79,7 @@ const LoginForm = () => {
       });
       
       if (result.success) {
-        // User is automatically logged in
+        console.log('✅ Login successful');
       }
     }
   };
@@ -81,6 +98,12 @@ const LoginForm = () => {
     });
   };
 
+  const isFormValid = () => {
+    if (!formData.email || !formData.password) return false;
+    if (isSignup && formData.password !== formData.confirmPassword) return false;
+    return true;
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -96,12 +119,39 @@ const LoginForm = () => {
           <p className="mt-2 text-center text-sm text-gray-600">
             Investment Banking CRM
           </p>
+
+          {/* Connection Status Indicator */}
+          {connectionStatus && (
+            <div className={`mt-4 p-3 rounded-lg text-sm ${
+              connectionStatus.success 
+                ? 'bg-green-50 text-green-800 border border-green-200' 
+                : 'bg-red-50 text-red-800 border border-red-200'
+            }`}>
+              <div className="flex items-center">
+                <div className={`w-2 h-2 rounded-full mr-2 ${
+                  connectionStatus.success ? 'bg-green-500' : 'bg-red-500'
+                }`}></div>
+                {connectionStatus.success 
+                  ? '✅ Connected to server' 
+                  : '❌ Unable to connect to server'
+                }
+              </div>
+              {!connectionStatus.success && (
+                <p className="mt-1 text-xs">
+                  Please check if the backend server is running on http://localhost:5000
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-              {error}
+              <div className="flex items-center">
+                <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="text-sm">{error}</span>
+              </div>
             </div>
           )}
 
@@ -118,7 +168,8 @@ const LoginForm = () => {
                     type="text"
                     value={formData.profile.firstName}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="John"
                   />
                 </div>
                 <div>
@@ -131,7 +182,8 @@ const LoginForm = () => {
                     type="text"
                     value={formData.profile.lastName}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Doe"
                   />
                 </div>
               </div>
@@ -150,7 +202,7 @@ const LoginForm = () => {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   placeholder="Enter your email"
                 />
               </div>
@@ -169,21 +221,26 @@ const LoginForm = () => {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter your password"
+                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder={isSignup ? 'Create a password (min. 6 characters)' : 'Enter your password'}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   {showPassword ? (
-                    <EyeOff className="w-5 h-5 text-gray-400" />
+                    <EyeOff className="w-5 h-5" />
                   ) : (
-                    <Eye className="w-5 h-5 text-gray-400" />
+                    <Eye className="w-5 h-5" />
                   )}
                 </button>
               </div>
+              {isSignup && (
+                <p className="mt-1 text-xs text-gray-500">
+                  Password must be at least 6 characters long
+                </p>
+              )}
             </div>
 
             {isSignup && (
@@ -200,7 +257,7 @@ const LoginForm = () => {
                     required
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     placeholder="Confirm your password"
                   />
                 </div>
@@ -214,8 +271,8 @@ const LoginForm = () => {
           <div>
             <button
               type="submit"
-              disabled={loading || (isSignup && formData.password !== formData.confirmPassword)}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !isFormValid()}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (
                 <div className="flex items-center">
@@ -232,7 +289,7 @@ const LoginForm = () => {
             <button
               type="button"
               onClick={toggleMode}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
             >
               {isSignup 
                 ? 'Already have an account? Sign in' 
@@ -240,6 +297,16 @@ const LoginForm = () => {
               }
             </button>
           </div>
+
+          {/* Debug Info in Development */}
+          {import.meta.env.DEV && (
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
+              <p><strong>Debug Info:</strong></p>
+              <p>API URL: {import.meta.env.VITE_API_URL || 'http://localhost:5000'}</p>
+              <p>Environment: {import.meta.env.DEV ? 'Development' : 'Production'}</p>
+              <p>Form valid: {isFormValid() ? 'Yes' : 'No'}</p>
+            </div>
+          )}
         </form>
       </div>
     </div>
