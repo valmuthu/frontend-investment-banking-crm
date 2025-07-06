@@ -12,7 +12,7 @@ class ApiService {
     this.timeout = API_CONFIG.TIMEOUT;
   }
 
-  // Generic HTTP request method
+  // Generic HTTP request method with better error handling
   async request(url, options = {}) {
     const {
       method = HTTP_METHODS.GET,
@@ -21,6 +21,8 @@ class ApiService {
       includeAuth = true,
       timeout = this.timeout,
     } = options;
+
+    console.log(`🔗 API Request: ${method} ${url}`);
 
     const config = {
       method,
@@ -42,8 +44,13 @@ class ApiService {
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
+      console.log(`📤 Sending request to: ${url}`);
+      console.log(`📦 Request config:`, { method, headers: config.headers });
+      
       const response = await fetch(url, config);
       clearTimeout(timeoutId);
+
+      console.log(`📥 Response status: ${response.status}`);
 
       // Handle different response types
       const contentType = response.headers.get('content-type');
@@ -55,11 +62,18 @@ class ApiService {
         responseData = await response.text();
       }
 
+      console.log(`📊 Response data:`, responseData);
+
       if (!response.ok) {
+        const errorMessage = responseData.message || `HTTP ${response.status}`;
+        const errorCode = responseData.code || 'HTTP_ERROR';
+        
+        console.error(`❌ API Error: ${errorMessage}`);
+        
         throw new ApiError(
-          responseData.message || `HTTP ${response.status}`,
+          errorMessage,
           response.status,
-          responseData.code || 'HTTP_ERROR',
+          errorCode,
           responseData
         );
       }
@@ -68,12 +82,23 @@ class ApiService {
     } catch (error) {
       clearTimeout(timeoutId);
       
+      console.error(`❌ Request failed:`, error);
+      
       if (error.name === 'AbortError') {
         throw new ApiError('Request timeout', 408, 'TIMEOUT_ERROR');
       }
       
       if (error instanceof ApiError) {
         throw error;
+      }
+      
+      // Network errors
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new ApiError(
+          'Unable to connect to server. Please check your internet connection.',
+          0,
+          'NETWORK_ERROR'
+        );
       }
       
       throw new ApiError(
@@ -107,10 +132,12 @@ class ApiService {
 
   // Authentication methods
   async login(credentials) {
+    console.log('🔐 Attempting login for:', credentials.email);
     return this.post(API_ENDPOINTS.AUTH.LOGIN, credentials, { includeAuth: false });
   }
 
   async signup(userData) {
+    console.log('✨ Attempting signup for:', userData.email);
     return this.post(API_ENDPOINTS.AUTH.SIGNUP, userData, { includeAuth: false });
   }
 
