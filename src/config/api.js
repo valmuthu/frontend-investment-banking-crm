@@ -1,11 +1,12 @@
 // src/config/api.js
 const getBaseURL = () => {
   // Check if we're in development mode
-  if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+  if (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return 'http://localhost:5000';
   }
-  // Use environment variable or fallback to Heroku URL
-  return process.env.REACT_APP_API_URL || 'https://vm-investment-crm.herokuapp.com';
+  
+  // Use environment variable or fallback to production URL
+  return import.meta.env.VITE_API_URL || 'https://vm-investment-crm.herokuapp.com';
 };
 
 export const API_CONFIG = {
@@ -26,6 +27,7 @@ export const API_ENDPOINTS = {
     CHANGE_PASSWORD: `${API_BASE_URL}/auth/change-password`,
     FORGOT_PASSWORD: `${API_BASE_URL}/auth/forgot-password`,
     RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password`,
+    TEST: `${API_BASE_URL}/auth/test`,
   },
   USERS: {
     PROFILE: `${API_BASE_URL}/users/profile`,
@@ -83,7 +85,7 @@ export const HTTP_METHODS = {
 
 export const DEFAULT_HEADERS = {
   'Content-Type': 'application/json',
-  Accept: 'application/json',
+  'Accept': 'application/json',
 };
 
 export const getAuthHeader = () => {
@@ -95,3 +97,13 @@ export const getHeaders = (includeAuth = true) => ({
   ...DEFAULT_HEADERS,
   ...(includeAuth ? getAuthHeader() : {}),
 });
+
+// Debug function to log API configuration
+export const debugApiConfig = () => {
+  console.log('🔧 API Configuration:', {
+    BASE_URL: API_CONFIG.BASE_URL,
+    API_BASE_URL,
+    environment: import.meta.env.DEV ? 'development' : 'production',
+    hostname: window.location.hostname
+  });
+};
