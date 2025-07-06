@@ -1,28 +1,93 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { 
   User, Calendar, TrendingUp, Target, Phone, Award,
   Clock, CheckCircle, AlertCircle, BarChart3, Users,
   ArrowUp, ArrowDown, Eye, Building2, MessageSquare,
   UserCheck, Percent, Filter, TrendingDown, Info
 } from 'lucide-react';
+import apiService from '../services/apiService';
 
 const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) => {
-  // Calculate KPIs
-  const kpis = useMemo(() => {
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load dashboard data from API
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      const data = await apiService.getDashboardStats();
+      setDashboardStats(data);
+    } catch (err) {
+      console.error('Failed to load dashboard data:', err);
+      setError('Failed to load dashboard statistics');
+      // Fall back to calculating from props
+      calculateStatsFromProps();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateStatsFromProps = () => {
+    // Fallback calculation using the contacts and interviews props
     const totalInteractions = contacts.reduce((sum, contact) => sum + (contact.interactions?.length || 0), 0);
     const totalInterviews = interviews.length;
-    const activeInterviews = interviews.filter(i => !['Offer Received', 'Rejected', 'Withdrawn'].includes(i.stage)).length;
     const offers = interviews.filter(i => i.stage === 'Offer Received').length;
     const successRate = totalInterviews > 0 ? ((offers / totalInterviews) * 100).toFixed(1) : 0;
     
-    // Unique firms
     const uniqueFirms = [...new Set(contacts.map(c => c.firm))].length;
-    
-    // New KPIs
     const contactsWithReferrals = contacts.filter(c => c.referred).length;
     const referralPercentage = contacts.length > 0 ? ((contactsWithReferrals / contacts.length) * 100).toFixed(1) : 0;
     
-    // Application success rate (% interviewed out of total applications)
+    const appliedInterviews = interviews.filter(i => ['Applied', 'Phone Screen', 'First Round', 'Second Round', 'Third Round', 'Case Study', 'Superday', 'Offer Received'].includes(i.stage)).length;
+    const interviewedCount = interviews.filter(i => ['Phone Screen', 'First Round', 'Second Round', 'Third Round', 'Case Study', 'Superday', 'Offer Received'].includes(i.stage)).length;
+    const applicationSuccessRate = appliedInterviews > 0 ? ((interviewedCount / appliedInterviews) * 100).toFixed(1) : 0;
+
+    setDashboardStats({
+      stats: {
+        totalContacts: contacts.length,
+        uniqueFirms,
+        totalInterviews,
+        referrals: contactsWithReferrals,
+        successRate: parseFloat(successRate),
+        referralPercentage: parseFloat(referralPercentage),
+        applicationSuccessRate: parseFloat(applicationSuccessRate)
+      },
+      funnels: {
+        networking: [],
+        interview: []
+      },
+      recent: {
+        contacts: contacts.slice(0, 5),
+        interviews: interviews.slice(0, 5)
+      },
+      tasks: {
+        upcoming: [],
+        followUps: []
+      }
+    });
+  };
+
+  // Calculate KPIs - use API data if available, otherwise fallback
+  const kpis = useMemo(() => {
+    if (dashboardStats) {
+      return dashboardStats.stats;
+    }
+
+    // Fallback calculation
+    const totalInteractions = contacts.reduce((sum, contact) => sum + (contact.interactions?.length || 0), 0);
+    const totalInterviews = interviews.length;
+    const offers = interviews.filter(i => i.stage === 'Offer Received').length;
+    const successRate = totalInterviews > 0 ? ((offers / totalInterviews) * 100).toFixed(1) : 0;
+    
+    const uniqueFirms = [...new Set(contacts.map(c => c.firm))].length;
+    const contactsWithReferrals = contacts.filter(c => c.referred).length;
+    const referralPercentage = contacts.length > 0 ? ((contactsWithReferrals / contacts.length) * 100).toFixed(1) : 0;
+    
     const appliedInterviews = interviews.filter(i => ['Applied', 'Phone Screen', 'First Round', 'Second Round', 'Third Round', 'Case Study', 'Superday', 'Offer Received'].includes(i.stage)).length;
     const interviewedCount = interviews.filter(i => ['Phone Screen', 'First Round', 'Second Round', 'Third Round', 'Case Study', 'Superday', 'Offer Received'].includes(i.stage)).length;
     const applicationSuccessRate = appliedInterviews > 0 ? ((interviewedCount / appliedInterviews) * 100).toFixed(1) : 0;
@@ -32,14 +97,25 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
       uniqueFirms,
       totalInterviews,
       referrals: contactsWithReferrals,
-      successRate,
-      referralPercentage,
-      applicationSuccessRate
+      successRate: parseFloat(successRate),
+      referralPercentage: parseFloat(referralPercentage),
+      applicationSuccessRate: parseFloat(applicationSuccessRate)
     };
-  }, [contacts, interviews]);
+  }, [contacts, interviews, dashboardStats]);
 
   // Visual funnel data for interviews with softer colors
   const interviewFunnel = useMemo(() => {
+    const data = dashboardStats?.funnels?.interview || [];
+    
+    if (data.length > 0) {
+      return data.map(item => ({
+        stage: item._id,
+        count: item.count,
+        color: getInterviewStageColor(item._id)
+      }));
+    }
+
+    // Fallback calculation
     const stages = [
       { name: 'Applied', color: 'from-slate-400 to-slate-500' },
       { name: 'Phone Screen', color: 'from-blue-400 to-blue-500' },
@@ -54,10 +130,21 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
       color: stage.color,
       count: interviews.filter(i => i.stage === stage.name).length
     }));
-  }, [interviews]);
+  }, [interviews, dashboardStats]);
 
   // Networking funnel data with softer colors
   const networkingFunnel = useMemo(() => {
+    const data = dashboardStats?.funnels?.networking || [];
+    
+    if (data.length > 0) {
+      return data.map(item => ({
+        stage: item._id,
+        count: item.count,
+        color: getNetworkingStageColor(item._id)
+      }));
+    }
+
+    // Fallback calculation
     const stages = [
       { name: 'Not Yet Contacted', color: 'from-gray-300 to-gray-400' },
       { name: 'Initial Outreach Sent', color: 'from-blue-300 to-blue-400' },
@@ -71,10 +158,15 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
       color: stage.color,
       count: contacts.filter(c => c.networkingStatus === stage.name).length
     }));
-  }, [contacts]);
+  }, [contacts, dashboardStats]);
 
-  // Suggested follow-ups with days since last contact
+  // Suggested follow-ups
   const followUpContacts = useMemo(() => {
+    if (dashboardStats?.tasks?.followUps) {
+      return dashboardStats.tasks.followUps;
+    }
+
+    // Fallback calculation
     const today = new Date();
     
     return contacts.filter(contact => {
@@ -82,16 +174,21 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
       const statusDate = new Date(contact.networkingDate);
       const daysSinceLastContact = Math.floor((today - statusDate) / (1000 * 60 * 60 * 24));
       
-      return hasNoNextSteps && daysSinceLastContact >= 7; // 7+ days since last contact
+      return hasNoNextSteps && daysSinceLastContact >= 7;
     }).map(contact => {
       const statusDate = new Date(contact.networkingDate);
       const daysSinceLastContact = Math.floor((today - statusDate) / (1000 * 60 * 60 * 24));
       return { ...contact, daysSinceLastContact };
     }).sort((a, b) => b.daysSinceLastContact - a.daysSinceLastContact).slice(0, 5);
-  }, [contacts]);
+  }, [contacts, dashboardStats]);
 
-  // Upcoming tasks with categorization
+  // Upcoming tasks
   const upcomingTasks = useMemo(() => {
+    if (dashboardStats?.tasks?.upcoming) {
+      return dashboardStats.tasks.upcoming;
+    }
+
+    // Fallback calculation
     const today = new Date();
     const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -128,7 +225,31 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
       }));
 
     return [...interviewTasks, ...networkingTasks].sort((a, b) => new Date(a.date) - new Date(b.date));
-  }, [contacts, interviews]);
+  }, [contacts, interviews, dashboardStats]);
+
+  // Helper functions for colors
+  const getInterviewStageColor = (stage) => {
+    const colorMap = {
+      'Applied': 'from-slate-400 to-slate-500',
+      'Phone Screen': 'from-blue-400 to-blue-500',
+      'First Round': 'from-indigo-400 to-indigo-500',
+      'Second Round': 'from-purple-400 to-purple-500',
+      'Superday': 'from-emerald-400 to-emerald-500',
+      'Offer Received': 'from-green-400 to-green-500'
+    };
+    return colorMap[stage] || 'from-gray-400 to-gray-500';
+  };
+
+  const getNetworkingStageColor = (stage) => {
+    const colorMap = {
+      'Not Yet Contacted': 'from-gray-300 to-gray-400',
+      'Initial Outreach Sent': 'from-blue-300 to-blue-400',
+      'Intro Call Scheduled': 'from-amber-300 to-amber-400',
+      'Intro Call Complete': 'from-emerald-300 to-emerald-400',
+      'Follow-Up Call Complete': 'from-green-400 to-green-500'
+    };
+    return colorMap[stage] || 'from-gray-300 to-gray-400';
+  };
 
   const KPICard = ({ title, value, icon: Icon, description, gradientFrom, gradientTo }) => (
     <div className={`card-hover bg-gradient-to-br from-${gradientFrom} to-${gradientTo} rounded-xl shadow-sm border border-gray-100 p-6 text-white`}>
@@ -145,7 +266,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
               </div>
             )}
           </div>
-          <p className="text-3xl font-bold text-white mb-2">{value}</p>
+          <p className="text-3xl font-bold text-white mb-2">{loading ? '...' : value}</p>
         </div>
         <div className={`w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm`}>
           <Icon className="w-7 h-7 text-white" />
@@ -187,7 +308,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-2xl font-bold text-gray-700">{percentage}%</span>
+              <span className="text-2xl font-bold text-gray-700">{loading ? '...' : percentage}%</span>
             </div>
           </div>
         </div>
@@ -338,6 +459,47 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="flex-1 bg-gray-50 section-padding-lg">
+        <div className="animate-pulse">
+          <div className="mb-10">
+            <div className="h-8 bg-gray-200 rounded w-64 mb-3"></div>
+            <div className="h-4 bg-gray-200 rounded w-96"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-gray-200 rounded-xl h-32"></div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="bg-gray-200 rounded-xl h-64"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 bg-gray-50 section-padding-lg">
+        <div className="text-center py-20">
+          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">Failed to Load Dashboard</h3>
+          <p className="text-gray-500 mb-8">{error}</p>
+          <button
+            onClick={loadDashboardData}
+            className="btn-primary"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 bg-gray-50 section-padding-lg">
       <div className="mb-10">
@@ -439,7 +601,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
             </button>
           </div>
           <div className="space-y-3 max-h-80 overflow-y-auto">
-            {contacts.slice(0, 6).map(contact => (
+            {(dashboardStats?.recent?.contacts || contacts.slice(0, 6)).map(contact => (
               <div 
                 key={contact.id} 
                 className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer group border border-gray-100 hover:border-blue-200"
@@ -473,7 +635,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {interviews.slice(0, 6).map(interview => {
+            {(dashboardStats?.recent?.interviews || interviews.slice(0, 6)).map(interview => {
               const getStageColor = (stage) => {
                 switch (stage) {
                   case 'Applied': return 'status-blue';
