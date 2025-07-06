@@ -1,5 +1,5 @@
 // src/config/api.js
-const API_CONFIG = {
+export const API_CONFIG = {
   // Replace with your actual Heroku app URL
   BASE_URL: process.env.REACT_APP_API_URL || 'https://vm-investment-crm.herokuapp.com',
   API_VERSION: '/api/v1',
@@ -115,4 +115,3 @@ export const getHeaders = (includeAuth = true) => ({
   ...(includeAuth ? getAuthHeader() : {}),
 });
 
-export default API_CONFIG;
