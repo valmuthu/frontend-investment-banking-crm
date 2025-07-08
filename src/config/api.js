@@ -1,7 +1,7 @@
 // src/config/api.js
 export const API_CONFIG = {
   // Replace with your actual Heroku app URL
-  BASE_URL: process.env.REACT_APP_API_URL || 'https://your-app-name.herokuapp.com',
+  BASE_URL: process.env.REACT_APP_API_URL || 'https://vm-investment-crm-b28932089a19.herokuapp.com',
   API_VERSION: '/api/v1',
   TIMEOUT: 30000, // 30 seconds
 };
