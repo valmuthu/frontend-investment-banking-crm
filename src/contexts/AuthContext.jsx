@@ -17,26 +17,60 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Test API connection
+  const testConnection = async () => {
+    try {
+      console.log('Testing API connection...');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/health`);
+      const data = await response.json();
+      console.log('API connection test result:', data);
+      return { 
+        success: response.ok, 
+        status: data.status,
+        message: data.status === 'healthy' ? 'Connected successfully' : 'Connection failed'
+      };
+    } catch (error) {
+      console.error('API connection test failed:', error);
+      return { 
+        success: false, 
+        message: 'Unable to connect to server. Please check if the backend is running.',
+        error: error.message 
+      };
+    }
+  };
+
   // Check if user is already logged in on app start
   useEffect(() => {
     checkAuthStatus();
   }, []);
 
   const checkAuthStatus = async () => {
-    const token = localStorage.getItem('authToken');
-    
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
     try {
+      setLoading(true);
+      const token = localStorage.getItem('authToken');
+      
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      // Test connection first
+      const connectionTest = await testConnection();
+      if (!connectionTest.success) {
+        console.warn('API connection failed, proceeding with offline mode');
+        setError('Unable to connect to server. Some features may not work.');
+        setLoading(false);
+        return;
+      }
+
       const response = await apiService.verifyToken();
       setUser(response.user);
+      setError(null);
     } catch (error) {
       console.error('Token verification failed:', error);
       localStorage.removeItem('authToken');
       setError('Session expired. Please log in again.');
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -47,6 +81,12 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
+      // Test connection first
+      const connectionTest = await testConnection();
+      if (!connectionTest.success) {
+        throw new Error(connectionTest.message);
+      }
+
       const response = await apiService.login(credentials);
       const { accessToken, user: userData } = response;
       
@@ -68,6 +108,12 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
+      // Test connection first
+      const connectionTest = await testConnection();
+      if (!connectionTest.success) {
+        throw new Error(connectionTest.message);
+      }
+
       const response = await apiService.signup(userData);
       const { accessToken, user: newUser } = response;
       
@@ -145,6 +191,7 @@ export const AuthProvider = ({ children }) => {
     updateProfile,
     changePassword,
     clearError,
+    testConnection,
     isAuthenticated: !!user
   };
 
