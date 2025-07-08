@@ -1,212 +1,185 @@
+// src/components/Modals.jsx
 import { useState, useEffect } from 'react';
-import { X, Calendar, User, Phone, Mail, Linkedin, Edit2, Plus, Award, ExternalLink } from 'lucide-react';
+import { X, User, Building, Calendar, FileText } from 'lucide-react';
 
-// ContactModal
-export const ContactModal = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  networkingStatuses,
-  nextStepsOptions,
-  groups,
-}) => {
+// Contact Modal
+export function ContactModal({ isOpen, onClose, onSubmit, networkingStatuses, nextStepsOptions, groups }) {
   const [formData, setFormData] = useState({
     name: '',
-    firm: '',
     position: '',
+    firm: '',
     group: '',
     email: '',
     phone: '',
     linkedin: '',
     networkingStatus: 'Not Yet Contacted',
-    networkingDate: new Date().toISOString().split('T')[0],
+    networkingDate: '',
     nextSteps: '',
     nextStepsDate: '',
     referred: false,
-    notes: '',
+    notes: ''
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.name && formData.firm) {
-      onSubmit(formData);
-      setFormData({
-        name: '',
-        firm: '',
-        position: '',
-        group: '',
-        email: '',
-        phone: '',
-        linkedin: '',
-        networkingStatus: 'Not Yet Contacted',
-        networkingDate: new Date().toISOString().split('T')[0],
-        nextSteps: '',
-        nextStepsDate: '',
-        referred: false,
-        notes: '',
-      });
-      onClose();
-    }
+    onSubmit(formData);
+    setFormData({
+      name: '',
+      position: '',
+      firm: '',
+      group: '',
+      email: '',
+      phone: '',
+      linkedin: '',
+      networkingStatus: 'Not Yet Contacted',
+      networkingDate: '',
+      nextSteps: '',
+      nextStepsDate: '',
+      referred: false,
+      notes: ''
+    });
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="card-base w-full max-w-2xl max-h-screen overflow-y-auto">
-        <div className="section-padding border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-heading-2">Add Contact</h2>
-            <button onClick={onClose}>
-              <X className="icon-md" />
-            </button>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-xl font-semibold text-gray-900">Add New Contact</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="h-6 w-6" />
+          </button>
         </div>
-        <form onSubmit={handleSubmit} className="section-padding space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Name *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium mb-2">Firm *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Position *</label>
+              <input
+                type="text"
+                required
+                value={formData.position}
+                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Firm *</label>
               <input
                 type="text"
                 required
                 value={formData.firm}
                 onChange={(e) => setFormData({ ...formData, firm: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+
             <div>
-              <label className="block text-sm font-medium mb-2">Position</label>
-              <input
-                type="text"
-                value={formData.position}
-                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                className="form-input"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Group</label>
-              <input
-                type="text"
+              <label className="block text-sm font-medium text-gray-700 mb-1">Group</label>
+              <select
                 value={formData.group}
                 onChange={(e) => setFormData({ ...formData, group: e.target.value })}
-                placeholder="e.g., TMT, Healthcare, FIG"
-                className="form-input"
-              />
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select group...</option>
+                {groups.map(group => (
+                  <option key={group} value={group}>{group}</option>
+                ))}
+              </select>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+
             <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium mb-2">Phone</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
               <input
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">LinkedIn</label>
-            <input
-              type="url"
-              value={formData.linkedin}
-              onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-              className="form-input"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+
             <div>
-              <label className="block text-sm font-medium mb-2">Networking Status</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+              <input
+                type="url"
+                value={formData.linkedin}
+                onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Networking Status</label>
               <select
                 value={formData.networkingStatus}
                 onChange={(e) => setFormData({ ...formData, networkingStatus: e.target.value })}
-                className="form-select"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                {networkingStatuses.map((status) => (
+                {networkingStatuses.map(status => (
                   <option key={status} value={status}>{status}</option>
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Status Date</label>
-              <input
-                type="date"
-                value={formData.networkingDate}
-                onChange={(e) => setFormData({ ...formData, networkingDate: e.target.value })}
-                className="form-input"
-              />
-            </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Next Steps</label>
-              <select
-                value={formData.nextSteps}
-                onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
-                className="form-select"
-              >
-                <option value="">Select Next Steps</option>
-                {nextStepsOptions.map((step) => (
-                  <option key={step} value={step}>{step}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Next Steps Date</label>
-              <input
-                type="date"
-                value={formData.nextStepsDate}
-                onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
-                className="form-input"
-              />
-            </div>
-          </div>
+
           <div>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.referred}
-                onChange={(e) => setFormData({ ...formData, referred: e.target.checked })}
-                className="form-checkbox"
-              />
-              <span className="ml-2 text-sm text-gray-900">Referred</span>
-            </label>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Notes</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
             <textarea
-              rows="3"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="form-textarea"
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="referred"
+              checked={formData.referred}
+              onChange={(e) => setFormData({ ...formData, referred: e.target.checked })}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="referred" className="ml-2 block text-sm text-gray-900">
+              This is a referral contact
+            </label>
+          </div>
+
           <div className="flex justify-end space-x-3 pt-4">
-            <button type="button" onClick={onClose} className="btn-secondary">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
+            <button
+              type="submit"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
               Add Contact
             </button>
           </div>
@@ -214,22 +187,14 @@ export const ContactModal = ({
       </div>
     </div>
   );
-};
+}
 
-// EditContactModal
-export const EditContactModal = ({
-  isOpen,
-  contact,
-  onClose,
-  onSubmit,
-  networkingStatuses,
-  nextStepsOptions,
-  groups,
-}) => {
+// Edit Contact Modal
+export function EditContactModal({ isOpen, contact, onClose, onSubmit, networkingStatuses, nextStepsOptions, groups }) {
   const [formData, setFormData] = useState({
     name: '',
-    firm: '',
     position: '',
+    firm: '',
     group: '',
     email: '',
     phone: '',
@@ -245,189 +210,185 @@ export const EditContactModal = ({
   useEffect(() => {
     if (contact) {
       setFormData({
-        name: contact.name || '',
-        firm: contact.firm || '',
-        position: contact.position || '',
-        group: contact.group || '',
-        email: contact.email || '',
-        phone: contact.phone || '',
-        linkedin: contact.linkedin || '',
-        networkingStatus: contact.networkingStatus || 'Not Yet Contacted',
+        ...contact,
         networkingDate: contact.networkingDate || '',
-        nextSteps: contact.nextSteps || '',
         nextStepsDate: contact.nextStepsDate || '',
-        referred: contact.referred || false,
-        notes: contact.notes || ''
+        referred: contact.referred || false
       });
     }
   }, [contact]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.name && formData.firm) {
-      onSubmit({ ...contact, ...formData });
-      onClose();
-    }
+    onSubmit(formData);
   };
 
   if (!isOpen || !contact) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="card-base w-full max-w-2xl max-h-screen overflow-y-auto">
-        <div className="section-padding border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-heading-2">Edit Contact</h2>
-            <button onClick={onClose}>
-              <X className="icon-md" />
-            </button>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-xl font-semibold text-gray-900">Edit Contact</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="h-6 w-6" />
+          </button>
         </div>
-        <form onSubmit={handleSubmit} className="section-padding space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Name *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium mb-2">Firm *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Position *</label>
+              <input
+                type="text"
+                required
+                value={formData.position}
+                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Firm *</label>
               <input
                 type="text"
                 required
                 value={formData.firm}
                 onChange={(e) => setFormData({ ...formData, firm: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+
             <div>
-              <label className="block text-sm font-medium mb-2">Position</label>
-              <input
-                type="text"
-                value={formData.position}
-                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                className="form-input"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Group</label>
-              <input
-                type="text"
+              <label className="block text-sm font-medium text-gray-700 mb-1">Group</label>
+              <select
                 value={formData.group}
                 onChange={(e) => setFormData({ ...formData, group: e.target.value })}
-                placeholder="e.g., TMT, Healthcare, FIG"
-                className="form-input"
-              />
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select group...</option>
+                {groups.map(group => (
+                  <option key={group} value={group}>{group}</option>
+                ))}
+              </select>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+
             <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium mb-2">Phone</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
               <input
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">LinkedIn</label>
-            <input
-              type="url"
-              value={formData.linkedin}
-              onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-              className="form-input"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+              <input
+                type="url"
+                value={formData.linkedin}
+                onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
             <div>
-              <label className="block text-sm font-medium mb-2">Networking Status</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Networking Status</label>
               <select
                 value={formData.networkingStatus}
                 onChange={(e) => setFormData({ ...formData, networkingStatus: e.target.value })}
-                className="form-select"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {networkingStatuses.map(status => (
                   <option key={status} value={status}>{status}</option>
                 ))}
               </select>
             </div>
+
             <div>
-              <label className="block text-sm font-medium mb-2">Status Date</label>
-              <input
-                type="date"
-                value={formData.networkingDate}
-                onChange={(e) => setFormData({ ...formData, networkingDate: e.target.value })}
-                className="form-input"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Next Steps</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Next Steps</label>
               <select
                 value={formData.nextSteps}
                 onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
-                className="form-select"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">Select Next Steps</option>
+                <option value="">Select next step...</option>
                 {nextStepsOptions.map(step => (
                   <option key={step} value={step}>{step}</option>
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Next Steps Date</label>
-              <input
-                type="date"
-                value={formData.nextStepsDate}
-                onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
-                className="form-input"
-              />
-            </div>
+
+            {formData.nextSteps && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Next Steps Date</label>
+                <input
+                  type="date"
+                  value={formData.nextStepsDate}
+                  onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            )}
           </div>
+
           <div>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.referred}
-                onChange={(e) => setFormData({ ...formData, referred: e.target.checked })}
-                className="form-checkbox"
-              />
-              <span className="ml-2 text-sm text-gray-900">Referred</span>
-            </label>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Notes</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
             <textarea
-              rows="3"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="form-textarea"
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="editReferred"
+              checked={formData.referred}
+              onChange={(e) => setFormData({ ...formData, referred: e.target.checked })}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="editReferred" className="ml-2 block text-sm text-gray-900">
+              This is a referral contact
+            </label>
+          </div>
+
           <div className="flex justify-end space-x-3 pt-4">
-            <button type="button" onClick={onClose} className="btn-secondary">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
+            <button
+              type="submit"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
               Save Changes
             </button>
           </div>
@@ -435,24 +396,16 @@ export const EditContactModal = ({
       </div>
     </div>
   );
-};
+}
 
-// InterviewModal
-export const InterviewModal = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  interviewStages,
-  interviewNextSteps,
-  groups,
-  contacts,
-}) => {
+// Interview Modal
+export function InterviewModal({ isOpen, onClose, onSubmit, interviewStages, interviewNextSteps, groups, contacts }) {
   const [formData, setFormData] = useState({
     firm: '',
     position: '',
     group: '',
     stage: 'Not Yet Applied',
-    stageDate: new Date().toISOString().split('T')[0],
+    stageDate: '',
     nextSteps: '',
     nextStepsDate: '',
     notes: '',
@@ -461,161 +414,156 @@ export const InterviewModal = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.firm && formData.position) {
-      onSubmit(formData);
-      setFormData({
-        firm: '',
-        position: '',
-        group: '',
-        stage: 'Not Yet Applied',
-        stageDate: new Date().toISOString().split('T')[0],
-        nextSteps: '',
-        nextStepsDate: '',
-        notes: '',
-        referralContactId: ''
-      });
-      onClose();
-    }
+    onSubmit(formData);
+    setFormData({
+      firm: '',
+      position: '',
+      group: '',
+      stage: 'Not Yet Applied',
+      stageDate: '',
+      nextSteps: '',
+      nextStepsDate: '',
+      notes: '',
+      referralContactId: ''
+    });
   };
-
-  // Auto-match referral contact by firm
-  const getMatchingContact = () => {
-    return contacts.find(contact => 
-      contact.firm.toLowerCase() === formData.firm.toLowerCase()
-    );
-  };
-
-  const matchingContact = getMatchingContact();
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="card-base w-full max-w-2xl max-h-screen overflow-y-auto">
-        <div className="section-padding border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-heading-2">Add Interview</h2>
-            <button onClick={onClose}>
-              <X className="icon-md" />
-            </button>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-xl font-semibold text-gray-900">Add New Interview</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="h-6 w-6" />
+          </button>
         </div>
-        <form onSubmit={handleSubmit} className="section-padding space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Firm *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Firm *</label>
               <input
                 type="text"
                 required
                 value={formData.firm}
                 onChange={(e) => setFormData({ ...formData, firm: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-              {matchingContact && (
-                <p className="text-sm text-emerald-600 mt-1">
-                  ✓ Auto-matched with {matchingContact.name}
-                </p>
-              )}
             </div>
+
             <div>
-              <label className="block text-sm font-medium mb-2">Position *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Position *</label>
               <input
                 type="text"
                 required
                 value={formData.position}
                 onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Group</label>
-            <input
-              type="text"
-              value={formData.group}
-              onChange={(e) => setFormData({ ...formData, group: e.target.value })}
-              placeholder="e.g., TMT, Healthcare, FIG"
-              className="form-input"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+
             <div>
-              <label className="block text-sm font-medium mb-2">Stage</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Group</label>
+              <select
+                value={formData.group}
+                onChange={(e) => setFormData({ ...formData, group: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select group...</option>
+                {groups.map(group => (
+                  <option key={group} value={group}>{group}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Current Stage</label>
               <select
                 value={formData.stage}
                 onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
-                className="form-select"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {interviewStages.map(stage => (
                   <option key={stage} value={stage}>{stage}</option>
                 ))}
               </select>
             </div>
+
             <div>
-              <label className="block text-sm font-medium mb-2">Stage Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Stage Date</label>
               <input
                 type="date"
                 value={formData.stageDate}
                 onChange={(e) => setFormData({ ...formData, stageDate: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+
             <div>
-              <label className="block text-sm font-medium mb-2">Next Steps</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Referral Contact</label>
+              <select
+                value={formData.referralContactId}
+                onChange={(e) => setFormData({ ...formData, referralContactId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">No referral</option>
+                {contacts.map(contact => (
+                  <option key={contact.id} value={contact.id}>{contact.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Next Steps</label>
               <select
                 value={formData.nextSteps}
                 onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
-                className="form-select"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">Select Next Steps</option>
+                <option value="">Select next step...</option>
                 {interviewNextSteps.map(step => (
                   <option key={step} value={step}>{step}</option>
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Next Steps Deadline</label>
-              <input
-                type="date"
-                value={formData.nextStepsDate}
-                onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
-                className="form-input"
-              />
-            </div>
+
+            {formData.nextSteps && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Next Steps Date</label>
+                <input
+                  type="date"
+                  value={formData.nextStepsDate}
+                  onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            )}
           </div>
-          
-          {!matchingContact && (
-            <div>
-              <label className="block text-sm font-medium mb-2">Referral Contact (Manual Selection)</label>
-              <select
-                value={formData.referralContactId}
-                onChange={(e) => setFormData({ ...formData, referralContactId: e.target.value ? parseInt(e.target.value) : '' })}
-                className="form-select"
-              >
-                <option value="">No referral</option>
-                {contacts.map((contact) => (
-                  <option key={contact.id} value={contact.id}>{contact.name} - {contact.firm}</option>
-                ))}
-              </select>
-            </div>
-          )}
-          
+
           <div>
-            <label className="block text-sm font-medium mb-2">Notes</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
             <textarea
-              rows="3"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="form-textarea"
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+
           <div className="flex justify-end space-x-3 pt-4">
-            <button type="button" onClick={onClose} className="btn-secondary">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
+            <button
+              type="submit"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
               Add Interview
             </button>
           </div>
@@ -623,19 +571,10 @@ export const InterviewModal = ({
       </div>
     </div>
   );
-};
+}
 
-// EditInterviewModal
-export const EditInterviewModal = ({
-  isOpen,
-  interview,
-  onClose,
-  onSubmit,
-  interviewStages,
-  interviewNextSteps,
-  groups,
-  contacts,
-}) => {
+// Edit Interview Modal
+export function EditInterviewModal({ isOpen, interview, onClose, onSubmit, interviewStages, interviewNextSteps, groups, contacts }) {
   const [formData, setFormData] = useState({
     firm: '',
     position: '',
@@ -651,14 +590,9 @@ export const EditInterviewModal = ({
   useEffect(() => {
     if (interview) {
       setFormData({
-        firm: interview.firm || '',
-        position: interview.position || '',
-        group: interview.group || '',
-        stage: interview.stage || 'Not Yet Applied',
+        ...interview,
         stageDate: interview.stageDate || '',
-        nextSteps: interview.nextSteps || '',
         nextStepsDate: interview.nextStepsDate || '',
-        notes: interview.notes || '',
         referralContactId: interview.referralContactId || ''
       });
     }
@@ -666,150 +600,145 @@ export const EditInterviewModal = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.firm && formData.position) {
-      onSubmit({ ...interview, ...formData });
-      onClose();
-    }
+    onSubmit(formData);
   };
-
-  // Auto-match referral contact by firm
-  const getMatchingContact = () => {
-    return contacts.find(contact => 
-      contact.firm.toLowerCase() === formData.firm.toLowerCase()
-    );
-  };
-
-  const matchingContact = getMatchingContact();
 
   if (!isOpen || !interview) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="card-base w-full max-w-2xl max-h-screen overflow-y-auto">
-        <div className="section-padding border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-heading-2">Edit Interview</h2>
-            <button onClick={onClose}>
-              <X className="icon-md" />
-            </button>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-xl font-semibold text-gray-900">Edit Interview</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="h-6 w-6" />
+          </button>
         </div>
-        <form onSubmit={handleSubmit} className="section-padding space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Firm *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Firm *</label>
               <input
                 type="text"
                 required
                 value={formData.firm}
                 onChange={(e) => setFormData({ ...formData, firm: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-              {matchingContact && (
-                <p className="text-sm text-emerald-600 mt-1">
-                  ✓ Auto-matched with {matchingContact.name}
-                </p>
-              )}
             </div>
+
             <div>
-              <label className="block text-sm font-medium mb-2">Position *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Position *</label>
               <input
                 type="text"
                 required
                 value={formData.position}
                 onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Group</label>
-            <input
-              type="text"
-              value={formData.group}
-              onChange={(e) => setFormData({ ...formData, group: e.target.value })}
-              placeholder="e.g., TMT, Healthcare, FIG"
-              className="form-input"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+
             <div>
-              <label className="block text-sm font-medium mb-2">Stage</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Group</label>
+              <select
+                value={formData.group}
+                onChange={(e) => setFormData({ ...formData, group: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select group...</option>
+                {groups.map(group => (
+                  <option key={group} value={group}>{group}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Current Stage</label>
               <select
                 value={formData.stage}
                 onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
-                className="form-select"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {interviewStages.map(stage => (
                   <option key={stage} value={stage}>{stage}</option>
                 ))}
               </select>
             </div>
+
             <div>
-              <label className="block text-sm font-medium mb-2">Stage Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Stage Date</label>
               <input
                 type="date"
                 value={formData.stageDate}
                 onChange={(e) => setFormData({ ...formData, stageDate: e.target.value })}
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+
             <div>
-              <label className="block text-sm font-medium mb-2">Next Steps</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Referral Contact</label>
+              <select
+                value={formData.referralContactId}
+                onChange={(e) => setFormData({ ...formData, referralContactId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">No referral</option>
+                {contacts.map(contact => (
+                  <option key={contact.id} value={contact.id}>{contact.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Next Steps</label>
               <select
                 value={formData.nextSteps}
                 onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
-                className="form-select"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">Select Next Steps</option>
+                <option value="">Select next step...</option>
                 {interviewNextSteps.map(step => (
                   <option key={step} value={step}>{step}</option>
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Next Steps Deadline</label>
-              <input
-                type="date"
-                value={formData.nextStepsDate}
-                onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
-                className="form-input"
-              />
-            </div>
+
+            {formData.nextSteps && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Next Steps Date</label>
+                <input
+                  type="date"
+                  value={formData.nextStepsDate}
+                  onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            )}
           </div>
-          
-          {!matchingContact && (
-            <div>
-              <label className="block text-sm font-medium mb-2">Referral Contact (Manual Selection)</label>
-              <select
-                value={formData.referralContactId}
-                onChange={(e) => setFormData({ ...formData, referralContactId: e.target.value ? parseInt(e.target.value) : '' })}
-                className="form-select"
-              >
-                <option value="">No referral</option>
-                {contacts.map(contact => (
-                  <option key={contact.id} value={contact.id}>{contact.name} - {contact.firm}</option>
-                ))}
-              </select>
-            </div>
-          )}
-          
+
           <div>
-            <label className="block text-sm font-medium mb-2">Notes</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
             <textarea
-              rows="3"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="form-textarea"
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+
           <div className="flex justify-end space-x-3 pt-4">
-            <button type="button" onClick={onClose} className="btn-secondary">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
+            <button
+              type="submit"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
               Save Changes
             </button>
           </div>
@@ -817,373 +746,32 @@ export const EditInterviewModal = ({
       </div>
     </div>
   );
-};
+}
 
-// CallModal
-export const CallModal = ({ isOpen, onClose, onSubmit }) => {
-  const [notes, setNotes] = useState('');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (notes) {
-      onSubmit({
-        type: 'Call',
-        date: new Date().toISOString().split('T')[0],
-        notes,
-      });
-      setNotes('');
-      onClose();
-    }
-  };
-
+// Call Modal (placeholder for now)
+export function CallModal({ isOpen, onClose, contact }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="card-base w-full max-w-md">
-        <div className="section-padding border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-heading-2">Add Interaction</h2>
-            <button onClick={onClose}>
-              <X className="icon-md" />
-            </button>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-xl font-semibold text-gray-900">Call Feature</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="h-6 w-6" />
+          </button>
         </div>
-        <form onSubmit={handleSubmit} className="section-padding space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Notes</label>
-            <textarea
-              required
-              rows="4"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="form-textarea"
-              placeholder="Notes about this interaction..."
-            />
-          </div>
-          <div className="flex justify-end space-x-3 pt-4">
-            <button type="button" onClick={onClose} className="btn-secondary">
-              Cancel
-            </button>
-            <button type="submit" className="btn-primary">
-              Add Interaction
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
 
-// InterviewHistoryModal
-export const InterviewHistoryModal = ({
-  isOpen,
-  interview,
-  contacts,
-  onClose,
-  onEdit,
-  setSelectedContactId,
-  setShowContactDetail
-}) => {
-  if (!isOpen || !interview) return null;
-
-  const referralContact = interview.referralContactId
-    ? contacts.find(c => c.id === interview.referralContactId)
-    : null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="card-base w-full max-w-4xl max-h-screen overflow-y-auto">
-        <div className="section-padding border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-heading-1">{interview.firm}</h1>
-              <p className="text-gray-600">{interview.position}</p>
-              {interview.group && <p className="text-sm text-gray-500">{interview.group}</p>}
-            </div>
-            <button onClick={onClose}>
-              <X className="icon-md" />
-            </button>
-          </div>
-        </div>
-        <div className="section-padding">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-heading-3 mb-3">Interview Details</h3>
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Current Stage:</span>
-                    <div className="mt-1">
-                      <span className="status-badge status-coral">
-                        {interview.stage}
-                      </span>
-                      <span className="ml-2 text-sm text-gray-500">({interview.stageDate})</span>
-                    </div>
-                  </div>
-                  {interview.nextSteps && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">Next Steps:</span>
-                      <p className="mt-1 text-gray-900">{interview.nextSteps}</p>
-                      {interview.nextStepsDate && (
-                        <p className="text-sm text-gray-500">Due: {interview.nextStepsDate}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-              {referralContact && (
-                <div>
-                  <h3 className="text-heading-3 mb-3">Referral</h3>
-                  <div className="flex items-center p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                    <Award className="w-5 h-5 text-emerald-600 mr-3" />
-                    <div>
-                      <p className="text-emerald-800 font-medium">Referred by</p>
-                      <button
-                        onClick={() => {
-                          setSelectedContactId(referralContact.id);
-                          setShowContactDetail(true);
-                          onClose();
-                        }}
-                        className="text-emerald-600 hover:text-emerald-800 hover:underline"
-                      >
-                        {referralContact.name} at {referralContact.firm}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {interview.notes && (
-                <div>
-                  <h3 className="text-heading-3 mb-3">Notes</h3>
-                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{interview.notes}</p>
-                </div>
-              )}
-            </div>
-            <div>
-              <h3 className="text-heading-3 mb-4">Interview Rounds</h3>
-              {interview.rounds && interview.rounds.length > 0 ? (
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {interview.rounds.map((round, index) => (
-                    <div key={round.id} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 text-sm font-semibold text-blue-600">
-                            {index + 1}
-                          </div>
-                          <span className="font-medium text-gray-900">{round.stage}</span>
-                        </div>
-                        <span className="text-sm text-gray-500">{round.date}</span>
-                      </div>
-                      <div className="ml-11 space-y-2">
-                        {round.interviewer && (
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">Interviewer:</span> {round.interviewer}
-                          </p>
-                        )}
-                        {round.format && (
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">Format:</span> {round.format}
-                          </p>
-                        )}
-                        {round.outcome && (
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-600 mr-2">Outcome:</span>
-                            <span className={`status-badge ${
-                              round.outcome === 'Passed' ? 'status-emerald' :
-                              round.outcome === 'Failed' ? 'status-red' :
-                              round.outcome === 'Cancelled' ? 'status-gray' :
-                              'status-amber'
-                            }`}>
-                              {round.outcome}
-                            </span>
-                          </div>
-                        )}
-                        {round.notes && (
-                          <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
-                            {round.notes}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500 border border-gray-200 rounded-lg">
-                  <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                  <p>No interview rounds recorded</p>
-                  <p className="text-sm mt-1">Interview rounds will appear here as they're added</p>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
-            <button
-              onClick={onEdit}
-              className="btn-secondary"
-            >
-              <Edit2 className="icon-sm mr-2" />
-              Edit Interview
-            </button>
-          </div>
+        <div className="p-6 text-center">
+          <p className="text-gray-600 mb-4">Call functionality coming soon!</p>
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
   );
-};
-
-// ContactDetailModal
-export const ContactDetailModal = ({ isOpen, contact, onClose, onEdit, onAddCall }) => {
-  if (!isOpen || !contact) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="card-base w-full max-w-4xl max-h-screen overflow-y-auto">
-        <div className="section-padding border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-16 h-16 gradient-blue rounded-xl flex items-center justify-center text-white text-xl font-bold mr-4 shadow-md">
-                {contact.name.split(' ').map(n => n[0]).join('')}
-              </div>
-              <div>
-                <h1 className="text-heading-1">{contact.name}</h1>
-                <p className="text-gray-600">{contact.position} at {contact.firm}</p>
-                {contact.group && <p className="text-sm text-gray-500">{contact.group}</p>}
-              </div>
-            </div>
-            <button onClick={onClose}>
-              <X className="icon-md" />
-            </button>
-          </div>
-        </div>
-        <div className="section-padding">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-heading-3 mb-3">Contact Information</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <Mail className="icon-md text-gray-400 mr-3" />
-                    <a href={`mailto:${contact.email}`} className="text-blue-600 hover:underline">
-                      {contact.email}
-                    </a>
-                  </div>
-                  <div className="flex items-center">
-                    <Phone className="icon-md text-gray-400 mr-3" />
-                    <a href={`tel:${contact.phone}`} className="text-blue-600 hover:underline">
-                      {contact.phone}
-                    </a>
-                  </div>
-                  <div className="flex items-center">
-                    <Linkedin className="icon-md text-gray-400 mr-3" />
-                    <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center">
-                      LinkedIn Profile
-                      <ExternalLink className="icon-sm ml-1" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h3 className="text-heading-3 mb-3">Status & Next Steps</h3>
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Networking Status:</span>
-                    <div className="mt-1">
-                      <span className="status-badge status-blue">
-                        {contact.networkingStatus}
-                      </span>
-                      <span className="ml-2 text-sm text-gray-500">({contact.networkingDate})</span>
-                    </div>
-                  </div>
-                  {contact.nextSteps && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">Next Steps:</span>
-                      <p className="mt-1 text-gray-900">{contact.nextSteps}</p>
-                      {contact.nextStepsDate && (
-                        <p className="text-sm text-gray-500">Due: {contact.nextStepsDate}</p>
-                      )}
-                    </div>
-                  )}
-                  {contact.referred && (
-                    <div className="flex items-center text-emerald-600">
-                      <Award className="icon-md mr-2" />
-                      <span className="font-medium">Referred Contact</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              {contact.notes && (
-                <div>
-                  <h3 className="text-heading-3 mb-3">Notes</h3>
-                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{contact.notes}</p>
-                </div>
-              )}
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-heading-3">Interaction History</h3>
-                <button
-                  onClick={onAddCall}
-                  className="btn-primary text-sm"
-                >
-                  <Plus className="icon-sm mr-1" />
-                  Add Interaction
-                </button>
-              </div>
-              {contact.interactions && contact.interactions.length > 0 ? (
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {contact.interactions.map(interaction => (
-                    <div key={interaction.id} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                            {interaction.type === 'Call' && <Phone className="icon-sm text-blue-600" />}
-                            {interaction.type === 'Email' && <Mail className="icon-sm text-blue-600" />}
-                            {interaction.type === 'Meeting' && <User className="icon-sm text-blue-600" />}
-                            {interaction.type === 'Note' && <Edit2 className="icon-sm text-blue-600" />}
-                          </div>
-                          <span className="font-medium text-gray-900">{interaction.type}</span>
-                        </div>
-                        <span className="text-sm text-gray-500">{interaction.date}</span>
-                      </div>
-                      <p className="text-gray-700 text-sm">{interaction.notes}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500 border border-gray-200 rounded-lg">
-                  <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                  <p>No interactions recorded</p>
-                  <button
-                    onClick={onAddCall}
-                    className="mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
-                  >
-                    Add your first interaction
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
-            <button
-              onClick={onEdit}
-              className="btn-secondary"
-            >
-              <Edit2 className="icon-sm mr-2" />
-              Edit Contact
-            </button>
-            <button
-              onClick={onAddCall}
-              className="btn-primary"
-            >
-              <Plus className="icon-sm mr-2" />
-              Add Interaction
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default InterviewModal;
+}
