@@ -1,6 +1,7 @@
-import { User, Calendar, FileText, BarChart3, Building2 } from 'lucide-react';
+// src/components/Navigation.jsx
+import { User, Calendar, FileText, BarChart3, Building2, Settings, LogOut } from 'lucide-react';
 
-const Navigation = ({ activeTab, setActiveTab, setSelectedContactId }) => {
+const Navigation = ({ activeTab, setActiveTab, onShowSettings, onLogout }) => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'contacts', label: 'Contacts', icon: User },
@@ -10,11 +11,10 @@ const Navigation = ({ activeTab, setActiveTab, setSelectedContactId }) => {
 
   const handleNavClick = (tabId) => {
     setActiveTab(tabId);
-    setSelectedContactId(null);
   };
 
   return (
-    <div className="nav-fixed bg-white border-r border-gray-200 min-h-screen">
+    <div className="nav-fixed bg-white border-r border-gray-200 min-h-screen flex flex-col">
       <div className="section-padding">
         <div className="flex items-center mb-8">
           <div className="w-10 h-10 gradient-blue rounded-xl flex items-center justify-center mr-3 shadow-md">
@@ -22,6 +22,7 @@ const Navigation = ({ activeTab, setActiveTab, setSelectedContactId }) => {
           </div>
           <h1 className="text-xl font-bold text-gray-900">IB CRM</h1>
         </div>
+        
         <nav className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -43,6 +44,27 @@ const Navigation = ({ activeTab, setActiveTab, setSelectedContactId }) => {
             );
           })}
         </nav>
+      </div>
+      
+      {/* Bottom section with Settings and Logout */}
+      <div className="mt-auto section-padding border-t border-gray-200">
+        <div className="space-y-1">
+          <button
+            onClick={onShowSettings}
+            className="w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-blue-600 group"
+          >
+            <Settings className="icon-md mr-3 transition-colors text-gray-400 group-hover:text-blue-500" />
+            Settings
+          </button>
+          
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200 text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 group"
+          >
+            <LogOut className="icon-md mr-3 transition-colors text-gray-400 group-hover:text-red-500" />
+            Logout
+          </button>
+        </div>
       </div>
     </div>
   );
