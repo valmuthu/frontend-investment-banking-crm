@@ -367,6 +367,442 @@ export default function App() {
         console.error('Error deleting contact:', error);
         
         // Fallback: delete locally
+        setContacts(prev => prev.filter(contact => contact.id !== id));
+        setError('Contact deleted locally. Server sync may be delayed.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const addInterview = async (interviewData) => {
+    try {
+      setLoading(true);
+      
+      // For sample data mode
+      if (!user || error) {
+        const newInterview = {
+          ...interviewData,
+          id: Date.now(),
+          rounds: []
+        };
+        setInterviews(prev => [newInterview, ...prev]);
+        setLoading(false);
+        return newInterview;
+      }
+
+      const response = await apiService.createInterview(interviewData);
+      const newInterview = response.interview;
+      
+      setInterviews(prev => [newInterview, ...prev]);
+      
+      // Track analytics
+      try {
+        await apiService.trackAnalytics('interview_scheduled');
+      } catch (analyticsError) {
+        console.warn('Analytics tracking failed:', analyticsError);
+      }
+      
+      return newInterview;
+    } catch (error) {
+      console.error('Error adding interview:', error);
+      
+      // Fallback: add locally
+      const newInterview = {
+        ...interviewData,
+        id: Date.now(),
+        rounds: []
+      };
+      setInterviews(prev => [newInterview, ...prev]);
+      setError('Interview added locally. Server sync may be delayed.');
+      return newInterview;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateInterview = async (updatedInterview) => {
+    try {
+      setLoading(true);
+      
+      // For sample data mode
+      if (!user || error) {
+        setInterviews(prev => prev.map(interview => 
+          interview.id === updatedInterview.id ? updatedInterview : interview
+        ));
+        setLoading(false);
+        return updatedInterview;
+      }
+
+      const response = await apiService.updateInterview(updatedInterview.id, updatedInterview);
+      const updated = response.interview;
+      
+      setInterviews(prev => prev.map(interview => 
+        interview.id === updated.id ? updated : interview
+      ));
+      
+      return updated;
+    } catch (error) {
+      console.error('Error updating interview:', error);
+      
+      // Fallback: update locally
+      setInterviews(prev => prev.map(interview => 
+        interview.id === updatedInterview.id ? updatedInterview : interview
+      ));
+      
+      setError('Interview updated locally. Server sync may be delayed.');
+      return updatedInterview;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteInterview = async (id) => {
+    if (window.confirm('Are you sure you want to delete this interview?')) {
+      try {
+        setLoading(true);
+        
+        // For sample data mode
+        if (!user || error) {
+          setInterviews(prev => prev.filter(interview => interview.id !== id));
+          setLoading(false);
+          return;
+        }
+
+        await apiService.deleteInterview(id);
+        setInterviews(prev => prev.filter(interview => interview.id !== id));
+      } catch (error) {
+        console.error('Error deleting interview:', error);
+        
+        // Fallback: delete locally
+        setInterviews(prev => prev.filter(interview => interview.id !== id));
+        setError('Interview deleted locally. Server sync may be delayed.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const addInteraction = async (contactId, interactionData) => {
+    try {
+      // For sample data mode
+      if (!user || error) {
+        const newInteraction = {
+          ...interactionData,
+          id: Date.now(),
+          createdAt: new Date()
+        };
+
+        setContacts(prev => prev.map(contact => {
+          if (contact.id === contactId) {
+            return {
+              ...contact,
+              interactions: [newInteraction, ...(contact.interactions || [])]
+            };
+          }
+          return contact;
+        }));
+
+        return newInteraction;
+      }
+
+      const response = await apiService.addInteraction(contactId, interactionData);
+      const newInteraction = response.interaction;
+
+      setContacts(prev => prev.map(contact => {
+        if (contact.id === contactId) {
+          return {
+            ...contact,
+            interactions: [newInteraction, ...(contact.interactions || [])]
+          };
+        }
+        return contact;
+      }));
+
+      // Track analytics
+      try {
+        await apiService.trackAnalytics('interaction_logged');
+      } catch (analyticsError) {
+        console.warn('Analytics tracking failed:', analyticsError);
+      }
+
+      return newInteraction;
+    } catch (error) {
+      console.error('Error adding interaction:', error);
+      
+      // Fallback: add locally
+      const newInteraction = {
+        ...interactionData,
+        id: Date.now(),
+        createdAt: new Date()
+      };
+
+      setContacts(prev => prev.map(contact => {
+        if (contact.id === contactId) {
+          return {
+            ...contact,
+            interactions: [newInteraction, ...(contact.interactions || [])]
+          };
+        }
+        return contact;
+      }));
+
+      setError('Interaction added locally. Server sync may be delayed.');
+      return newInteraction;
+    }
+  };
+
+  const updateInteraction = async (contactId, interactionId, updatedInteraction) => {
+    try {
+      // For sample data mode
+      if (!user || error) {
+        setContacts(prev => prev.map(contact => {
+          if (contact.id === contactId) {
+            return {
+              ...contact,
+              interactions: contact.interactions.map(interaction =>
+                interaction.id === interactionId ? updatedInteraction : interaction
+              )
+            };
+          }
+          return contact;
+        }));
+        return updatedInteraction;
+      }
+
+      const response = await apiService.updateInteraction(contactId, interactionId, updatedInteraction);
+      const updated = response.interaction;
+
+      setContacts(prev => prev.map(contact => {
+        if (contact.id === contactId) {
+          return {
+            ...contact,
+            interactions: contact.interactions.map(interaction =>
+              interaction.id === interactionId ? updated : interaction
+            )
+          };
+        }
+        return contact;
+      }));
+
+      return updated;
+    } catch (error) {
+      console.error('Error updating interaction:', error);
+      
+      // Fallback: update locally
+      setContacts(prev => prev.map(contact => {
+        if (contact.id === contactId) {
+          return {
+            ...contact,
+            interactions: contact.interactions.map(interaction =>
+              interaction.id === interactionId ? updatedInteraction : interaction
+            )
+          };
+        }
+        return contact;
+      }));
+      
+      setError('Interaction updated locally. Server sync may be delayed.');
+      return updatedInteraction;
+    }
+  };
+
+  const deleteInteraction = async (contactId, interactionId) => {
+    if (window.confirm('Are you sure you want to delete this interaction?')) {
+      try {
+        // For sample data mode
+        if (!user || error) {
+          setContacts(prev => prev.map(contact => {
+            if (contact.id === contactId) {
+              return {
+                ...contact,
+                interactions: contact.interactions.filter(interaction => interaction.id !== interactionId)
+              };
+            }
+            return contact;
+          }));
+          return;
+        }
+
+        await apiService.deleteInteraction(contactId, interactionId);
+        
+        setContacts(prev => prev.map(contact => {
+          if (contact.id === contactId) {
+            return {
+              ...contact,
+              interactions: contact.interactions.filter(interaction => interaction.id !== interactionId)
+            };
+          }
+          return contact;
+        }));
+      } catch (error) {
+        console.error('Error deleting interaction:', error);
+        
+        // Fallback: delete locally
+        setContacts(prev => prev.map(contact => {
+          if (contact.id === contactId) {
+            return {
+              ...contact,
+              interactions: contact.interactions.filter(interaction => interaction.id !== interactionId)
+            };
+          }
+          return contact;
+        }));
+        
+        setError('Interaction deleted locally. Server sync may be delayed.');
+      }
+    }
+  };
+
+  const addInterviewRound = async (interviewId, roundData) => {
+    try {
+      // For sample data mode
+      if (!user || error) {
+        const newRound = {
+          ...roundData,
+          id: Date.now(),
+          createdAt: new Date()
+        };
+
+        setInterviews(prev => prev.map(interview => {
+          if (interview.id === interviewId) {
+            return {
+              ...interview,
+              rounds: [...(interview.rounds || []), newRound]
+            };
+          }
+          return interview;
+        }));
+
+        return newRound;
+      }
+
+      const response = await apiService.addInterviewRound(interviewId, roundData);
+      const newRound = response.round;
+
+      setInterviews(prev => prev.map(interview => {
+        if (interview.id === interviewId) {
+          return {
+            ...interview,
+            rounds: [...(interview.rounds || []), newRound]
+          };
+        }
+        return interview;
+      }));
+
+      return newRound;
+    } catch (error) {
+      console.error('Error adding interview round:', error);
+      
+      // Fallback: add locally
+      const newRound = {
+        ...roundData,
+        id: Date.now(),
+        createdAt: new Date()
+      };
+
+      setInterviews(prev => prev.map(interview => {
+        if (interview.id === interviewId) {
+          return {
+            ...interview,
+            rounds: [...(interview.rounds || []), newRound]
+          };
+        }
+        return interview;
+      }));
+
+      setError('Interview round added locally. Server sync may be delayed.');
+      return newRound;
+    }
+  };
+
+  const updateInterviewRound = async (interviewId, roundId, updatedRound) => {
+    try {
+      // For sample data mode
+      if (!user || error) {
+        setInterviews(prev => prev.map(interview => {
+          if (interview.id === interviewId) {
+            return {
+              ...interview,
+              rounds: interview.rounds.map(round =>
+                round.id === roundId ? updatedRound : round
+              )
+            };
+          }
+          return interview;
+        }));
+        return updatedRound;
+      }
+
+      const response = await apiService.updateInterviewRound(interviewId, roundId, updatedRound);
+      const updated = response.round;
+
+      setInterviews(prev => prev.map(interview => {
+        if (interview.id === interviewId) {
+          return {
+            ...interview,
+            rounds: interview.rounds.map(round =>
+              round.id === roundId ? updated : round
+            )
+          };
+        }
+        return interview;
+      }));
+
+      return updated;
+    } catch (error) {
+      console.error('Error updating interview round:', error);
+      
+      // Fallback: update locally
+      setInterviews(prev => prev.map(interview => {
+        if (interview.id === interviewId) {
+          return {
+            ...interview,
+            rounds: interview.rounds.map(round =>
+              round.id === roundId ? updatedRound : round
+            )
+          };
+        }
+        return interview;
+      }));
+      
+      setError('Interview round updated locally. Server sync may be delayed.');
+      return updatedRound;
+    }
+  };
+
+  const deleteInterviewRound = async (interviewId, roundId) => {
+    if (window.confirm('Are you sure you want to delete this interview round?')) {
+      try {
+        // For sample data mode
+        if (!user || error) {
+          setInterviews(prev => prev.map(interview => {
+            if (interview.id === interviewId) {
+              return {
+                ...interview,
+                rounds: interview.rounds.filter(round => round.id !== roundId)
+              };
+            }
+            return interview;
+          }));
+          return;
+        }
+
+        await apiService.deleteInterviewRound(interviewId, roundId);
+        
+        setInterviews(prev => prev.map(interview => {
+          if (interview.id === interviewId) {
+            return {
+              ...interview,
+              rounds: interview.rounds.filter(round => round.id !== roundId)
+            };
+          }
+          return interview;
+        }));
+      } catch (error) {
+        console.error('Error deleting interview round:', error);
+        
+        // Fallback: delete locally
         setInterviews(prev => prev.map(interview => {
           if (interview.id === interviewId) {
             return {
@@ -846,440 +1282,4 @@ export default function App() {
       <LoadingOverlay />
     </div>
   );
-}: delete locally
-        setContacts(prev => prev.filter(contact => contact.id !== id));
-        setError('Contact deleted locally. Server sync may be delayed.');
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  const addInterview = async (interviewData) => {
-    try {
-      setLoading(true);
-      
-      // For sample data mode
-      if (!user || error) {
-        const newInterview = {
-          ...interviewData,
-          id: Date.now(),
-          rounds: []
-        };
-        setInterviews(prev => [newInterview, ...prev]);
-        setLoading(false);
-        return newInterview;
-      }
-
-      const response = await apiService.createInterview(interviewData);
-      const newInterview = response.interview;
-      
-      setInterviews(prev => [newInterview, ...prev]);
-      
-      // Track analytics
-      try {
-        await apiService.trackAnalytics('interview_scheduled');
-      } catch (analyticsError) {
-        console.warn('Analytics tracking failed:', analyticsError);
-      }
-      
-      return newInterview;
-    } catch (error) {
-      console.error('Error adding interview:', error);
-      
-      // Fallback: add locally
-      const newInterview = {
-        ...interviewData,
-        id: Date.now(),
-        rounds: []
-      };
-      setInterviews(prev => [newInterview, ...prev]);
-      setError('Interview added locally. Server sync may be delayed.');
-      return newInterview;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateInterview = async (updatedInterview) => {
-    try {
-      setLoading(true);
-      
-      // For sample data mode
-      if (!user || error) {
-        setInterviews(prev => prev.map(interview => 
-          interview.id === updatedInterview.id ? updatedInterview : interview
-        ));
-        setLoading(false);
-        return updatedInterview;
-      }
-
-      const response = await apiService.updateInterview(updatedInterview.id, updatedInterview);
-      const updated = response.interview;
-      
-      setInterviews(prev => prev.map(interview => 
-        interview.id === updated.id ? updated : interview
-      ));
-      
-      return updated;
-    } catch (error) {
-      console.error('Error updating interview:', error);
-      
-      // Fallback: update locally
-      setInterviews(prev => prev.map(interview => 
-        interview.id === updatedInterview.id ? updatedInterview : interview
-      ));
-      
-      setError('Interview updated locally. Server sync may be delayed.');
-      return updatedInterview;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteInterview = async (id) => {
-    if (window.confirm('Are you sure you want to delete this interview?')) {
-      try {
-        setLoading(true);
-        
-        // For sample data mode
-        if (!user || error) {
-          setInterviews(prev => prev.filter(interview => interview.id !== id));
-          setLoading(false);
-          return;
-        }
-
-        await apiService.deleteInterview(id);
-        setInterviews(prev => prev.filter(interview => interview.id !== id));
-      } catch (error) {
-        console.error('Error deleting interview:', error);
-        
-        // Fallback: delete locally
-        setInterviews(prev => prev.filter(interview => interview.id !== id));
-        setError('Interview deleted locally. Server sync may be delayed.');
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  const addInteraction = async (contactId, interactionData) => {
-    try {
-      // For sample data mode
-      if (!user || error) {
-        const newInteraction = {
-          ...interactionData,
-          id: Date.now(),
-          createdAt: new Date()
-        };
-
-        setContacts(prev => prev.map(contact => {
-          if (contact.id === contactId) {
-            return {
-              ...contact,
-              interactions: [newInteraction, ...(contact.interactions || [])]
-            };
-          }
-          return contact;
-        }));
-
-        return newInteraction;
-      }
-
-      const response = await apiService.addInteraction(contactId, interactionData);
-      const newInteraction = response.interaction;
-
-      setContacts(prev => prev.map(contact => {
-        if (contact.id === contactId) {
-          return {
-            ...contact,
-            interactions: [newInteraction, ...(contact.interactions || [])]
-          };
-        }
-        return contact;
-      }));
-
-      // Track analytics
-      try {
-        await apiService.trackAnalytics('interaction_logged');
-      } catch (analyticsError) {
-        console.warn('Analytics tracking failed:', analyticsError);
-      }
-
-      return newInteraction;
-    } catch (error) {
-      console.error('Error adding interaction:', error);
-      
-      // Fallback: add locally
-      const newInteraction = {
-        ...interactionData,
-        id: Date.now(),
-        createdAt: new Date()
-      };
-
-      setContacts(prev => prev.map(contact => {
-        if (contact.id === contactId) {
-          return {
-            ...contact,
-            interactions: [newInteraction, ...(contact.interactions || [])]
-          };
-        }
-        return contact;
-      }));
-
-      setError('Interaction added locally. Server sync may be delayed.');
-      return newInteraction;
-    }
-  };
-
-  const updateInteraction = async (contactId, interactionId, updatedInteraction) => {
-    try {
-      // For sample data mode
-      if (!user || error) {
-        setContacts(prev => prev.map(contact => {
-          if (contact.id === contactId) {
-            return {
-              ...contact,
-              interactions: contact.interactions.map(interaction =>
-                interaction.id === interactionId ? updatedInteraction : interaction
-              )
-            };
-          }
-          return contact;
-        }));
-        return updatedInteraction;
-      }
-
-      const response = await apiService.updateInteraction(contactId, interactionId, updatedInteraction);
-      const updated = response.interaction;
-
-      setContacts(prev => prev.map(contact => {
-        if (contact.id === contactId) {
-          return {
-            ...contact,
-            interactions: contact.interactions.map(interaction =>
-              interaction.id === interactionId ? updated : interaction
-            )
-          };
-        }
-        return contact;
-      }));
-
-      return updated;
-    } catch (error) {
-      console.error('Error updating interaction:', error);
-      
-      // Fallback: update locally
-      setContacts(prev => prev.map(contact => {
-        if (contact.id === contactId) {
-          return {
-            ...contact,
-            interactions: contact.interactions.map(interaction =>
-              interaction.id === interactionId ? updatedInteraction : interaction
-            )
-          };
-        }
-        return contact;
-      }));
-      
-      setError('Interaction updated locally. Server sync may be delayed.');
-      return updatedInteraction;
-    }
-  };
-
-  const deleteInteraction = async (contactId, interactionId) => {
-    if (window.confirm('Are you sure you want to delete this interaction?')) {
-      try {
-        // For sample data mode
-        if (!user || error) {
-          setContacts(prev => prev.map(contact => {
-            if (contact.id === contactId) {
-              return {
-                ...contact,
-                interactions: contact.interactions.filter(interaction => interaction.id !== interactionId)
-              };
-            }
-            return contact;
-          }));
-          return;
-        }
-
-        await apiService.deleteInteraction(contactId, interactionId);
-        
-        setContacts(prev => prev.map(contact => {
-          if (contact.id === contactId) {
-            return {
-              ...contact,
-              interactions: contact.interactions.filter(interaction => interaction.id !== interactionId)
-            };
-          }
-          return contact;
-        }));
-      } catch (error) {
-        console.error('Error deleting interaction:', error);
-        
-        // Fallback: delete locally
-        setContacts(prev => prev.map(contact => {
-          if (contact.id === contactId) {
-            return {
-              ...contact,
-              interactions: contact.interactions.filter(interaction => interaction.id !== interactionId)
-            };
-          }
-          return contact;
-        }));
-        
-        setError('Interaction deleted locally. Server sync may be delayed.');
-      }
-    }
-  };
-
-  const addInterviewRound = async (interviewId, roundData) => {
-    try {
-      // For sample data mode
-      if (!user || error) {
-        const newRound = {
-          ...roundData,
-          id: Date.now(),
-          createdAt: new Date()
-        };
-
-        setInterviews(prev => prev.map(interview => {
-          if (interview.id === interviewId) {
-            return {
-              ...interview,
-              rounds: [...(interview.rounds || []), newRound]
-            };
-          }
-          return interview;
-        }));
-
-        return newRound;
-      }
-
-      const response = await apiService.addInterviewRound(interviewId, roundData);
-      const newRound = response.round;
-
-      setInterviews(prev => prev.map(interview => {
-        if (interview.id === interviewId) {
-          return {
-            ...interview,
-            rounds: [...(interview.rounds || []), newRound]
-          };
-        }
-        return interview;
-      }));
-
-      return newRound;
-    } catch (error) {
-      console.error('Error adding interview round:', error);
-      
-      // Fallback: add locally
-      const newRound = {
-        ...roundData,
-        id: Date.now(),
-        createdAt: new Date()
-      };
-
-      setInterviews(prev => prev.map(interview => {
-        if (interview.id === interviewId) {
-          return {
-            ...interview,
-            rounds: [...(interview.rounds || []), newRound]
-          };
-        }
-        return interview;
-      }));
-
-      setError('Interview round added locally. Server sync may be delayed.');
-      return newRound;
-    }
-  };
-
-  const updateInterviewRound = async (interviewId, roundId, updatedRound) => {
-    try {
-      // For sample data mode
-      if (!user || error) {
-        setInterviews(prev => prev.map(interview => {
-          if (interview.id === interviewId) {
-            return {
-              ...interview,
-              rounds: interview.rounds.map(round =>
-                round.id === roundId ? updatedRound : round
-              )
-            };
-          }
-          return interview;
-        }));
-        return updatedRound;
-      }
-
-      const response = await apiService.updateInterviewRound(interviewId, roundId, updatedRound);
-      const updated = response.round;
-
-      setInterviews(prev => prev.map(interview => {
-        if (interview.id === interviewId) {
-          return {
-            ...interview,
-            rounds: interview.rounds.map(round =>
-              round.id === roundId ? updated : round
-            )
-          };
-        }
-        return interview;
-      }));
-
-      return updated;
-    } catch (error) {
-      console.error('Error updating interview round:', error);
-      
-      // Fallback: update locally
-      setInterviews(prev => prev.map(interview => {
-        if (interview.id === interviewId) {
-          return {
-            ...interview,
-            rounds: interview.rounds.map(round =>
-              round.id === roundId ? updatedRound : round
-            )
-          };
-        }
-        return interview;
-      }));
-      
-      setError('Interview round updated locally. Server sync may be delayed.');
-      return updatedRound;
-    }
-  };
-
-  const deleteInterviewRound = async (interviewId, roundId) => {
-    if (window.confirm('Are you sure you want to delete this interview round?')) {
-      try {
-        // For sample data mode
-        if (!user || error) {
-          setInterviews(prev => prev.map(interview => {
-            if (interview.id === interviewId) {
-              return {
-                ...interview,
-                rounds: interview.rounds.filter(round => round.id !== roundId)
-              };
-            }
-            return interview;
-          }));
-          return;
-        }
-
-        await apiService.deleteInterviewRound(interviewId, roundId);
-        
-        setInterviews(prev => prev.map(interview => {
-          if (interview.id === interviewId) {
-            return {
-              ...interview,
-              rounds: interview.rounds.filter(round => round.id !== roundId)
-            };
-          }
-          return interview;
-        }));
-      } catch (error) {
-        console.error('Error deleting interview round:', error);
-        
-        // Fallback
+}
