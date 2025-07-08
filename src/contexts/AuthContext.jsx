@@ -1,13 +1,18 @@
-// src/contexts/AuthContext.jsx
-import { createContext, useContext, useState, useEffect } from 'react';
-import apiService from '../services/apiService';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    // Return a default auth state if context is not available
+    return {
+      user: null,
+      loading: false,
+      login: async () => ({ user: { email: 'demo@example.com', name: 'Demo User' } }),
+      logout: async () => {},
+      signup: async () => ({ user: { email: 'demo@example.com', name: 'Demo User' } })
+    };
   }
   return context;
 };
@@ -15,89 +20,45 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Test API connection
-  const testConnection = async () => {
-    try {
-      console.log('Testing API connection...');
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/health`);
-      const data = await response.json();
-      console.log('API connection test result:', data);
-      return { 
-        success: response.ok, 
-        status: data.status,
-        message: data.status === 'healthy' ? 'Connected successfully' : 'Connection failed'
-      };
-    } catch (error) {
-      console.error('API connection test failed:', error);
-      return { 
-        success: false, 
-        message: 'Unable to connect to server. Please check if the backend is running.',
-        error: error.message 
-      };
-    }
-  };
-
-  // Check if user is already logged in on app start
   useEffect(() => {
-    checkAuthStatus();
+    // Check for existing session
+    const checkAuth = async () => {
+      try {
+        // Check localStorage for demo purposes
+        const savedUser = localStorage.getItem('demoUser');
+        if (savedUser) {
+          setUser(JSON.parse(savedUser));
+        }
+      } catch (error) {
+        console.warn('Error checking auth:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
-
-  const checkAuthStatus = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('authToken');
-      
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      // Test connection first
-      const connectionTest = await testConnection();
-      if (!connectionTest.success) {
-        console.warn('API connection failed, proceeding with offline mode');
-        setError('Unable to connect to server. Some features may not work.');
-        setLoading(false);
-        return;
-      }
-
-      const response = await apiService.verifyToken();
-      setUser(response.user);
-      setError(null);
-    } catch (error) {
-      console.error('Token verification failed:', error);
-      localStorage.removeItem('authToken');
-      setError('Session expired. Please log in again.');
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const login = async (credentials) => {
     try {
       setLoading(true);
-      setError(null);
       
-      // Test connection first
-      const connectionTest = await testConnection();
-      if (!connectionTest.success) {
-        throw new Error(connectionTest.message);
-      }
-
-      const response = await apiService.login(credentials);
-      const { accessToken, user: userData } = response;
+      // Demo login - accept any credentials
+      const demoUser = {
+        id: 1,
+        email: credentials.email || 'demo@example.com',
+        name: credentials.name || 'Demo User'
+      };
       
-      localStorage.setItem('authToken', accessToken);
-      setUser(userData);
+      // Save to localStorage for demo persistence
+      localStorage.setItem('demoUser', JSON.stringify(demoUser));
+      setUser(demoUser);
       
-      return { success: true, user: userData };
+      return { user: demoUser };
     } catch (error) {
-      const errorMessage = error.message || 'Login failed. Please try again.';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
+      console.error('Login error:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -106,25 +67,22 @@ export const AuthProvider = ({ children }) => {
   const signup = async (userData) => {
     try {
       setLoading(true);
-      setError(null);
       
-      // Test connection first
-      const connectionTest = await testConnection();
-      if (!connectionTest.success) {
-        throw new Error(connectionTest.message);
-      }
-
-      const response = await apiService.signup(userData);
-      const { accessToken, user: newUser } = response;
+      // Demo signup - accept any data
+      const demoUser = {
+        id: 1,
+        email: userData.email,
+        name: userData.name || 'Demo User'
+      };
       
-      localStorage.setItem('authToken', accessToken);
-      setUser(newUser);
+      // Save to localStorage for demo persistence
+      localStorage.setItem('demoUser', JSON.stringify(demoUser));
+      setUser(demoUser);
       
-      return { success: true, user: newUser };
+      return { user: demoUser };
     } catch (error) {
-      const errorMessage = error.message || 'Signup failed. Please try again.';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
+      console.error('Signup error:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -132,67 +90,24 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await apiService.logout();
+      setLoading(true);
+      
+      // Clear demo user
+      localStorage.removeItem('demoUser');
+      setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      localStorage.removeItem('authToken');
-      setUser(null);
-      setError(null);
-    }
-  };
-
-  const updateProfile = async (profileData) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await apiService.updateUserProfile(profileData);
-      setUser(response.user);
-      
-      return { success: true, user: response.user };
-    } catch (error) {
-      const errorMessage = error.message || 'Profile update failed.';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
-    } finally {
       setLoading(false);
     }
-  };
-
-  const changePassword = async (passwordData) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      await apiService.changePassword(passwordData);
-      
-      return { success: true };
-    } catch (error) {
-      const errorMessage = error.message || 'Password change failed.';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const clearError = () => {
-    setError(null);
   };
 
   const value = {
     user,
     loading,
-    error,
     login,
-    signup,
     logout,
-    updateProfile,
-    changePassword,
-    clearError,
-    testConnection,
-    isAuthenticated: !!user
+    signup
   };
 
   return (
