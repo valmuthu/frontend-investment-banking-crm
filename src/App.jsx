@@ -18,7 +18,7 @@ import { useAuth } from './contexts/AuthContext';
 import apiService from './services/apiService';
 
 export default function App() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
   
   // App navigation state
   const [currentPage, setCurrentPage] = useState('landing'); // 'landing', 'features', 'additional-features', 'login', 'app'
@@ -93,13 +93,16 @@ export default function App() {
 
   const groups = ['TMT', 'Healthcare', 'Financial Services', 'Real Estate', 'Energy', 'Consumer'];
 
-  // Check authentication and load data
+  // Handle user authentication state changes
   useEffect(() => {
     if (user) {
       setCurrentPage('app');
       loadInitialData();
+    } else if (!authLoading) {
+      // Only reset to landing if not loading auth
+      setCurrentPage('landing');
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const loadInitialData = async () => {
     setLoading(true);
@@ -117,7 +120,7 @@ export default function App() {
       setDocuments(documentsData.documents || []);
     } catch (err) {
       console.error('Error loading initial data:', err);
-      setError('Failed to load data. Please refresh the page.');
+      setError('Failed to load data. Using sample data for demo.');
       
       // Fallback to sample data if API fails
       loadSampleData();
@@ -291,16 +294,24 @@ export default function App() {
   const addContact = async (contactData) => {
     try {
       setLoading(true);
-      const response = await apiService.createContact(contactData);
-      const newContact = response.contact;
       
+      // For demo mode or if API fails
+      const newContact = {
+        ...contactData,
+        id: Date.now(),
+        interactions: []
+      };
       setContacts(prev => [newContact, ...prev]);
       
-      // Track analytics
+      // Try to sync with API if available
       try {
-        await apiService.trackAnalytics('contact_added');
-      } catch (analyticsError) {
-        console.warn('Analytics tracking failed:', analyticsError);
+        const response = await apiService.createContact(contactData);
+        // Update with server response if successful
+        setContacts(prev => prev.map(contact => 
+          contact.id === newContact.id ? response.contact : contact
+        ));
+      } catch (apiError) {
+        console.warn('API sync failed, continuing with local data');
       }
       
       return newContact;
@@ -317,31 +328,21 @@ export default function App() {
     try {
       setLoading(true);
       
-      // For sample data mode (when API is not available)
-      if (!user || error) {
-        setContacts(prev => prev.map(contact => 
-          contact.id === updatedContact.id ? updatedContact : contact
-        ));
-        setLoading(false);
-        return updatedContact;
-      }
-
-      const response = await apiService.updateContact(updatedContact.id, updatedContact);
-      const updated = response.contact;
-      
-      setContacts(prev => prev.map(contact => 
-        contact.id === updated.id ? updated : contact
-      ));
-      
-      return updated;
-    } catch (error) {
-      console.error('Error updating contact:', error);
-      
-      // Fallback: update locally if API fails
+      // Update locally first
       setContacts(prev => prev.map(contact => 
         contact.id === updatedContact.id ? updatedContact : contact
       ));
       
+      // Try to sync with API if available
+      try {
+        await apiService.updateContact(updatedContact.id, updatedContact);
+      } catch (apiError) {
+        console.warn('API sync failed, but local update succeeded');
+      }
+      
+      return updatedContact;
+    } catch (error) {
+      console.error('Error updating contact:', error);
       setError('Contact updated locally. Server sync may be delayed.');
       return updatedContact;
     } finally {
@@ -354,20 +355,17 @@ export default function App() {
       try {
         setLoading(true);
         
-        // For sample data mode
-        if (!user || error) {
-          setContacts(prev => prev.filter(contact => contact.id !== id));
-          setLoading(false);
-          return;
-        }
-
-        await apiService.deleteContact(id);
+        // Delete locally first
         setContacts(prev => prev.filter(contact => contact.id !== id));
+        
+        // Try to sync with API if available
+        try {
+          await apiService.deleteContact(id);
+        } catch (apiError) {
+          console.warn('API sync failed, but local delete succeeded');
+        }
       } catch (error) {
         console.error('Error deleting contact:', error);
-        
-        // Fallback: delete locally
-        setContacts(prev => prev.filter(contact => contact.id !== id));
         setError('Contact deleted locally. Server sync may be delayed.');
       } finally {
         setLoading(false);
@@ -379,41 +377,26 @@ export default function App() {
     try {
       setLoading(true);
       
-      // For sample data mode
-      if (!user || error) {
-        const newInterview = {
-          ...interviewData,
-          id: Date.now(),
-          rounds: []
-        };
-        setInterviews(prev => [newInterview, ...prev]);
-        setLoading(false);
-        return newInterview;
-      }
-
-      const response = await apiService.createInterview(interviewData);
-      const newInterview = response.interview;
-      
-      setInterviews(prev => [newInterview, ...prev]);
-      
-      // Track analytics
-      try {
-        await apiService.trackAnalytics('interview_scheduled');
-      } catch (analyticsError) {
-        console.warn('Analytics tracking failed:', analyticsError);
-      }
-      
-      return newInterview;
-    } catch (error) {
-      console.error('Error adding interview:', error);
-      
-      // Fallback: add locally
       const newInterview = {
         ...interviewData,
         id: Date.now(),
         rounds: []
       };
       setInterviews(prev => [newInterview, ...prev]);
+      
+      // Try to sync with API if available
+      try {
+        const response = await apiService.createInterview(interviewData);
+        setInterviews(prev => prev.map(interview => 
+          interview.id === newInterview.id ? response.interview : interview
+        ));
+      } catch (apiError) {
+        console.warn('API sync failed, continuing with local data');
+      }
+      
+      return newInterview;
+    } catch (error) {
+      console.error('Error adding interview:', error);
       setError('Interview added locally. Server sync may be delayed.');
       return newInterview;
     } finally {
@@ -425,31 +408,19 @@ export default function App() {
     try {
       setLoading(true);
       
-      // For sample data mode
-      if (!user || error) {
-        setInterviews(prev => prev.map(interview => 
-          interview.id === updatedInterview.id ? updatedInterview : interview
-        ));
-        setLoading(false);
-        return updatedInterview;
-      }
-
-      const response = await apiService.updateInterview(updatedInterview.id, updatedInterview);
-      const updated = response.interview;
-      
-      setInterviews(prev => prev.map(interview => 
-        interview.id === updated.id ? updated : interview
-      ));
-      
-      return updated;
-    } catch (error) {
-      console.error('Error updating interview:', error);
-      
-      // Fallback: update locally
       setInterviews(prev => prev.map(interview => 
         interview.id === updatedInterview.id ? updatedInterview : interview
       ));
       
+      try {
+        await apiService.updateInterview(updatedInterview.id, updatedInterview);
+      } catch (apiError) {
+        console.warn('API sync failed, but local update succeeded');
+      }
+      
+      return updatedInterview;
+    } catch (error) {
+      console.error('Error updating interview:', error);
       setError('Interview updated locally. Server sync may be delayed.');
       return updatedInterview;
     } finally {
@@ -462,20 +433,15 @@ export default function App() {
       try {
         setLoading(true);
         
-        // For sample data mode
-        if (!user || error) {
-          setInterviews(prev => prev.filter(interview => interview.id !== id));
-          setLoading(false);
-          return;
-        }
-
-        await apiService.deleteInterview(id);
         setInterviews(prev => prev.filter(interview => interview.id !== id));
+        
+        try {
+          await apiService.deleteInterview(id);
+        } catch (apiError) {
+          console.warn('API sync failed, but local delete succeeded');
+        }
       } catch (error) {
         console.error('Error deleting interview:', error);
-        
-        // Fallback: delete locally
-        setInterviews(prev => prev.filter(interview => interview.id !== id));
         setError('Interview deleted locally. Server sync may be delayed.');
       } finally {
         setLoading(false);
@@ -485,52 +451,6 @@ export default function App() {
 
   const addInteraction = async (contactId, interactionData) => {
     try {
-      // For sample data mode
-      if (!user || error) {
-        const newInteraction = {
-          ...interactionData,
-          id: Date.now(),
-          createdAt: new Date()
-        };
-
-        setContacts(prev => prev.map(contact => {
-          if (contact.id === contactId) {
-            return {
-              ...contact,
-              interactions: [newInteraction, ...(contact.interactions || [])]
-            };
-          }
-          return contact;
-        }));
-
-        return newInteraction;
-      }
-
-      const response = await apiService.addInteraction(contactId, interactionData);
-      const newInteraction = response.interaction;
-
-      setContacts(prev => prev.map(contact => {
-        if (contact.id === contactId) {
-          return {
-            ...contact,
-            interactions: [newInteraction, ...(contact.interactions || [])]
-          };
-        }
-        return contact;
-      }));
-
-      // Track analytics
-      try {
-        await apiService.trackAnalytics('interaction_logged');
-      } catch (analyticsError) {
-        console.warn('Analytics tracking failed:', analyticsError);
-      }
-
-      return newInteraction;
-    } catch (error) {
-      console.error('Error adding interaction:', error);
-      
-      // Fallback: add locally
       const newInteraction = {
         ...interactionData,
         id: Date.now(),
@@ -547,6 +467,16 @@ export default function App() {
         return contact;
       }));
 
+      // Try to sync with API if available
+      try {
+        await apiService.addInteraction(contactId, interactionData);
+      } catch (apiError) {
+        console.warn('API sync failed, but local update succeeded');
+      }
+
+      return newInteraction;
+    } catch (error) {
+      console.error('Error adding interaction:', error);
       setError('Interaction added locally. Server sync may be delayed.');
       return newInteraction;
     }
@@ -554,42 +484,6 @@ export default function App() {
 
   const updateInteraction = async (contactId, interactionId, updatedInteraction) => {
     try {
-      // For sample data mode
-      if (!user || error) {
-        setContacts(prev => prev.map(contact => {
-          if (contact.id === contactId) {
-            return {
-              ...contact,
-              interactions: contact.interactions.map(interaction =>
-                interaction.id === interactionId ? updatedInteraction : interaction
-              )
-            };
-          }
-          return contact;
-        }));
-        return updatedInteraction;
-      }
-
-      const response = await apiService.updateInteraction(contactId, interactionId, updatedInteraction);
-      const updated = response.interaction;
-
-      setContacts(prev => prev.map(contact => {
-        if (contact.id === contactId) {
-          return {
-            ...contact,
-            interactions: contact.interactions.map(interaction =>
-              interaction.id === interactionId ? updated : interaction
-            )
-          };
-        }
-        return contact;
-      }));
-
-      return updated;
-    } catch (error) {
-      console.error('Error updating interaction:', error);
-      
-      // Fallback: update locally
       setContacts(prev => prev.map(contact => {
         if (contact.id === contactId) {
           return {
@@ -601,7 +495,16 @@ export default function App() {
         }
         return contact;
       }));
-      
+
+      try {
+        await apiService.updateInteraction(contactId, interactionId, updatedInteraction);
+      } catch (apiError) {
+        console.warn('API sync failed, but local update succeeded');
+      }
+
+      return updatedInteraction;
+    } catch (error) {
+      console.error('Error updating interaction:', error);
       setError('Interaction updated locally. Server sync may be delayed.');
       return updatedInteraction;
     }
@@ -610,22 +513,6 @@ export default function App() {
   const deleteInteraction = async (contactId, interactionId) => {
     if (window.confirm('Are you sure you want to delete this interaction?')) {
       try {
-        // For sample data mode
-        if (!user || error) {
-          setContacts(prev => prev.map(contact => {
-            if (contact.id === contactId) {
-              return {
-                ...contact,
-                interactions: contact.interactions.filter(interaction => interaction.id !== interactionId)
-              };
-            }
-            return contact;
-          }));
-          return;
-        }
-
-        await apiService.deleteInteraction(contactId, interactionId);
-        
         setContacts(prev => prev.map(contact => {
           if (contact.id === contactId) {
             return {
@@ -635,20 +522,14 @@ export default function App() {
           }
           return contact;
         }));
+
+        try {
+          await apiService.deleteInteraction(contactId, interactionId);
+        } catch (apiError) {
+          console.warn('API sync failed, but local delete succeeded');
+        }
       } catch (error) {
         console.error('Error deleting interaction:', error);
-        
-        // Fallback: delete locally
-        setContacts(prev => prev.map(contact => {
-          if (contact.id === contactId) {
-            return {
-              ...contact,
-              interactions: contact.interactions.filter(interaction => interaction.id !== interactionId)
-            };
-          }
-          return contact;
-        }));
-        
         setError('Interaction deleted locally. Server sync may be delayed.');
       }
     }
@@ -656,45 +537,6 @@ export default function App() {
 
   const addInterviewRound = async (interviewId, roundData) => {
     try {
-      // For sample data mode
-      if (!user || error) {
-        const newRound = {
-          ...roundData,
-          id: Date.now(),
-          createdAt: new Date()
-        };
-
-        setInterviews(prev => prev.map(interview => {
-          if (interview.id === interviewId) {
-            return {
-              ...interview,
-              rounds: [...(interview.rounds || []), newRound]
-            };
-          }
-          return interview;
-        }));
-
-        return newRound;
-      }
-
-      const response = await apiService.addInterviewRound(interviewId, roundData);
-      const newRound = response.round;
-
-      setInterviews(prev => prev.map(interview => {
-        if (interview.id === interviewId) {
-          return {
-            ...interview,
-            rounds: [...(interview.rounds || []), newRound]
-          };
-        }
-        return interview;
-      }));
-
-      return newRound;
-    } catch (error) {
-      console.error('Error adding interview round:', error);
-      
-      // Fallback: add locally
       const newRound = {
         ...roundData,
         id: Date.now(),
@@ -711,6 +553,15 @@ export default function App() {
         return interview;
       }));
 
+      try {
+        await apiService.addInterviewRound(interviewId, roundData);
+      } catch (apiError) {
+        console.warn('API sync failed, but local update succeeded');
+      }
+
+      return newRound;
+    } catch (error) {
+      console.error('Error adding interview round:', error);
       setError('Interview round added locally. Server sync may be delayed.');
       return newRound;
     }
@@ -718,42 +569,6 @@ export default function App() {
 
   const updateInterviewRound = async (interviewId, roundId, updatedRound) => {
     try {
-      // For sample data mode
-      if (!user || error) {
-        setInterviews(prev => prev.map(interview => {
-          if (interview.id === interviewId) {
-            return {
-              ...interview,
-              rounds: interview.rounds.map(round =>
-                round.id === roundId ? updatedRound : round
-              )
-            };
-          }
-          return interview;
-        }));
-        return updatedRound;
-      }
-
-      const response = await apiService.updateInterviewRound(interviewId, roundId, updatedRound);
-      const updated = response.round;
-
-      setInterviews(prev => prev.map(interview => {
-        if (interview.id === interviewId) {
-          return {
-            ...interview,
-            rounds: interview.rounds.map(round =>
-              round.id === roundId ? updated : round
-            )
-          };
-        }
-        return interview;
-      }));
-
-      return updated;
-    } catch (error) {
-      console.error('Error updating interview round:', error);
-      
-      // Fallback: update locally
       setInterviews(prev => prev.map(interview => {
         if (interview.id === interviewId) {
           return {
@@ -765,7 +580,16 @@ export default function App() {
         }
         return interview;
       }));
-      
+
+      try {
+        await apiService.updateInterviewRound(interviewId, roundId, updatedRound);
+      } catch (apiError) {
+        console.warn('API sync failed, but local update succeeded');
+      }
+
+      return updatedRound;
+    } catch (error) {
+      console.error('Error updating interview round:', error);
       setError('Interview round updated locally. Server sync may be delayed.');
       return updatedRound;
     }
@@ -774,22 +598,6 @@ export default function App() {
   const deleteInterviewRound = async (interviewId, roundId) => {
     if (window.confirm('Are you sure you want to delete this interview round?')) {
       try {
-        // For sample data mode
-        if (!user || error) {
-          setInterviews(prev => prev.map(interview => {
-            if (interview.id === interviewId) {
-              return {
-                ...interview,
-                rounds: interview.rounds.filter(round => round.id !== roundId)
-              };
-            }
-            return interview;
-          }));
-          return;
-        }
-
-        await apiService.deleteInterviewRound(interviewId, roundId);
-        
         setInterviews(prev => prev.map(interview => {
           if (interview.id === interviewId) {
             return {
@@ -799,20 +607,14 @@ export default function App() {
           }
           return interview;
         }));
+
+        try {
+          await apiService.deleteInterviewRound(interviewId, roundId);
+        } catch (apiError) {
+          console.warn('API sync failed, but local delete succeeded');
+        }
       } catch (error) {
         console.error('Error deleting interview round:', error);
-        
-        // Fallback: delete locally
-        setInterviews(prev => prev.map(interview => {
-          if (interview.id === interviewId) {
-            return {
-              ...interview,
-              rounds: interview.rounds.filter(round => round.id !== roundId)
-            };
-          }
-          return interview;
-        }));
-        
         setError('Interview round deleted locally. Server sync may be delayed.');
       }
     }
@@ -827,52 +629,31 @@ export default function App() {
       let processedDocumentData = { ...documentData };
       
       if (documentData.file) {
-        // In a real app, you'd upload to a file storage service
-        // For now, we'll store file info locally
         processedDocumentData.fileData = {
           name: documentData.file.name,
           size: documentData.file.size,
           type: documentData.file.type,
-          content: documentData.file // Store the actual file for download
+          content: documentData.file
         };
         delete processedDocumentData.file;
       }
       
-      // For sample data mode
-      if (!user || error) {
-        const newDocument = {
-          ...processedDocumentData,
-          id: Date.now(),
-          uploadDate: new Date().toISOString().split('T')[0]
-        };
-        setDocuments(prev => [newDocument, ...prev]);
-        setLoading(false);
-        return newDocument;
-      }
-
-      const response = await apiService.createDocument(processedDocumentData);
-      const newDocument = response.document;
-      
-      setDocuments(prev => [newDocument, ...prev]);
-      
-      // Track analytics
-      try {
-        await apiService.trackAnalytics('document_created');
-      } catch (analyticsError) {
-        console.warn('Analytics tracking failed:', analyticsError);
-      }
-      
-      return newDocument;
-    } catch (error) {
-      console.error('Error adding document:', error);
-      
-      // Fallback: add locally
       const newDocument = {
         ...processedDocumentData,
         id: Date.now(),
         uploadDate: new Date().toISOString().split('T')[0]
       };
       setDocuments(prev => [newDocument, ...prev]);
+
+      try {
+        await apiService.createDocument(processedDocumentData);
+      } catch (apiError) {
+        console.warn('API sync failed, but local save succeeded');
+      }
+      
+      return newDocument;
+    } catch (error) {
+      console.error('Error adding document:', error);
       setError('Document added locally. Server sync may be delayed.');
       return newDocument;
     } finally {
@@ -884,31 +665,19 @@ export default function App() {
     try {
       setLoading(true);
       
-      // For sample data mode
-      if (!user || error) {
-        setDocuments(prev => prev.map(doc => 
-          doc.id === updatedDocument.id ? updatedDocument : doc
-        ));
-        setLoading(false);
-        return updatedDocument;
-      }
-
-      const response = await apiService.updateDocument(updatedDocument.id, updatedDocument);
-      const updated = response.document;
-      
-      setDocuments(prev => prev.map(doc => 
-        doc.id === updated.id ? updated : doc
-      ));
-      
-      return updated;
-    } catch (error) {
-      console.error('Error updating document:', error);
-      
-      // Fallback: update locally
       setDocuments(prev => prev.map(doc => 
         doc.id === updatedDocument.id ? updatedDocument : doc
       ));
+
+      try {
+        await apiService.updateDocument(updatedDocument.id, updatedDocument);
+      } catch (apiError) {
+        console.warn('API sync failed, but local update succeeded');
+      }
       
+      return updatedDocument;
+    } catch (error) {
+      console.error('Error updating document:', error);
       setError('Document updated locally. Server sync may be delayed.');
       return updatedDocument;
     } finally {
@@ -921,20 +690,15 @@ export default function App() {
       try {
         setLoading(true);
         
-        // For sample data mode
-        if (!user || error) {
-          setDocuments(prev => prev.filter(doc => doc.id !== id));
-          setLoading(false);
-          return;
-        }
-
-        await apiService.deleteDocument(id);
         setDocuments(prev => prev.filter(doc => doc.id !== id));
+
+        try {
+          await apiService.deleteDocument(id);
+        } catch (apiError) {
+          console.warn('API sync failed, but local delete succeeded');
+        }
       } catch (error) {
         console.error('Error deleting document:', error);
-        
-        // Fallback: delete locally
-        setDocuments(prev => prev.filter(doc => doc.id !== id));
         setError('Document deleted locally. Server sync may be delayed.');
       } finally {
         setLoading(false);
@@ -1009,6 +773,18 @@ export default function App() {
     setDocuments([]);
     setError(null);
   };
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex items-center space-x-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   // Public pages (before login)
   if (!user) {
