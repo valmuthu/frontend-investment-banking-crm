@@ -18,7 +18,7 @@ const LoginForm = () => {
     }
   });
 
-  // Test API connection on component mount
+  // Test API connection on component mount lol
   useEffect(() => {
     const checkConnection = async () => {
       const result = await testConnection();
