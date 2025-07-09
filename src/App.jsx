@@ -15,40 +15,30 @@ import AdditionalFeaturesPage from './components/AdditionalFeaturesPage';
 import LoginForm from './components/LoginForm';
 import { ContactModal, EditContactModal, InterviewModal, EditInterviewModal, CallModal } from './components/Modals';
 
-// Check if AuthContext is available
-let useAuth;
-try {
-  const authModule = await import('./contexts/AuthContext');
-  useAuth = authModule.useAuth;
-} catch (error) {
-  console.warn('AuthContext not available, using mock auth');
-  useAuth = () => ({
-    user: null,
-    logout: () => {},
-    loading: false
-  });
-}
-
-export default function App() {
-  // Try to use real auth, fallback to mock
-  let authState;
+// Safe auth hook that handles missing context
+const useSafeAuth = () => {
   try {
-    authState = useAuth();
+    // Try to import and use the real auth context
+    const { useAuth } = require('./contexts/AuthContext');
+    return useAuth();
   } catch (error) {
-    console.warn('Auth hook failed, using fallback');
-    authState = {
+    console.warn('AuthContext not available, using mock auth');
+    return {
       user: null,
       logout: () => {},
       loading: false
     };
   }
+};
 
-  const { user, logout, loading: authLoading } = authState;
+export default function App() {
+  // Use safe auth hook
+  const { user, logout, loading: authLoading } = useSafeAuth();
   
   // App navigation state
-  const [currentPage, setCurrentPage] = useState('landing'); // 'landing', 'features', 'additional-features', 'login', 'app'
+  const [currentPage, setCurrentPage] = useState('landing');
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [currentView, setCurrentView] = useState('main'); // 'main', 'contact-detail', 'interview-detail', 'settings'
+  const [currentView, setCurrentView] = useState('main');
   
   // Modal states
   const [showContactModal, setShowContactModal] = useState(false);
@@ -68,7 +58,7 @@ export default function App() {
   const [interviews, setInterviews] = useState([]);
   const [documents, setDocuments] = useState([]);
 
-  // Constants - Updated networking statuses and next steps
+  // Constants
   const networkingStatuses = [
     'Not Yet Contacted',
     'Initial Outreach Sent',
@@ -89,7 +79,6 @@ export default function App() {
     'Schedule Follow-Up Call'
   ];
 
-  // Updated interview stages and next steps
   const interviewStages = [
     'Not Yet Applied',
     'Applied',
@@ -122,15 +111,13 @@ export default function App() {
   useEffect(() => {
     if (user) {
       setCurrentPage('app');
-      loadSampleData(); // Load sample data when user logs in
+      loadSampleData();
     } else if (!authLoading) {
-      // Only reset to landing if not loading auth
       setCurrentPage('landing');
     }
   }, [user, authLoading]);
 
   const loadSampleData = () => {
-    // Enhanced sample data
     setContacts([
       {
         id: 1,
@@ -290,18 +277,16 @@ export default function App() {
     ]);
   };
 
-  // Helper functions with local state management
+  // CRUD functions
   const addContact = async (contactData) => {
     try {
       setLoading(true);
-      
       const newContact = {
         ...contactData,
         id: Date.now(),
         interactions: []
       };
       setContacts(prev => [newContact, ...prev]);
-      
       return newContact;
     } catch (error) {
       console.error('Error adding contact:', error);
@@ -315,11 +300,9 @@ export default function App() {
   const updateContact = async (updatedContact) => {
     try {
       setLoading(true);
-      
       setContacts(prev => prev.map(contact => 
         contact.id === updatedContact.id ? updatedContact : contact
       ));
-      
       return updatedContact;
     } catch (error) {
       console.error('Error updating contact:', error);
@@ -347,14 +330,12 @@ export default function App() {
   const addInterview = async (interviewData) => {
     try {
       setLoading(true);
-      
       const newInterview = {
         ...interviewData,
         id: Date.now(),
         rounds: []
       };
       setInterviews(prev => [newInterview, ...prev]);
-      
       return newInterview;
     } catch (error) {
       console.error('Error adding interview:', error);
@@ -368,11 +349,9 @@ export default function App() {
   const updateInterview = async (updatedInterview) => {
     try {
       setLoading(true);
-      
       setInterviews(prev => prev.map(interview => 
         interview.id === updatedInterview.id ? updatedInterview : interview
       ));
-      
       return updatedInterview;
     } catch (error) {
       console.error('Error updating interview:', error);
@@ -740,7 +719,6 @@ export default function App() {
           groups={groups}
         />
         
-        {/* Edit Contact Modal */}
         <EditContactModal 
           isOpen={!!editingContact}
           contact={editingContact}
@@ -784,7 +762,6 @@ export default function App() {
           groups={groups}
         />
         
-        {/* Edit Interview Modal */}
         <EditInterviewModal 
           isOpen={!!editingInterview}
           interview={editingInterview}
@@ -876,81 +853,3 @@ export default function App() {
             onEdit={updateDocument}
             onDelete={deleteDocument}
           />
-        )}
-      </div>
-
-      {/* Modals */}
-      <ContactModal 
-        isOpen={showContactModal}
-        onClose={() => setShowContactModal(false)}
-        onSubmit={async (contactData) => {
-          try {
-            await addContact(contactData);
-            setShowContactModal(false);
-          } catch (error) {
-            // Error is already handled in addContact
-          }
-        }}
-        networkingStatuses={networkingStatuses}
-        nextStepsOptions={nextStepsOptions}
-        groups={groups}
-      />
-
-      <EditContactModal 
-        isOpen={!!editingContact}
-        contact={editingContact}
-        onClose={() => setEditingContact(null)}
-        onSubmit={async (contactData) => {
-          try {
-            await updateContact(contactData);
-            setEditingContact(null);
-          } catch (error) {
-            // Error is already handled in updateContact
-          }
-        }}
-        networkingStatuses={networkingStatuses}
-        nextStepsOptions={nextStepsOptions}
-        groups={groups}
-      />
-
-      <InterviewModal 
-        isOpen={showInterviewModal}
-        onClose={() => setShowInterviewModal(false)}
-        onSubmit={async (interviewData) => {
-          try {
-            await addInterview(interviewData);
-            setShowInterviewModal(false);
-          } catch (error) {
-            // Error is already handled in addInterview
-          }
-        }}
-        interviewStages={interviewStages}
-        interviewNextSteps={interviewNextSteps}
-        groups={groups}
-        contacts={contacts}
-      />
-
-      <EditInterviewModal 
-        isOpen={!!editingInterview}
-        interview={editingInterview}
-        onClose={() => setEditingInterview(null)}
-        onSubmit={async (interviewData) => {
-          try {
-            await updateInterview(interviewData);
-            setEditingInterview(null);
-          } catch (error) {
-            // Error is already handled in updateInterview
-          }
-        }}
-        interviewStages={interviewStages}
-        interviewNextSteps={interviewNextSteps}
-        groups={groups}
-        contacts={contacts}
-      />
-
-      {/* Global Error and Loading */}
-      <ErrorNotification />
-      <LoadingOverlay />
-    </div>
-  );
-}
