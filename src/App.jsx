@@ -15,28 +15,40 @@ import AdditionalFeaturesPage from './components/AdditionalFeaturesPage';
 import LoginForm from './components/LoginForm';
 import { ContactModal, EditContactModal, InterviewModal, EditInterviewModal, CallModal } from './components/Modals';
 
-// Mock authentication for demo purposes
-const mockAuthContext = {
-  user: null,
-  login: async (credentials) => {
-    console.log('Mock login:', credentials);
-    return { success: true, user: { id: 1, email: credentials.email, name: 'Demo User' } };
-  },
-  logout: () => {
-    console.log('Mock logout');
-  },
-  loading: false
-};
+// Check if AuthContext is available
+let useAuth;
+try {
+  const authModule = await import('./contexts/AuthContext');
+  useAuth = authModule.useAuth;
+} catch (error) {
+  console.warn('AuthContext not available, using mock auth');
+  useAuth = () => ({
+    user: null,
+    logout: () => {},
+    loading: false
+  });
+}
 
 export default function App() {
-  // Mock authentication state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
+  // Try to use real auth, fallback to mock
+  let authState;
+  try {
+    authState = useAuth();
+  } catch (error) {
+    console.warn('Auth hook failed, using fallback');
+    authState = {
+      user: null,
+      logout: () => {},
+      loading: false
+    };
+  }
+
+  const { user, logout, loading: authLoading } = authState;
   
   // App navigation state
-  const [currentPage, setCurrentPage] = useState('landing');
+  const [currentPage, setCurrentPage] = useState('landing'); // 'landing', 'features', 'additional-features', 'login', 'app'
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [currentView, setCurrentView] = useState('main');
+  const [currentView, setCurrentView] = useState('main'); // 'main', 'contact-detail', 'interview-detail', 'settings'
   
   // Modal states
   const [showContactModal, setShowContactModal] = useState(false);
@@ -56,7 +68,7 @@ export default function App() {
   const [interviews, setInterviews] = useState([]);
   const [documents, setDocuments] = useState([]);
 
-  // Constants
+  // Constants - Updated networking statuses and next steps
   const networkingStatuses = [
     'Not Yet Contacted',
     'Initial Outreach Sent',
@@ -77,6 +89,7 @@ export default function App() {
     'Schedule Follow-Up Call'
   ];
 
+  // Updated interview stages and next steps
   const interviewStages = [
     'Not Yet Applied',
     'Applied',
@@ -105,14 +118,19 @@ export default function App() {
 
   const groups = ['TMT', 'Healthcare', 'Financial Services', 'Real Estate', 'Energy', 'Consumer'];
 
-  // Load sample data when authenticated
+  // Handle user authentication state changes
   useEffect(() => {
-    if (isAuthenticated) {
-      loadSampleData();
+    if (user) {
+      setCurrentPage('app');
+      loadSampleData(); // Load sample data when user logs in
+    } else if (!authLoading) {
+      // Only reset to landing if not loading auth
+      setCurrentPage('landing');
     }
-  }, [isAuthenticated]);
+  }, [user, authLoading]);
 
   const loadSampleData = () => {
+    // Enhanced sample data
     setContacts([
       {
         id: 1,
@@ -170,6 +188,23 @@ export default function App() {
             notes: 'Coffee chat to discuss market trends'
           }
         ]
+      },
+      {
+        id: 3,
+        name: 'Michael Chen',
+        position: 'Analyst',
+        group: 'Financial Services',
+        email: 'mchen@jpmorgan.com',
+        phone: '+1 (212) 555-0789',
+        linkedin: 'https://linkedin.com/in/michaelchen',
+        firm: 'JPMorgan Chase',
+        networkingStatus: 'Initial Outreach Sent',
+        networkingDate: '2025-07-01',
+        nextSteps: 'Send Follow-Up Email',
+        nextStepsDate: '2025-07-08',
+        referred: true,
+        notes: 'Alumni connection, interested in FIG deals.',
+        interactions: []
       }
     ]);
 
@@ -194,6 +229,38 @@ export default function App() {
             format: 'Phone',
             outcome: 'Passed',
             notes: 'Initial screening went well'
+          },
+          {
+            id: 2,
+            stage: 'First Round',
+            date: '2025-07-01',
+            interviewer: 'John Smith',
+            format: 'Video',
+            outcome: 'Passed',
+            notes: 'Technical questions on DCF models'
+          }
+        ]
+      },
+      {
+        id: 2,
+        firm: 'Morgan Stanley',
+        position: 'Investment Banking Analyst',
+        group: 'Healthcare',
+        stage: 'First Round',
+        stageDate: '2025-07-15',
+        nextSteps: 'Schedule Next Round',
+        nextStepsDate: '2025-07-16',
+        notes: 'Initial screening call',
+        referralContactId: 2,
+        rounds: [
+          {
+            id: 1,
+            stage: 'Phone Screen',
+            date: '2025-07-15',
+            interviewer: 'Mike Chen',
+            format: 'Phone',
+            outcome: 'Pending',
+            notes: 'Initial screening call'
           }
         ]
       }
@@ -209,205 +276,324 @@ export default function App() {
         associatedFirms: ['Evercore', 'Morgan Stanley'],
         tags: ['current', 'analyst'],
         notes: 'Latest version with TMT experience highlighted'
+      },
+      {
+        id: 2,
+        name: 'Coffee Chat Email Template',
+        type: 'Email Template',
+        uploadDate: '2025-01-10',
+        associatedContacts: [],
+        associatedFirms: [],
+        tags: ['networking', 'template'],
+        notes: 'Standard template for initial outreach'
       }
     ]);
   };
 
-  // Mock authentication functions
-  const handleLogin = async (credentials) => {
-    setAuthLoading(true);
+  // Helper functions with local state management
+  const addContact = async (contactData) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setIsAuthenticated(true);
-      setCurrentPage('app');
-      return { success: true };
+      setLoading(true);
+      
+      const newContact = {
+        ...contactData,
+        id: Date.now(),
+        interactions: []
+      };
+      setContacts(prev => [newContact, ...prev]);
+      
+      return newContact;
     } catch (error) {
-      return { success: false, error: 'Login failed' };
+      console.error('Error adding contact:', error);
+      setError('Failed to add contact. Please try again.');
+      throw error;
     } finally {
-      setAuthLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setCurrentPage('landing');
-    setActiveTab('dashboard');
-    setCurrentView('main');
-    setContacts([]);
-    setInterviews([]);
-    setDocuments([]);
-    setError(null);
-  };
-
-  // CRUD functions
-  const addContact = async (contactData) => {
-    const newContact = {
-      ...contactData,
-      id: Date.now(),
-      interactions: []
-    };
-    setContacts(prev => [newContact, ...prev]);
-    return newContact;
-  };
-
   const updateContact = async (updatedContact) => {
-    setContacts(prev => prev.map(contact => 
-      contact.id === updatedContact.id ? updatedContact : contact
-    ));
-    return updatedContact;
+    try {
+      setLoading(true);
+      
+      setContacts(prev => prev.map(contact => 
+        contact.id === updatedContact.id ? updatedContact : contact
+      ));
+      
+      return updatedContact;
+    } catch (error) {
+      console.error('Error updating contact:', error);
+      setError('Failed to update contact. Please try again.');
+      return updatedContact;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deleteContact = async (id) => {
     if (window.confirm('Are you sure you want to delete this contact?')) {
-      setContacts(prev => prev.filter(contact => contact.id !== id));
+      try {
+        setLoading(true);
+        setContacts(prev => prev.filter(contact => contact.id !== id));
+      } catch (error) {
+        console.error('Error deleting contact:', error);
+        setError('Failed to delete contact. Please try again.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const addInterview = async (interviewData) => {
-    const newInterview = {
-      ...interviewData,
-      id: Date.now(),
-      rounds: []
-    };
-    setInterviews(prev => [newInterview, ...prev]);
-    return newInterview;
+    try {
+      setLoading(true);
+      
+      const newInterview = {
+        ...interviewData,
+        id: Date.now(),
+        rounds: []
+      };
+      setInterviews(prev => [newInterview, ...prev]);
+      
+      return newInterview;
+    } catch (error) {
+      console.error('Error adding interview:', error);
+      setError('Failed to add interview. Please try again.');
+      return newInterview;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateInterview = async (updatedInterview) => {
-    setInterviews(prev => prev.map(interview => 
-      interview.id === updatedInterview.id ? updatedInterview : interview
-    ));
-    return updatedInterview;
+    try {
+      setLoading(true);
+      
+      setInterviews(prev => prev.map(interview => 
+        interview.id === updatedInterview.id ? updatedInterview : interview
+      ));
+      
+      return updatedInterview;
+    } catch (error) {
+      console.error('Error updating interview:', error);
+      setError('Failed to update interview. Please try again.');
+      return updatedInterview;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deleteInterview = async (id) => {
     if (window.confirm('Are you sure you want to delete this interview?')) {
-      setInterviews(prev => prev.filter(interview => interview.id !== id));
+      try {
+        setLoading(true);
+        setInterviews(prev => prev.filter(interview => interview.id !== id));
+      } catch (error) {
+        console.error('Error deleting interview:', error);
+        setError('Failed to delete interview. Please try again.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const addInteraction = async (contactId, interactionData) => {
-    const newInteraction = {
-      ...interactionData,
-      id: Date.now(),
-      createdAt: new Date()
-    };
+    try {
+      const newInteraction = {
+        ...interactionData,
+        id: Date.now(),
+        createdAt: new Date()
+      };
 
-    setContacts(prev => prev.map(contact => {
-      if (contact.id === contactId) {
-        return {
-          ...contact,
-          interactions: [newInteraction, ...(contact.interactions || [])]
-        };
-      }
-      return contact;
-    }));
-
-    return newInteraction;
-  };
-
-  const updateInteraction = async (contactId, interactionId, updatedInteraction) => {
-    setContacts(prev => prev.map(contact => {
-      if (contact.id === contactId) {
-        return {
-          ...contact,
-          interactions: contact.interactions.map(interaction =>
-            interaction.id === interactionId ? updatedInteraction : interaction
-          )
-        };
-      }
-      return contact;
-    }));
-
-    return updatedInteraction;
-  };
-
-  const deleteInteraction = async (contactId, interactionId) => {
-    if (window.confirm('Are you sure you want to delete this interaction?')) {
       setContacts(prev => prev.map(contact => {
         if (contact.id === contactId) {
           return {
             ...contact,
-            interactions: contact.interactions.filter(interaction => interaction.id !== interactionId)
+            interactions: [newInteraction, ...(contact.interactions || [])]
           };
         }
         return contact;
       }));
+
+      return newInteraction;
+    } catch (error) {
+      console.error('Error adding interaction:', error);
+      setError('Failed to add interaction. Please try again.');
+      return newInteraction;
+    }
+  };
+
+  const updateInteraction = async (contactId, interactionId, updatedInteraction) => {
+    try {
+      setContacts(prev => prev.map(contact => {
+        if (contact.id === contactId) {
+          return {
+            ...contact,
+            interactions: contact.interactions.map(interaction =>
+              interaction.id === interactionId ? updatedInteraction : interaction
+            )
+          };
+        }
+        return contact;
+      }));
+
+      return updatedInteraction;
+    } catch (error) {
+      console.error('Error updating interaction:', error);
+      setError('Failed to update interaction. Please try again.');
+      return updatedInteraction;
+    }
+  };
+
+  const deleteInteraction = async (contactId, interactionId) => {
+    if (window.confirm('Are you sure you want to delete this interaction?')) {
+      try {
+        setContacts(prev => prev.map(contact => {
+          if (contact.id === contactId) {
+            return {
+              ...contact,
+              interactions: contact.interactions.filter(interaction => interaction.id !== interactionId)
+            };
+          }
+          return contact;
+        }));
+      } catch (error) {
+        console.error('Error deleting interaction:', error);
+        setError('Failed to delete interaction. Please try again.');
+      }
     }
   };
 
   const addInterviewRound = async (interviewId, roundData) => {
-    const newRound = {
-      ...roundData,
-      id: Date.now(),
-      createdAt: new Date()
-    };
+    try {
+      const newRound = {
+        ...roundData,
+        id: Date.now(),
+        createdAt: new Date()
+      };
 
-    setInterviews(prev => prev.map(interview => {
-      if (interview.id === interviewId) {
-        return {
-          ...interview,
-          rounds: [...(interview.rounds || []), newRound]
-        };
-      }
-      return interview;
-    }));
-
-    return newRound;
-  };
-
-  const updateInterviewRound = async (interviewId, roundId, updatedRound) => {
-    setInterviews(prev => prev.map(interview => {
-      if (interview.id === interviewId) {
-        return {
-          ...interview,
-          rounds: interview.rounds.map(round =>
-            round.id === roundId ? updatedRound : round
-          )
-        };
-      }
-      return interview;
-    }));
-
-    return updatedRound;
-  };
-
-  const deleteInterviewRound = async (interviewId, roundId) => {
-    if (window.confirm('Are you sure you want to delete this interview round?')) {
       setInterviews(prev => prev.map(interview => {
         if (interview.id === interviewId) {
           return {
             ...interview,
-            rounds: interview.rounds.filter(round => round.id !== roundId)
+            rounds: [...(interview.rounds || []), newRound]
           };
         }
         return interview;
       }));
+
+      return newRound;
+    } catch (error) {
+      console.error('Error adding interview round:', error);
+      setError('Failed to add interview round. Please try again.');
+      return newRound;
+    }
+  };
+
+  const updateInterviewRound = async (interviewId, roundId, updatedRound) => {
+    try {
+      setInterviews(prev => prev.map(interview => {
+        if (interview.id === interviewId) {
+          return {
+            ...interview,
+            rounds: interview.rounds.map(round =>
+              round.id === roundId ? updatedRound : round
+            )
+          };
+        }
+        return interview;
+      }));
+
+      return updatedRound;
+    } catch (error) {
+      console.error('Error updating interview round:', error);
+      setError('Failed to update interview round. Please try again.');
+      return updatedRound;
+    }
+  };
+
+  const deleteInterviewRound = async (interviewId, roundId) => {
+    if (window.confirm('Are you sure you want to delete this interview round?')) {
+      try {
+        setInterviews(prev => prev.map(interview => {
+          if (interview.id === interviewId) {
+            return {
+              ...interview,
+              rounds: interview.rounds.filter(round => round.id !== roundId)
+            };
+          }
+          return interview;
+        }));
+      } catch (error) {
+        console.error('Error deleting interview round:', error);
+        setError('Failed to delete interview round. Please try again.');
+      }
     }
   };
 
   // Document management functions
   const addDocument = async (documentData) => {
-    const newDocument = {
-      ...documentData,
-      id: Date.now(),
-      uploadDate: new Date().toISOString().split('T')[0]
-    };
-    setDocuments(prev => [newDocument, ...prev]);
-    return newDocument;
+    try {
+      setLoading(true);
+      
+      let processedDocumentData = { ...documentData };
+      
+      if (documentData.file) {
+        processedDocumentData.fileData = {
+          name: documentData.file.name,
+          size: documentData.file.size,
+          type: documentData.file.type,
+          content: documentData.file
+        };
+        delete processedDocumentData.file;
+      }
+      
+      const newDocument = {
+        ...processedDocumentData,
+        id: Date.now(),
+        uploadDate: new Date().toISOString().split('T')[0]
+      };
+      setDocuments(prev => [newDocument, ...prev]);
+      
+      return newDocument;
+    } catch (error) {
+      console.error('Error adding document:', error);
+      setError('Failed to add document. Please try again.');
+      return newDocument;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateDocument = async (updatedDocument) => {
-    setDocuments(prev => prev.map(doc => 
-      doc.id === updatedDocument.id ? updatedDocument : doc
-    ));
-    return updatedDocument;
+    try {
+      setLoading(true);
+      
+      setDocuments(prev => prev.map(doc => 
+        doc.id === updatedDocument.id ? updatedDocument : doc
+      ));
+      
+      return updatedDocument;
+    } catch (error) {
+      console.error('Error updating document:', error);
+      setError('Failed to update document. Please try again.');
+      return updatedDocument;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deleteDocument = async (id) => {
     if (window.confirm('Are you sure you want to delete this document?')) {
-      setDocuments(prev => prev.filter(doc => doc.id !== id));
+      try {
+        setLoading(true);
+        setDocuments(prev => prev.filter(doc => doc.id !== id));
+      } catch (error) {
+        console.error('Error deleting document:', error);
+        setError('Failed to delete document. Please try again.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -434,6 +620,55 @@ export default function App() {
   const selectedContact = contacts.find(c => c.id === selectedContactId);
   const selectedInterview = interviews.find(i => i.id === selectedInterviewId);
 
+  // Error notification component
+  const ErrorNotification = () => {
+    if (!error) return null;
+    
+    return (
+      <div className="fixed top-4 right-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg shadow-lg z-50">
+        <div className="flex items-center justify-between">
+          <span>{error}</span>
+          <button 
+            onClick={() => setError(null)}
+            className="ml-4 text-red-600 hover:text-red-800"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Loading overlay component
+  const LoadingOverlay = () => {
+    if (!loading) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 flex items-center space-x-3">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.warn('Logout error:', error);
+    }
+    setCurrentPage('landing');
+    setActiveTab('dashboard');
+    setCurrentView('main');
+    setContacts([]);
+    setInterviews([]);
+    setDocuments([]);
+    setError(null);
+  };
+
   // Show loading while checking auth
   if (authLoading) {
     return (
@@ -447,9 +682,9 @@ export default function App() {
   }
 
   // Public pages (before login)
-  if (!isAuthenticated) {
+  if (!user) {
     if (currentPage === 'login') {
-      return <LoginForm onLogin={handleLogin} />;
+      return <LoginForm />;
     }
     
     if (currentPage === 'features') {
@@ -505,6 +740,7 @@ export default function App() {
           groups={groups}
         />
         
+        {/* Edit Contact Modal */}
         <EditContactModal 
           isOpen={!!editingContact}
           contact={editingContact}
@@ -514,6 +750,9 @@ export default function App() {
           nextStepsOptions={nextStepsOptions}
           groups={groups}
         />
+        
+        <ErrorNotification />
+        <LoadingOverlay />
       </div>
     );
   }
@@ -545,6 +784,7 @@ export default function App() {
           groups={groups}
         />
         
+        {/* Edit Interview Modal */}
         <EditInterviewModal 
           isOpen={!!editingInterview}
           interview={editingInterview}
@@ -555,6 +795,9 @@ export default function App() {
           groups={groups}
           contacts={contacts}
         />
+        
+        <ErrorNotification />
+        <LoadingOverlay />
       </div>
     );
   }
@@ -568,7 +811,12 @@ export default function App() {
           onShowSettings={showSettings}
           onLogout={handleLogout}
         />
-        <Settings onBack={goBack} />
+        <Settings
+          onBack={goBack}
+        />
+        
+        <ErrorNotification />
+        <LoadingOverlay />
       </div>
     );
   }
@@ -636,8 +884,12 @@ export default function App() {
         isOpen={showContactModal}
         onClose={() => setShowContactModal(false)}
         onSubmit={async (contactData) => {
-          await addContact(contactData);
-          setShowContactModal(false);
+          try {
+            await addContact(contactData);
+            setShowContactModal(false);
+          } catch (error) {
+            // Error is already handled in addContact
+          }
         }}
         networkingStatuses={networkingStatuses}
         nextStepsOptions={nextStepsOptions}
@@ -649,8 +901,12 @@ export default function App() {
         contact={editingContact}
         onClose={() => setEditingContact(null)}
         onSubmit={async (contactData) => {
-          await updateContact(contactData);
-          setEditingContact(null);
+          try {
+            await updateContact(contactData);
+            setEditingContact(null);
+          } catch (error) {
+            // Error is already handled in updateContact
+          }
         }}
         networkingStatuses={networkingStatuses}
         nextStepsOptions={nextStepsOptions}
@@ -661,8 +917,12 @@ export default function App() {
         isOpen={showInterviewModal}
         onClose={() => setShowInterviewModal(false)}
         onSubmit={async (interviewData) => {
-          await addInterview(interviewData);
-          setShowInterviewModal(false);
+          try {
+            await addInterview(interviewData);
+            setShowInterviewModal(false);
+          } catch (error) {
+            // Error is already handled in addInterview
+          }
         }}
         interviewStages={interviewStages}
         interviewNextSteps={interviewNextSteps}
@@ -675,14 +935,22 @@ export default function App() {
         interview={editingInterview}
         onClose={() => setEditingInterview(null)}
         onSubmit={async (interviewData) => {
-          await updateInterview(interviewData);
-          setEditingInterview(null);
+          try {
+            await updateInterview(interviewData);
+            setEditingInterview(null);
+          } catch (error) {
+            // Error is already handled in updateInterview
+          }
         }}
         interviewStages={interviewStages}
         interviewNextSteps={interviewNextSteps}
         groups={groups}
         contacts={contacts}
       />
+
+      {/* Global Error and Loading */}
+      <ErrorNotification />
+      <LoadingOverlay />
     </div>
   );
 }
