@@ -1,13 +1,21 @@
 // src/config/api.js
 export const API_CONFIG = {
-  // Replace with your actual Heroku app URL
-  BASE_URL: process.env.REACT_APP_API_URL || 'https://vm-investment-crm-b28932089a19.herokuapp.com',
+  // Use environment variable or fallback to localhost for development
+  BASE_URL: import.meta.env.VITE_API_URL || 
+           process.env.REACT_APP_API_URL || 
+           'http://localhost:5000',
   API_VERSION: '/api/v1',
   TIMEOUT: 30000, // 30 seconds
 };
 
 // Full API base URL
 export const API_BASE_URL = `${API_CONFIG.BASE_URL}${API_CONFIG.API_VERSION}`;
+
+console.log('🔧 API Configuration:', {
+  BASE_URL: API_CONFIG.BASE_URL,
+  API_BASE_URL: API_BASE_URL,
+  environment: import.meta.env.MODE || 'development'
+});
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -103,10 +111,15 @@ export const DEFAULT_HEADERS = {
   'Accept': 'application/json',
 };
 
-// Auth header helper
+// Auth header helper - gets token from localStorage
 export const getAuthHeader = () => {
   const token = localStorage.getItem('authToken');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
+  if (token) {
+    console.log('🔑 Using auth token:', token.substring(0, 20) + '...');
+    return { 'Authorization': `Bearer ${token}` };
+  }
+  console.log('🚫 No auth token found');
+  return {};
 };
 
 // Complete headers with auth
@@ -114,4 +127,3 @@ export const getHeaders = (includeAuth = true) => ({
   ...DEFAULT_HEADERS,
   ...(includeAuth ? getAuthHeader() : {}),
 });
-
