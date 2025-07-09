@@ -1,8 +1,99 @@
 // src/contexts/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import apiService from '../services/apiService';
 
-const AuthContext = createContext();
+// Create a mock API service for demo purposes
+const mockApiService = {
+  async verifyToken() {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      return {
+        user: {
+          id: 1,
+          email: 'demo@example.com',
+          profile: {
+            firstName: 'Demo',
+            lastName: 'User'
+          }
+        }
+      };
+    }
+    throw new Error('Invalid token');
+  },
+
+  async login(credentials) {
+    // Mock login - accept any credentials in demo mode
+    const mockToken = 'demo-token-' + Date.now();
+    const mockUser = {
+      id: 1,
+      email: credentials.email,
+      profile: {
+        firstName: 'Demo',
+        lastName: 'User'
+      }
+    };
+    
+    return {
+      accessToken: mockToken,
+      user: mockUser
+    };
+  },
+
+  async signup(userData) {
+    // Mock signup - accept any data in demo mode
+    const mockToken = 'demo-token-' + Date.now();
+    const mockUser = {
+      id: 1,
+      email: userData.email,
+      profile: {
+        firstName: userData.profile?.firstName || 'Demo',
+        lastName: userData.profile?.lastName || 'User'
+      }
+    };
+    
+    return {
+      accessToken: mockToken,
+      user: mockUser
+    };
+  },
+
+  async logout() {
+    return { success: true };
+  },
+
+  async updateUserProfile(profileData) {
+    return {
+      user: {
+        id: 1,
+        email: 'demo@example.com',
+        profile: profileData.profile
+      }
+    };
+  },
+
+  async changePassword(passwordData) {
+    return { message: 'Password changed successfully' };
+  },
+
+  async healthCheck() {
+    return { status: 'ok', message: 'API is healthy' };
+  }
+};
+
+// Initialize context with default values
+const AuthContext = createContext({
+  user: null,
+  loading: false,
+  error: null,
+  login: async () => ({ success: false, error: 'Not implemented' }),
+  logout: async () => {},
+  signup: async () => ({ success: false, error: 'Not implemented' }),
+  updateProfile: async () => ({ success: false, error: 'Not implemented' }),
+  changePassword: async () => ({ success: false, error: 'Not implemented' }),
+  testConnection: async () => ({ success: false, error: 'Not implemented' }),
+  clearError: () => {},
+  isAuthenticated: false,
+  isOfflineMode: true
+});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -16,43 +107,58 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isOfflineMode] = useState(true); // Always offline mode for demo
 
   // Initialize auth state
   useEffect(() => {
-    initializeAuth();
-  }, []);
-
-  const initializeAuth = async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      
-      if (token) {
-        console.log('🔍 Found existing token, verifying...');
+    let mounted = true;
+    
+    const initializeAuth = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
         
-        try {
-          // Verify the token with the backend
-          const response = await apiService.verifyToken();
-          console.log('✅ Token verified, user logged in:', response);
+        if (token && mounted) {
+          console.log('🔍 Found existing token, verifying...');
           
-          setUser(response.user);
-        } catch (error) {
-          console.log('❌ Token verification failed:', error.message);
-          // Clear invalid token
-          localStorage.removeItem('authToken');
+          try {
+            // Verify the token with the mock service
+            const response = await mockApiService.verifyToken();
+            console.log('✅ Token verified, user logged in:', response);
+            
+            if (mounted) {
+              setUser(response.user);
+            }
+          } catch (error) {
+            console.log('❌ Token verification failed:', error.message);
+            // Clear invalid token
+            localStorage.removeItem('authToken');
+            if (mounted) {
+              setUser(null);
+            }
+          }
+        } else {
+          console.log('ℹ️ No token found, user not logged in');
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        // Clear any corrupted auth state
+        localStorage.removeItem('authToken');
+        if (mounted) {
           setUser(null);
         }
-      } else {
-        console.log('ℹ️ No token found, user not logged in');
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      console.error('Error initializing auth:', error);
-      // Clear any corrupted auth state
-      localStorage.removeItem('authToken');
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const login = async (credentials) => {
     try {
@@ -61,7 +167,7 @@ export const AuthProvider = ({ children }) => {
       
       console.log('🔐 Attempting login for:', credentials.email);
       
-      const response = await apiService.login(credentials);
+      const response = await mockApiService.login(credentials);
       console.log('✅ Login successful:', response);
       
       // Store the token
@@ -93,7 +199,7 @@ export const AuthProvider = ({ children }) => {
       
       console.log('📝 Attempting signup for:', userData.email);
       
-      const response = await apiService.signup(userData);
+      const response = await mockApiService.signup(userData);
       console.log('✅ Signup successful:', response);
       
       // Store the token
@@ -125,7 +231,7 @@ export const AuthProvider = ({ children }) => {
       
       // Try to logout from the server
       try {
-        await apiService.logout();
+        await mockApiService.logout();
         console.log('✅ Server logout successful');
       } catch (error) {
         console.warn('⚠️ Server logout failed (continuing with local logout):', error.message);
@@ -151,7 +257,7 @@ export const AuthProvider = ({ children }) => {
       
       console.log('📝 Updating profile...');
       
-      const response = await apiService.updateUserProfile(profileData);
+      const response = await mockApiService.updateUserProfile(profileData);
       console.log('✅ Profile updated:', response);
       
       // Update user state with new profile data
@@ -180,7 +286,7 @@ export const AuthProvider = ({ children }) => {
       
       console.log('🔒 Changing password...');
       
-      const response = await apiService.changePassword(passwordData);
+      const response = await mockApiService.changePassword(passwordData);
       console.log('✅ Password changed successfully');
       
       return { success: true, message: response.message };
@@ -200,17 +306,22 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('🔍 Testing API connection...');
       
-      const response = await apiService.healthCheck();
+      const response = await mockApiService.healthCheck();
       console.log('✅ API connection successful:', response);
       
-      return { success: true, message: 'Connected to server' };
+      return { 
+        success: true, 
+        message: 'Connected to demo server',
+        offline: true
+      };
     } catch (error) {
       console.error('❌ API connection failed:', error);
       
       return { 
         success: false, 
-        message: 'Unable to connect to server',
-        error: error.message 
+        message: 'Demo mode - no server connection needed',
+        error: error.message,
+        offline: true
       };
     }
   };
@@ -231,6 +342,7 @@ export const AuthProvider = ({ children }) => {
     testConnection,
     clearError,
     isAuthenticated: !!user,
+    isOfflineMode: true
   };
 
   return (
