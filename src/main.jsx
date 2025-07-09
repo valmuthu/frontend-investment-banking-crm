@@ -3,17 +3,6 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 
-// Try to import AuthProvider, but handle gracefully if it fails
-let AuthProvider;
-try {
-  const authModule = await import('./contexts/AuthContext.jsx');
-  AuthProvider = authModule.AuthProvider;
-} catch (error) {
-  console.warn('AuthProvider not available, running without authentication context:', error);
-  // Create a mock AuthProvider that just passes through children
-  AuthProvider = ({ children }) => children;
-}
-
 // Simple error boundary to catch rendering errors
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -61,13 +50,54 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// Safely render the app with error boundary and auth provider
+// Simple wrapper that handles AuthProvider import safely
+const AppWrapper = () => {
+  const [AuthProvider, setAuthProvider] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    // Try to import AuthProvider
+    import('./contexts/AuthContext.jsx')
+      .then(authModule => {
+        setAuthProvider(() => authModule.AuthProvider);
+      })
+      .catch(error => {
+        console.warn('AuthProvider not available, using fallback:', error);
+        // Create a fallback AuthProvider
+        setAuthProvider(() => ({ children }) => children);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex items-center space-x-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!AuthProvider) {
+    // Fallback if AuthProvider couldn't be loaded
+    return <App />;
+  }
+
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+};
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <AppWrapper />
     </ErrorBoundary>
   </React.StrictMode>
 )
