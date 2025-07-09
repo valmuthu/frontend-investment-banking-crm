@@ -5,6 +5,9 @@ import { Building2 } from 'lucide-react';
 // Import auth context
 import { useAuth } from './contexts/AuthContext';
 
+// Import API service
+import apiService from './services/apiService';
+
 // Import only essential components directly
 import Navigation from './components/Navigation';
 import LoginForm from './components/LoginForm';
@@ -59,6 +62,7 @@ export default function App() {
   // Loading and error states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [dataLoading, setDataLoading] = useState(true);
 
   // Data states - Initialize as empty arrays
   const [contacts, setContacts] = useState([]);
@@ -118,187 +122,49 @@ export default function App() {
   useEffect(() => {
     if (user) {
       setCurrentPage('app');
-      loadSampleData();
+      loadDataFromAPI();
     } else if (!authLoading) {
       setCurrentPage('landing');
+      setDataLoading(false);
     }
   }, [user, authLoading]);
 
-  // Sample data loading function
-  const loadSampleData = () => {
+  // Load data from API
+  const loadDataFromAPI = async () => {
     try {
-      setContacts([
-        {
-          id: 1,
-          name: 'Kevin Burns',
-          position: 'Associate',
-          group: 'TMT',
-          email: 'burnsk@gmail.com',
-          phone: '+1 (212) 555-0123',
-          linkedin: 'https://linkedin.com/in/kevinburns',
-          firm: 'Evercore',
-          networkingStatus: 'Intro Call Scheduled',
-          networkingDate: '2025-06-15',
-          nextSteps: 'Prepare for Upcoming Call',
-          nextStepsDate: '2025-07-20',
-          referred: true,
-          notes: 'Very interested in TMT deals. Strong technical background.',
-          interactions: [
-            {
-              id: 1,
-              type: 'Email',
-              title: 'Initial outreach',
-              date: '2025-06-10',
-              notes: 'Initial outreach about summer internship opportunities'
-            },
-            {
-              id: 2,
-              type: 'Call',
-              title: 'Phone conversation',
-              date: '2025-06-15',
-              notes: 'Had a great conversation about the tech banking group'
-            }
-          ]
-        },
-        {
-          id: 2,
-          name: 'Sarah Johnson',
-          position: 'VP',
-          group: 'Healthcare',
-          email: 'sarah.johnson@ms.com',
-          phone: '+1 (212) 555-0456',
-          linkedin: 'https://linkedin.com/in/sarahjohnson',
-          firm: 'Morgan Stanley',
-          networkingStatus: 'Follow-Up Call Complete',
-          networkingDate: '2025-05-25',
-          nextSteps: '',
-          nextStepsDate: '',
-          referred: false,
-          notes: 'Senior contact who provides market insights.',
-          interactions: [
-            {
-              id: 1,
-              type: 'Meeting',
-              title: 'Coffee chat',
-              date: '2025-06-01',
-              notes: 'Coffee chat to discuss market trends'
-            }
-          ]
-        },
-        {
-          id: 3,
-          name: 'Michael Chen',
-          position: 'Analyst',
-          group: 'Financial Services',
-          email: 'mchen@jpmorgan.com',
-          phone: '+1 (212) 555-0789',
-          linkedin: 'https://linkedin.com/in/michaelchen',
-          firm: 'JPMorgan Chase',
-          networkingStatus: 'Initial Outreach Sent',
-          networkingDate: '2025-07-01',
-          nextSteps: 'Send Follow-Up Email',
-          nextStepsDate: '2025-07-08',
-          referred: true,
-          notes: 'Alumni connection, interested in FIG deals.',
-          interactions: []
-        }
+      setDataLoading(true);
+      console.log('📊 Loading data from API...');
+
+      // Load all data in parallel
+      const [contactsResponse, interviewsResponse, documentsResponse] = await Promise.all([
+        apiService.getContacts(),
+        apiService.getInterviews(),
+        apiService.getDocuments()
       ]);
 
-      setInterviews([
-        {
-          id: 1,
-          firm: 'Goldman Sachs',
-          position: 'Investment Banking Analyst',
-          group: 'TMT',
-          stage: 'Superday',
-          stageDate: '2025-07-10',
-          nextSteps: 'Send Thank You Email',
-          nextStepsDate: '2025-07-11',
-          notes: 'Technical interview focus on valuation models',
-          referralContactId: 1,
-          rounds: [
-            {
-              id: 1,
-              stage: 'Phone Screen',
-              date: '2025-06-15',
-              interviewer: 'Jane Doe',
-              format: 'Phone',
-              outcome: 'Passed',
-              notes: 'Initial screening went well'
-            },
-            {
-              id: 2,
-              stage: 'First Round',
-              date: '2025-07-01',
-              interviewer: 'John Smith',
-              format: 'Video',
-              outcome: 'Passed',
-              notes: 'Technical questions on DCF models'
-            }
-          ]
-        },
-        {
-          id: 2,
-          firm: 'Morgan Stanley',
-          position: 'Investment Banking Analyst',
-          group: 'Healthcare',
-          stage: 'First Round',
-          stageDate: '2025-07-15',
-          nextSteps: 'Schedule Next Round',
-          nextStepsDate: '2025-07-16',
-          notes: 'Initial screening call',
-          referralContactId: 2,
-          rounds: [
-            {
-              id: 1,
-              stage: 'Phone Screen',
-              date: '2025-07-15',
-              interviewer: 'Mike Chen',
-              format: 'Phone',
-              outcome: 'Pending',
-              notes: 'Initial screening call'
-            }
-          ]
-        }
-      ]);
+      console.log('✅ Data loaded successfully:', {
+        contacts: contactsResponse.contacts?.length || 0,
+        interviews: interviewsResponse.interviews?.length || 0,
+        documents: documentsResponse.documents?.length || 0
+      });
 
-      setDocuments([
-        {
-          id: 1,
-          name: 'Resume - Investment Banking 2025',
-          type: 'Resume',
-          uploadDate: '2025-01-15',
-          associatedContacts: ['Kevin Burns', 'Sarah Johnson'],
-          associatedFirms: ['Evercore', 'Morgan Stanley'],
-          tags: ['current', 'analyst'],
-          notes: 'Latest version with TMT experience highlighted'
-        },
-        {
-          id: 2,
-          name: 'Coffee Chat Email Template',
-          type: 'Email Template',
-          uploadDate: '2025-01-10',
-          associatedContacts: [],
-          associatedFirms: [],
-          tags: ['networking', 'template'],
-          notes: 'Standard template for initial outreach'
-        }
-      ]);
+      setContacts(contactsResponse.contacts || []);
+      setInterviews(interviewsResponse.interviews || []);
+      setDocuments(documentsResponse.documents || []);
     } catch (err) {
-      console.error('Error loading sample data:', err);
-      setError('Failed to load initial data');
+      console.error('❌ Error loading data:', err);
+      setError('Failed to load data. Please refresh the page.');
+    } finally {
+      setDataLoading(false);
     }
   };
 
-  // CRUD functions with proper error handling
+  // CRUD functions with API integration
   const addContact = async (contactData) => {
     try {
       setLoading(true);
-      const newContact = {
-        ...contactData,
-        id: Date.now(),
-        interactions: []
-      };
+      const response = await apiService.createContact(contactData);
+      const newContact = response.contact;
       setContacts(prev => [newContact, ...prev]);
       return newContact;
     } catch (error) {
@@ -313,14 +179,16 @@ export default function App() {
   const updateContact = async (updatedContact) => {
     try {
       setLoading(true);
+      const response = await apiService.updateContact(updatedContact.id || updatedContact._id, updatedContact);
+      const updated = response.contact;
       setContacts(prev => prev.map(contact => 
-        contact.id === updatedContact.id ? updatedContact : contact
+        (contact.id === updated.id || contact._id === updated._id) ? updated : contact
       ));
-      return updatedContact;
+      return updated;
     } catch (error) {
       console.error('Error updating contact:', error);
       setError('Failed to update contact. Please try again.');
-      return updatedContact;
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -330,7 +198,8 @@ export default function App() {
     if (window.confirm('Are you sure you want to delete this contact?')) {
       try {
         setLoading(true);
-        setContacts(prev => prev.filter(contact => contact.id !== id));
+        await apiService.deleteContact(id);
+        setContacts(prev => prev.filter(contact => contact.id !== id && contact._id !== id));
       } catch (error) {
         console.error('Error deleting contact:', error);
         setError('Failed to delete contact. Please try again.');
@@ -340,21 +209,29 @@ export default function App() {
     }
   };
 
-  // Interview CRUD functions
+  // Interview CRUD functions with API
   const addInterview = async (interviewData) => {
     try {
       setLoading(true);
-      const newInterview = {
-        ...interviewData,
-        id: Date.now(),
-        rounds: []
-      };
+      
+      // Auto-match referral contact if not set
+      if (!interviewData.referralContactId && interviewData.firm) {
+        const matchingContact = contacts.find(contact => 
+          contact.firm.toLowerCase() === interviewData.firm.toLowerCase()
+        );
+        if (matchingContact) {
+          interviewData.referralContactId = matchingContact._id || matchingContact.id;
+        }
+      }
+      
+      const response = await apiService.createInterview(interviewData);
+      const newInterview = response.interview;
       setInterviews(prev => [newInterview, ...prev]);
       return newInterview;
     } catch (error) {
       console.error('Error adding interview:', error);
       setError('Failed to add interview. Please try again.');
-      return newInterview;
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -363,14 +240,16 @@ export default function App() {
   const updateInterview = async (updatedInterview) => {
     try {
       setLoading(true);
+      const response = await apiService.updateInterview(updatedInterview.id || updatedInterview._id, updatedInterview);
+      const updated = response.interview;
       setInterviews(prev => prev.map(interview => 
-        interview.id === updatedInterview.id ? updatedInterview : interview
+        (interview.id === updated.id || interview._id === updated._id) ? updated : interview
       ));
-      return updatedInterview;
+      return updated;
     } catch (error) {
       console.error('Error updating interview:', error);
       setError('Failed to update interview. Please try again.');
-      return updatedInterview;
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -380,7 +259,8 @@ export default function App() {
     if (window.confirm('Are you sure you want to delete this interview?')) {
       try {
         setLoading(true);
-        setInterviews(prev => prev.filter(interview => interview.id !== id));
+        await apiService.deleteInterview(id);
+        setInterviews(prev => prev.filter(interview => interview.id !== id && interview._id !== id));
       } catch (error) {
         console.error('Error deleting interview:', error);
         setError('Failed to delete interview. Please try again.');
@@ -390,17 +270,14 @@ export default function App() {
     }
   };
 
-  // Other helper functions...
+  // Interaction functions with API
   const addInteraction = async (contactId, interactionData) => {
     try {
-      const newInteraction = {
-        ...interactionData,
-        id: Date.now(),
-        createdAt: new Date()
-      };
+      const response = await apiService.addInteraction(contactId, interactionData);
+      const newInteraction = response.interaction;
 
       setContacts(prev => prev.map(contact => {
-        if (contact.id === contactId) {
+        if (contact.id === contactId || contact._id === contactId) {
           return {
             ...contact,
             interactions: [newInteraction, ...(contact.interactions || [])]
@@ -413,40 +290,47 @@ export default function App() {
     } catch (error) {
       console.error('Error adding interaction:', error);
       setError('Failed to add interaction. Please try again.');
-      return newInteraction;
+      throw error;
     }
   };
 
   const updateInteraction = async (contactId, interactionId, updatedInteraction) => {
     try {
+      const response = await apiService.updateInteraction(contactId, interactionId, updatedInteraction);
+      const updated = response.interaction;
+
       setContacts(prev => prev.map(contact => {
-        if (contact.id === contactId) {
+        if (contact.id === contactId || contact._id === contactId) {
           return {
             ...contact,
             interactions: contact.interactions.map(interaction =>
-              interaction.id === interactionId ? updatedInteraction : interaction
+              (interaction.id === interactionId || interaction._id === interactionId) ? updated : interaction
             )
           };
         }
         return contact;
       }));
 
-      return updatedInteraction;
+      return updated;
     } catch (error) {
       console.error('Error updating interaction:', error);
       setError('Failed to update interaction. Please try again.');
-      return updatedInteraction;
+      throw error;
     }
   };
 
   const deleteInteraction = async (contactId, interactionId) => {
     if (window.confirm('Are you sure you want to delete this interaction?')) {
       try {
+        await apiService.deleteInteraction(contactId, interactionId);
+        
         setContacts(prev => prev.map(contact => {
-          if (contact.id === contactId) {
+          if (contact.id === contactId || contact._id === contactId) {
             return {
               ...contact,
-              interactions: contact.interactions.filter(interaction => interaction.id !== interactionId)
+              interactions: contact.interactions.filter(interaction => 
+                interaction.id !== interactionId && interaction._id !== interactionId
+              )
             };
           }
           return contact;
@@ -458,17 +342,14 @@ export default function App() {
     }
   };
 
-  // Interview round functions
+  // Interview round functions with API
   const addInterviewRound = async (interviewId, roundData) => {
     try {
-      const newRound = {
-        ...roundData,
-        id: Date.now(),
-        createdAt: new Date()
-      };
+      const response = await apiService.addInterviewRound(interviewId, roundData);
+      const newRound = response.round;
 
       setInterviews(prev => prev.map(interview => {
-        if (interview.id === interviewId) {
+        if (interview.id === interviewId || interview._id === interviewId) {
           return {
             ...interview,
             rounds: [...(interview.rounds || []), newRound]
@@ -481,40 +362,47 @@ export default function App() {
     } catch (error) {
       console.error('Error adding interview round:', error);
       setError('Failed to add interview round. Please try again.');
-      return newRound;
+      throw error;
     }
   };
 
   const updateInterviewRound = async (interviewId, roundId, updatedRound) => {
     try {
+      const response = await apiService.updateInterviewRound(interviewId, roundId, updatedRound);
+      const updated = response.round;
+
       setInterviews(prev => prev.map(interview => {
-        if (interview.id === interviewId) {
+        if (interview.id === interviewId || interview._id === interviewId) {
           return {
             ...interview,
             rounds: interview.rounds.map(round =>
-              round.id === roundId ? updatedRound : round
+              (round.id === roundId || round._id === roundId) ? updated : round
             )
           };
         }
         return interview;
       }));
 
-      return updatedRound;
+      return updated;
     } catch (error) {
       console.error('Error updating interview round:', error);
       setError('Failed to update interview round. Please try again.');
-      return updatedRound;
+      throw error;
     }
   };
 
   const deleteInterviewRound = async (interviewId, roundId) => {
     if (window.confirm('Are you sure you want to delete this interview round?')) {
       try {
+        await apiService.deleteInterviewRound(interviewId, roundId);
+        
         setInterviews(prev => prev.map(interview => {
-          if (interview.id === interviewId) {
+          if (interview.id === interviewId || interview._id === interviewId) {
             return {
               ...interview,
-              rounds: interview.rounds.filter(round => round.id !== roundId)
+              rounds: interview.rounds.filter(round => 
+                round.id !== roundId && round._id !== roundId
+              )
             };
           }
           return interview;
@@ -526,35 +414,22 @@ export default function App() {
     }
   };
 
-  // Document management functions
+  // Document management functions with API
   const addDocument = async (documentData) => {
     try {
       setLoading(true);
       
-      let processedDocumentData = { ...documentData };
-      
-      if (documentData.file) {
-        processedDocumentData.fileData = {
-          name: documentData.file.name,
-          size: documentData.file.size,
-          type: documentData.file.type,
-          content: documentData.file
-        };
-        delete processedDocumentData.file;
-      }
-      
-      const newDocument = {
-        ...processedDocumentData,
-        id: Date.now(),
-        uploadDate: new Date().toISOString().split('T')[0]
-      };
+      // For file uploads, you'll need to implement FormData handling
+      // This is a simplified version
+      const response = await apiService.createDocument(documentData);
+      const newDocument = response.document;
       setDocuments(prev => [newDocument, ...prev]);
       
       return newDocument;
     } catch (error) {
       console.error('Error adding document:', error);
       setError('Failed to add document. Please try again.');
-      return newDocument;
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -563,16 +438,18 @@ export default function App() {
   const updateDocument = async (updatedDocument) => {
     try {
       setLoading(true);
+      const response = await apiService.updateDocument(updatedDocument.id || updatedDocument._id, updatedDocument);
+      const updated = response.document;
       
       setDocuments(prev => prev.map(doc => 
-        doc.id === updatedDocument.id ? updatedDocument : doc
+        (doc.id === updated.id || doc._id === updated._id) ? updated : doc
       ));
       
-      return updatedDocument;
+      return updated;
     } catch (error) {
       console.error('Error updating document:', error);
       setError('Failed to update document. Please try again.');
-      return updatedDocument;
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -582,7 +459,8 @@ export default function App() {
     if (window.confirm('Are you sure you want to delete this document?')) {
       try {
         setLoading(true);
-        setDocuments(prev => prev.filter(doc => doc.id !== id));
+        await apiService.deleteDocument(id);
+        setDocuments(prev => prev.filter(doc => doc.id !== id && doc._id !== id));
       } catch (error) {
         console.error('Error deleting document:', error);
         setError('Failed to delete document. Please try again.');
@@ -599,6 +477,7 @@ export default function App() {
   };
 
   const showInterviewDetail = (interviewId) => {
+    // When clicking on an interview from Recent interviews, open the specific detail page
     setSelectedInterviewId(interviewId);
     setCurrentView('interview-detail');
   };
@@ -613,9 +492,9 @@ export default function App() {
     setSelectedInterviewId(null);
   };
 
-  // Get selected items
-  const selectedContact = contacts.find(c => c.id === selectedContactId);
-  const selectedInterview = interviews.find(i => i.id === selectedInterviewId);
+  // Get selected items - handle both id and _id
+  const selectedContact = contacts.find(c => c.id === selectedContactId || c._id === selectedContactId);
+  const selectedInterview = interviews.find(i => i.id === selectedInterviewId || i._id === selectedInterviewId);
 
   // Error notification component
   const ErrorNotification = () => {
@@ -666,8 +545,8 @@ export default function App() {
     setError(null);
   };
 
-  // Show loading while checking auth
-  if (authLoading) {
+  // Show loading while checking auth or loading data
+  if (authLoading || (user && dataLoading)) {
     return <LoadingFallback />;
   }
 
@@ -805,13 +684,17 @@ export default function App() {
       <div className="flex bg-gray-50 min-h-screen">
         <Navigation 
           activeTab={activeTab} 
-          setActiveTab={setActiveTab}
+          setActiveTab={(tab) => {
+            setActiveTab(tab);
+            goBack();
+          }}
           onShowSettings={showSettings}
           onLogout={handleLogout}
         />
         <Suspense fallback={<LoadingFallback />}>
           <Settings
             onBack={goBack}
+            onLogout={handleLogout}
           />
         </Suspense>
         
@@ -837,6 +720,7 @@ export default function App() {
               contacts={contacts}
               interviews={interviews}
               onShowContactDetail={showContactDetail}
+              onShowInterviewDetail={showInterviewDetail}
               setActiveTab={setActiveTab}
             />
           )}
