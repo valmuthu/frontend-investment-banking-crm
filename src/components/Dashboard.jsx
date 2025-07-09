@@ -5,32 +5,16 @@ import {
   ArrowUp, ArrowDown, Eye, Building2, MessageSquare,
   UserCheck, Percent, Filter, TrendingDown, Info
 } from 'lucide-react';
-import apiService from '../services/apiService';
 
 const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) => {
   const [dashboardStats, setDashboardStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load dashboard data from API
+  // Load dashboard data
   useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      const data = await apiService.getDashboardStats();
-      setDashboardStats(data);
-    } catch (err) {
-      console.error('Failed to load dashboard data:', err);
-      setError('Failed to load dashboard statistics');
-      // Fall back to calculating from props
-      calculateStatsFromProps();
-    } finally {
-      setLoading(false);
-    }
-  };
+    calculateStatsFromProps();
+  }, [contacts, interviews]);
 
   const calculateStatsFromProps = () => {
     // Fallback calculation using the contacts and interviews props
@@ -490,7 +474,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) 
           <h3 className="text-xl font-semibold text-gray-900 mb-3">Failed to Load Dashboard</h3>
           <p className="text-gray-500 mb-8">{error}</p>
           <button
-            onClick={loadDashboardData}
+            onClick={calculateStatsFromProps}
             className="btn-primary"
           >
             Try Again
