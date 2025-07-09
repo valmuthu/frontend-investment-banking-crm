@@ -1,10 +1,10 @@
 // src/components/LoginForm.jsx
 import { useState, useEffect } from 'react';
-import { Building2, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { Building2, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, Wifi, WifiOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const LoginForm = () => {
-  const { login, signup, loading, error, clearError, testConnection } = useAuth();
+  const { login, signup, loading, error, clearError, testConnection, isOfflineMode } = useAuth();
   const [isSignup, setIsSignup] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -81,8 +81,6 @@ const LoginForm = () => {
       errors.password = 'Password is required';
     } else if (isSignup && formData.password.length < 8) {
       errors.password = 'Password must be at least 8 characters long';
-    } else if (isSignup && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      errors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
     }
 
     // Confirm password validation (signup only)
@@ -105,7 +103,8 @@ const LoginForm = () => {
     console.log('📝 Form submission:', { 
       isSignup, 
       email: formData.email,
-      hasPassword: !!formData.password 
+      hasPassword: !!formData.password,
+      isOfflineMode 
     });
 
     // Validate form
@@ -193,22 +192,47 @@ const LoginForm = () => {
             <div className={`mt-4 p-3 rounded-lg text-sm ${
               connectionStatus.success 
                 ? 'bg-green-50 text-green-800 border border-green-200' 
+                : connectionStatus.offline
+                ? 'bg-amber-50 text-amber-800 border border-amber-200'
                 : 'bg-red-50 text-red-800 border border-red-200'
             }`}>
               <div className="flex items-center">
                 <div className={`w-2 h-2 rounded-full mr-2 ${
-                  connectionStatus.success ? 'bg-green-500' : 'bg-red-500'
+                  connectionStatus.success ? 'bg-green-500' : 
+                  connectionStatus.offline ? 'bg-amber-500' : 'bg-red-500'
                 }`}></div>
-                {connectionStatus.success 
-                  ? '✅ Connected to server' 
-                  : '❌ Unable to connect to server'
-                }
+                {connectionStatus.success ? (
+                  <>
+                    <Wifi className="w-4 h-4 mr-1" />
+                    Connected to server
+                  </>
+                ) : connectionStatus.offline ? (
+                  <>
+                    <WifiOff className="w-4 h-4 mr-1" />
+                    Offline mode - Demo functionality available
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="w-4 h-4 mr-1" />
+                    Unable to connect to server
+                  </>
+                )}
               </div>
-              {!connectionStatus.success && (
+              {connectionStatus.offline && (
                 <p className="mt-1 text-xs">
-                  Please check if the backend server is running. Using API URL: {import.meta.env.VITE_API_URL || 'http://localhost:5000'}
+                  You can still try the demo with any email and password. Your data will be stored locally.
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Offline Mode Notice */}
+          {isOfflineMode && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-sm">
+              <div className="flex items-center">
+                <CheckCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span>Demo Mode Active - Try any email and password to explore the app!</span>
+              </div>
             </div>
           )}
         </div>
@@ -277,7 +301,7 @@ const LoginForm = () => {
                   className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                     getFieldError('email') ? 'border-red-300' : 'border-gray-300'
                   }`}
-                  placeholder="Enter your email"
+                  placeholder={isOfflineMode ? "Try any email (e.g., demo@example.com)" : "Enter your email"}
                 />
               </div>
               {getFieldError('email') && (
@@ -303,7 +327,7 @@ const LoginForm = () => {
                   className={`w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                     getFieldError('password') ? 'border-red-300' : 'border-gray-300'
                   }`}
-                  placeholder={isSignup ? 'Create a password (min. 8 characters)' : 'Enter your password'}
+                  placeholder={isOfflineMode ? "Any password works in demo mode" : isSignup ? 'Create a password (min. 8 characters)' : 'Enter your password'}
                 />
                 <button
                   type="button"
@@ -320,7 +344,7 @@ const LoginForm = () => {
               {getFieldError('password') && (
                 <p className="mt-1 text-sm text-red-600">{getFieldError('password')}</p>
               )}
-              {isSignup && !getFieldError('password') && (
+              {isSignup && !getFieldError('password') && !isOfflineMode && (
                 <p className="mt-1 text-xs text-gray-500">
                   Password must be at least 8 characters with uppercase, lowercase, and number
                 </p>
@@ -370,7 +394,7 @@ const LoginForm = () => {
           <div>
             <button
               type="submit"
-              disabled={loading || !isFormValid()}
+              disabled={loading || (!isOfflineMode && !isFormValid())}
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (
@@ -397,6 +421,19 @@ const LoginForm = () => {
             </button>
           </div>
 
+          {/* Demo Instructions in Offline Mode */}
+          {isOfflineMode && (
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-600">
+              <p><strong>Demo Instructions:</strong></p>
+              <ul className="mt-1 list-disc list-inside space-y-1">
+                <li>Use any email format (e.g., demo@example.com)</li>
+                <li>Use any password (minimum 1 character)</li>
+                <li>All features work with sample data</li>
+                <li>Data is stored locally in your browser</li>
+              </ul>
+            </div>
+          )}
+
           {/* Debug Info in Development */}
           {import.meta.env.DEV && (
             <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
@@ -405,6 +442,7 @@ const LoginForm = () => {
               <p>Environment: {import.meta.env.MODE}</p>
               <p>Form valid: {isFormValid() ? 'Yes' : 'No'}</p>
               <p>Has token: {localStorage.getItem('authToken') ? 'Yes' : 'No'}</p>
+              <p>Offline mode: {isOfflineMode ? 'Yes' : 'No'}</p>
               {connectionStatus && (
                 <p>Connection: {connectionStatus.success ? 'OK' : 'Failed'}</p>
               )}
