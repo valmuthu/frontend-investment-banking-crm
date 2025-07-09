@@ -1,32 +1,42 @@
 // src/App.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Building2 } from 'lucide-react';
-
-// Import components individually to avoid circular dependencies
-import Dashboard from './components/Dashboard';
-import Contacts from './components/Contacts';
-import Interviews from './components/Interviews';
-import Documents from './components/Documents';
-import ContactDetailPage from './components/ContactDetailPage';
-import InterviewDetailPage from './components/InterviewDetailPage';
-import Navigation from './components/Navigation';
-import Settings from './components/Settings';
-import LandingPage from './components/LandingPage';
-import FeaturesPage from './components/FeaturesPage';
-import AdditionalFeaturesPage from './components/AdditionalFeaturesPage';
-import LoginForm from './components/LoginForm';
-
-// Import modals separately
-import { 
-  ContactModal, 
-  EditContactModal, 
-  InterviewModal, 
-  EditInterviewModal, 
-  CallModal 
-} from './components/Modals';
 
 // Import auth context
 import { useAuth } from './contexts/AuthContext';
+
+// Import only essential components directly
+import Navigation from './components/Navigation';
+import LoginForm from './components/LoginForm';
+
+// Lazy load heavy components to avoid circular dependencies
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const Contacts = lazy(() => import('./components/Contacts'));
+const Interviews = lazy(() => import('./components/Interviews'));
+const Documents = lazy(() => import('./components/Documents'));
+const ContactDetailPage = lazy(() => import('./components/ContactDetailPage'));
+const InterviewDetailPage = lazy(() => import('./components/InterviewDetailPage'));
+const Settings = lazy(() => import('./components/Settings'));
+const LandingPage = lazy(() => import('./components/LandingPage'));
+const FeaturesPage = lazy(() => import('./components/FeaturesPage'));
+const AdditionalFeaturesPage = lazy(() => import('./components/AdditionalFeaturesPage'));
+
+// Lazy load modals
+const ContactModal = lazy(() => import('./components/Modals').then(module => ({ default: module.ContactModal })));
+const EditContactModal = lazy(() => import('./components/Modals').then(module => ({ default: module.EditContactModal })));
+const InterviewModal = lazy(() => import('./components/Modals').then(module => ({ default: module.InterviewModal })));
+const EditInterviewModal = lazy(() => import('./components/Modals').then(module => ({ default: module.EditInterviewModal })));
+const CallModal = lazy(() => import('./components/Modals').then(module => ({ default: module.CallModal })));
+
+// Loading component
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="flex items-center space-x-3">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <span className="text-gray-600">Loading...</span>
+    </div>
+  </div>
+);
 
 export default function App() {
   // Use auth context directly
@@ -658,14 +668,7 @@ export default function App() {
 
   // Show loading while checking auth
   if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex items-center space-x-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="text-gray-600">Loading...</span>
-        </div>
-      </div>
-    );
+    return <LoadingFallback />;
   }
 
   // Public pages (before login)
@@ -676,28 +679,34 @@ export default function App() {
     
     if (currentPage === 'features') {
       return (
-        <FeaturesPage 
-          onShowLogin={() => setCurrentPage('login')}
-          onShowSignup={() => setCurrentPage('login')}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <FeaturesPage 
+            onShowLogin={() => setCurrentPage('login')}
+            onShowSignup={() => setCurrentPage('login')}
+          />
+        </Suspense>
       );
     }
     
     if (currentPage === 'additional-features') {
       return (
-        <AdditionalFeaturesPage 
-          onShowLogin={() => setCurrentPage('login')}
-          onShowSignup={() => setCurrentPage('login')}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <AdditionalFeaturesPage 
+            onShowLogin={() => setCurrentPage('login')}
+            onShowSignup={() => setCurrentPage('login')}
+          />
+        </Suspense>
       );
     }
     
     // Default to landing page
     return (
-      <LandingPage 
-        onShowLogin={() => setCurrentPage('login')}
-        onShowSignup={() => setCurrentPage('login')}
-      />
+      <Suspense fallback={<LoadingFallback />}>
+        <LandingPage 
+          onShowLogin={() => setCurrentPage('login')}
+          onShowSignup={() => setCurrentPage('login')}
+        />
+      </Suspense>
     );
   }
 
@@ -714,28 +723,30 @@ export default function App() {
           onShowSettings={showSettings}
           onLogout={handleLogout}
         />
-        <ContactDetailPage
-          contact={selectedContact}
-          onBack={goBack}
-          onEdit={setEditingContact}
-          onUpdateContact={updateContact}
-          onAddInteraction={addInteraction}
-          onUpdateInteraction={updateInteraction}
-          onDeleteInteraction={deleteInteraction}
-          networkingStatuses={networkingStatuses}
-          nextStepsOptions={nextStepsOptions}
-          groups={groups}
-        />
-        
-        <EditContactModal 
-          isOpen={!!editingContact}
-          contact={editingContact}
-          onClose={() => setEditingContact(null)}
-          onSubmit={updateContact}
-          networkingStatuses={networkingStatuses}
-          nextStepsOptions={nextStepsOptions}
-          groups={groups}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <ContactDetailPage
+            contact={selectedContact}
+            onBack={goBack}
+            onEdit={setEditingContact}
+            onUpdateContact={updateContact}
+            onAddInteraction={addInteraction}
+            onUpdateInteraction={updateInteraction}
+            onDeleteInteraction={deleteInteraction}
+            networkingStatuses={networkingStatuses}
+            nextStepsOptions={nextStepsOptions}
+            groups={groups}
+          />
+          
+          <EditContactModal 
+            isOpen={!!editingContact}
+            contact={editingContact}
+            onClose={() => setEditingContact(null)}
+            onSubmit={updateContact}
+            networkingStatuses={networkingStatuses}
+            nextStepsOptions={nextStepsOptions}
+            groups={groups}
+          />
+        </Suspense>
         
         <ErrorNotification />
         <LoadingOverlay />
@@ -755,31 +766,33 @@ export default function App() {
           onShowSettings={showSettings}
           onLogout={handleLogout}
         />
-        <InterviewDetailPage
-          interview={selectedInterview}
-          contacts={contacts}
-          onBack={goBack}
-          onEdit={setEditingInterview}
-          onUpdateInterview={updateInterview}
-          onAddRound={addInterviewRound}
-          onUpdateRound={updateInterviewRound}
-          onDeleteRound={deleteInterviewRound}
-          onShowContactDetail={showContactDetail}
-          interviewStages={interviewStages}
-          interviewNextSteps={interviewNextSteps}
-          groups={groups}
-        />
-        
-        <EditInterviewModal 
-          isOpen={!!editingInterview}
-          interview={editingInterview}
-          onClose={() => setEditingInterview(null)}
-          onSubmit={updateInterview}
-          interviewStages={interviewStages}
-          interviewNextSteps={interviewNextSteps}
-          groups={groups}
-          contacts={contacts}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <InterviewDetailPage
+            interview={selectedInterview}
+            contacts={contacts}
+            onBack={goBack}
+            onEdit={setEditingInterview}
+            onUpdateInterview={updateInterview}
+            onAddRound={addInterviewRound}
+            onUpdateRound={updateInterviewRound}
+            onDeleteRound={deleteInterviewRound}
+            onShowContactDetail={showContactDetail}
+            interviewStages={interviewStages}
+            interviewNextSteps={interviewNextSteps}
+            groups={groups}
+          />
+          
+          <EditInterviewModal 
+            isOpen={!!editingInterview}
+            interview={editingInterview}
+            onClose={() => setEditingInterview(null)}
+            onSubmit={updateInterview}
+            interviewStages={interviewStages}
+            interviewNextSteps={interviewNextSteps}
+            groups={groups}
+            contacts={contacts}
+          />
+        </Suspense>
         
         <ErrorNotification />
         <LoadingOverlay />
@@ -796,9 +809,11 @@ export default function App() {
           onShowSettings={showSettings}
           onLogout={handleLogout}
         />
-        <Settings
-          onBack={goBack}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <Settings
+            onBack={goBack}
+          />
+        </Suspense>
         
         <ErrorNotification />
         <LoadingOverlay />
@@ -816,105 +831,109 @@ export default function App() {
       />
       
       <div className="flex-1">
-        {activeTab === 'dashboard' && (
-          <Dashboard 
-            contacts={contacts}
-            interviews={interviews}
-            onShowContactDetail={showContactDetail}
-            setActiveTab={setActiveTab}
-          />
-        )}
-        
-        {activeTab === 'contacts' && (
-          <Contacts 
-            contacts={contacts}
-            networkingStatuses={networkingStatuses}
-            nextStepsOptions={nextStepsOptions}
-            groups={groups}
-            onEdit={setEditingContact}
-            onDelete={deleteContact}
-            onAdd={() => setShowContactModal(true)}
-            onShowContactDetail={showContactDetail}
-          />
-        )}
-        
-        {activeTab === 'interviews' && (
-          <Interviews 
-            interviews={interviews}
-            contacts={contacts}
-            interviewStages={interviewStages}
-            interviewNextSteps={interviewNextSteps}
-            groups={groups}
-            onEdit={setEditingInterview}
-            onDelete={deleteInterview}
-            onAdd={() => setShowInterviewModal(true)}
-            onShowContactDetail={showContactDetail}
-            onShowInterviewDetail={showInterviewDetail}
-          />
-        )}
+        <Suspense fallback={<LoadingFallback />}>
+          {activeTab === 'dashboard' && (
+            <Dashboard 
+              contacts={contacts}
+              interviews={interviews}
+              onShowContactDetail={showContactDetail}
+              setActiveTab={setActiveTab}
+            />
+          )}
+          
+          {activeTab === 'contacts' && (
+            <Contacts 
+              contacts={contacts}
+              networkingStatuses={networkingStatuses}
+              nextStepsOptions={nextStepsOptions}
+              groups={groups}
+              onEdit={setEditingContact}
+              onDelete={deleteContact}
+              onAdd={() => setShowContactModal(true)}
+              onShowContactDetail={showContactDetail}
+            />
+          )}
+          
+          {activeTab === 'interviews' && (
+            <Interviews 
+              interviews={interviews}
+              contacts={contacts}
+              interviewStages={interviewStages}
+              interviewNextSteps={interviewNextSteps}
+              groups={groups}
+              onEdit={setEditingInterview}
+              onDelete={deleteInterview}
+              onAdd={() => setShowInterviewModal(true)}
+              onShowContactDetail={showContactDetail}
+              onShowInterviewDetail={showInterviewDetail}
+            />
+          )}
 
-        {activeTab === 'documents' && (
-          <Documents 
-            documents={documents}
-            contacts={contacts}
-            onAdd={addDocument}
-            onEdit={updateDocument}
-            onDelete={deleteDocument}
-          />
-        )}
+          {activeTab === 'documents' && (
+            <Documents 
+              documents={documents}
+              contacts={contacts}
+              onAdd={addDocument}
+              onEdit={updateDocument}
+              onDelete={deleteDocument}
+            />
+          )}
+        </Suspense>
       </div>
 
       {/* Modals */}
-      <ContactModal 
-        isOpen={showContactModal}
-        onClose={() => setShowContactModal(false)}
-        onSubmit={addContact}
-        networkingStatuses={networkingStatuses}
-        nextStepsOptions={nextStepsOptions}
-        groups={groups}
-      />
+      <Suspense fallback={null}>
+        <ContactModal 
+          isOpen={showContactModal}
+          onClose={() => setShowContactModal(false)}
+          onSubmit={addContact}
+          networkingStatuses={networkingStatuses}
+          nextStepsOptions={nextStepsOptions}
+          groups={groups}
+        />
 
-      <EditContactModal 
-        isOpen={!!editingContact}
-        contact={editingContact}
-        onClose={() => setEditingContact(null)}
-        onSubmit={updateContact}
-        networkingStatuses={networkingStatuses}
-        nextStepsOptions={nextStepsOptions}
-        groups={groups}
-      />
+        <EditContactModal 
+          isOpen={!!editingContact}
+          contact={editingContact}
+          onClose={() => setEditingContact(null)}
+          onSubmit={updateContact}
+          networkingStatuses={networkingStatuses}
+          nextStepsOptions={nextStepsOptions}
+          groups={groups}
+        />
 
-      <InterviewModal 
-        isOpen={showInterviewModal}
-        onClose={() => setShowInterviewModal(false)}
-        onSubmit={addInterview}
-        interviewStages={interviewStages}
-        interviewNextSteps={interviewNextSteps}
-        groups={groups}
-        contacts={contacts}
-      />
+        <InterviewModal 
+          isOpen={showInterviewModal}
+          onClose={() => setShowInterviewModal(false)}
+          onSubmit={addInterview}
+          interviewStages={interviewStages}
+          interviewNextSteps={interviewNextSteps}
+          groups={groups}
+          contacts={contacts}
+        />
 
-      <EditInterviewModal 
-        isOpen={!!editingInterview}
-        interview={editingInterview}
-        onClose={() => setEditingInterview(null)}
-        onSubmit={updateInterview}
-        interviewStages={interviewStages}
-        interviewNextSteps={interviewNextSteps}
-        groups={groups}
-        contacts={contacts}
-      />
+        <EditInterviewModal 
+          isOpen={!!editingInterview}
+          interview={editingInterview}
+          onClose={() => setEditingInterview(null)}
+          onSubmit={updateInterview}
+          interviewStages={interviewStages}
+          interviewNextSteps={interviewNextSteps}
+          groups={groups}
+          contacts={contacts}
+        />
 
-      <CallModal 
-        isOpen={showCallModal}
-        onClose={() => setShowCallModal(false)}
-        onSubmit={(data) => {
-          if (selectedContactId) {
-            addInteraction(selectedContactId, data);
-          }
-          setShowCallModal(false);
-        }}
-      />
+        <CallModal 
+          isOpen={showCallModal}
+          onClose={() => setShowCallModal(false)}
+          onSubmit={(data) => {
+            if (selectedContactId) {
+              addInteraction(selectedContactId, data);
+            }
+            setShowCallModal(false);
+          }}
+        />
+      </Suspense>
       
       <ErrorNotification />
       <LoadingOverlay />
