@@ -5,30 +5,16 @@ import {
   ArrowUp, ArrowDown, Eye, Building2, MessageSquare,
   UserCheck, Percent, Filter, TrendingDown, Info
 } from 'lucide-react';
-import apiService from '../services/apiService';
 
-const Dashboard = ({ contacts, interviews, onShowContactDetail, onShowInterviewDetail, setActiveTab }) => {
+const Dashboard = ({ contacts, interviews, onShowContactDetail, setActiveTab }) => {
   const [dashboardStats, setDashboardStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load dashboard data from API
+  // Load dashboard data
   useEffect(() => {
-    loadDashboardStats();
+    calculateStatsFromProps();
   }, [contacts, interviews]);
-
-  const loadDashboardStats = async () => {
-    try {
-      setLoading(true);
-      const stats = await apiService.getDashboardStats();
-      setDashboardStats(stats);
-    } catch (error) {
-      console.log('Failed to load dashboard stats, using local calculation');
-      calculateStatsFromProps();
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const calculateStatsFromProps = () => {
     // Fallback calculation using the contacts and interviews props
@@ -68,28 +54,6 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, onShowInterviewD
         followUps: []
       }
     });
-  };
-
-  // Get firm logo URL
-  const getFirmLogo = (firmName) => {
-    const logoMap = {
-      'Goldman Sachs': 'https://logo.clearbit.com/goldmansachs.com',
-      'Morgan Stanley': 'https://logo.clearbit.com/morganstanley.com',
-      'JPMorgan Chase': 'https://logo.clearbit.com/jpmorgan.com',
-      'Deutsche Bank': 'https://logo.clearbit.com/db.com',
-      'Credit Suisse': 'https://logo.clearbit.com/credit-suisse.com',
-      'UBS': 'https://logo.clearbit.com/ubs.com',
-      'Barclays': 'https://logo.clearbit.com/barclays.com',
-      'Citi': 'https://logo.clearbit.com/citigroup.com',
-      'Bank of America': 'https://logo.clearbit.com/bankofamerica.com',
-      'Wells Fargo': 'https://logo.clearbit.com/wellsfargo.com',
-      'Evercore': 'https://logo.clearbit.com/evercore.com',
-      'Lazard': 'https://logo.clearbit.com/lazard.com',
-      'Rothschild': 'https://logo.clearbit.com/rothschild.com',
-      'Jefferies': 'https://logo.clearbit.com/jefferies.com',
-      'PJT Partners': 'https://logo.clearbit.com/pjtpartners.com'
-    };
-    return logoMap[firmName] || null;
   };
 
   // Calculate KPIs - use API data if available, otherwise fallback
@@ -219,7 +183,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, onShowInterviewD
         return taskDate >= today && taskDate <= nextWeek;
       })
       .map(i => ({
-        id: i.id || i._id,
+        id: i.id,
         type: 'interview',
         category: 'Interview',
         title: i.nextSteps,
@@ -235,7 +199,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, onShowInterviewD
         return taskDate >= today && taskDate <= nextWeek;
       })
       .map(c => ({
-        id: c.id || c._id,
+        id: c.id,
         type: 'networking',
         category: 'Networking',
         title: c.nextSteps,
@@ -448,9 +412,9 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, onShowInterviewD
         <div className="space-y-3 max-h-80 overflow-y-auto">
           {contacts.map(contact => (
             <div 
-              key={contact.id || contact._id} 
+              key={contact.id} 
               className="flex items-center p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg hover:from-amber-100 hover:to-orange-100 transition-all duration-300 cursor-pointer group shadow-sm"
-              onClick={() => onShowContactDetail(contact.id || contact._id)}
+              onClick={() => onShowContactDetail(contact.id)}
             >
               <div className="w-12 h-12 gradient-blue rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4 shadow-sm">
                 {contact.name.split(' ').map(n => n[0]).join('')}
@@ -623,9 +587,9 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, onShowInterviewD
           <div className="space-y-3 max-h-80 overflow-y-auto">
             {(dashboardStats?.recent?.contacts || contacts.slice(0, 6)).map(contact => (
               <div 
-                key={contact.id || contact._id} 
+                key={contact.id} 
                 className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer group border border-gray-100 hover:border-blue-200"
-                onClick={() => onShowContactDetail(contact.id || contact._id)}
+                onClick={() => onShowContactDetail(contact.id)}
               >
                 <div className="w-12 h-12 gradient-blue rounded-lg flex items-center justify-center text-white text-sm font-bold mr-4 shadow-sm">
                   {contact.name.split(' ').map(n => n[0]).join('')}
@@ -642,7 +606,7 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, onShowInterviewD
         </div>
       </div>
 
-      {/* Recent Interviews - UPDATED with firm logos and proper click handling */}
+      {/* Recent Interviews */}
       <div className="grid grid-cols-1 gap-8">
         <div className="card-base p-6">
           <div className="flex items-center justify-between mb-6">
@@ -669,30 +633,13 @@ const Dashboard = ({ contacts, interviews, onShowContactDetail, onShowInterviewD
                 }
               };
 
-              const firmLogo = getFirmLogo(interview.firm);
-
               return (
                 <div 
-                  key={interview.id || interview._id} 
+                  key={interview.id} 
                   className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer group border border-gray-100 hover:border-blue-200"
-                  onClick={() => onShowInterviewDetail(interview.id || interview._id)}
+                  onClick={() => setActiveTab('interviews')}
                 >
-                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-4 shadow-sm overflow-hidden border border-gray-200">
-                    {firmLogo ? (
-                      <img 
-                        src={firmLogo} 
-                        alt={interview.firm}
-                        className="w-8 h-8 object-contain"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    <div className={`${firmLogo ? 'hidden' : 'flex'} w-full h-full items-center justify-center`}>
-                      <Building2 className="w-6 h-6 text-gray-400" />
-                    </div>
-                  </div>
+                  <Building2 className="w-10 h-10 text-gray-400 mr-4" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-800 truncate">{interview.firm}</p>
                     <p className="text-sm text-gray-600 truncate">{interview.position}</p>
