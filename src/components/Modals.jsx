@@ -1,3 +1,4 @@
+// src/components/Modals.jsx
 import { useState, useEffect } from 'react';
 import { X, Calendar, User, Phone, Mail, Linkedin, Edit2, Plus, Award, ExternalLink } from 'lucide-react';
 
