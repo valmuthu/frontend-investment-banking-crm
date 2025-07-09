@@ -1,13 +1,16 @@
 // src/components/LoginForm.jsx
 import { useState, useEffect } from 'react';
-import { Building2, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Building2, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const LoginForm = () => {
   const { login, signup, loading, error, clearError, testConnection } = useAuth();
   const [isSignup, setIsSignup] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -18,17 +21,33 @@ const LoginForm = () => {
     }
   });
 
-  // Test API connection on component mount lol
+  // Test API connection on component mount
   useEffect(() => {
     const checkConnection = async () => {
+      console.log('🔍 Testing API connection...');
       const result = await testConnection();
       setConnectionStatus(result);
+      console.log('🌐 Connection result:', result);
     };
     checkConnection();
   }, [testConnection]);
 
+  // Clear errors when switching between login/signup
+  useEffect(() => {
+    clearError();
+    setValidationErrors({});
+  }, [isSignup, clearError]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Clear validation error for this field
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [name]: null
+      }));
+    }
     
     if (name.startsWith('profile.')) {
       const profileField = name.split('.')[1];
@@ -47,39 +66,82 @@ const LoginForm = () => {
     }
   };
 
+  const validateForm = () => {
+    const errors = {};
+
+    // Email validation
+    if (!formData.email) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    // Password validation
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    } else if (isSignup && formData.password.length < 8) {
+      errors.password = 'Password must be at least 8 characters long';
+    } else if (isSignup && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      errors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+    }
+
+    // Confirm password validation (signup only)
+    if (isSignup) {
+      if (!formData.confirmPassword) {
+        errors.confirmPassword = 'Please confirm your password';
+      } else if (formData.password !== formData.confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match';
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     clearError();
 
-    console.log('📝 Form submission:', { isSignup, email: formData.email });
+    console.log('📝 Form submission:', { 
+      isSignup, 
+      email: formData.email,
+      hasPassword: !!formData.password 
+    });
 
-    // Basic validation
-    if (!formData.email || !formData.password) {
+    // Validate form
+    if (!validateForm()) {
+      console.log('❌ Form validation failed:', validationErrors);
       return;
     }
 
     if (isSignup) {
-      if (formData.password !== formData.confirmPassword) {
-        return;
-      }
-      
+      console.log('📝 Attempting signup...');
       const result = await signup({
         email: formData.email,
         password: formData.password,
         profile: formData.profile
       });
       
+      console.log('📝 Signup result:', result);
+      
       if (result.success) {
-        console.log('✅ Signup successful, user logged in');
+        console.log('✅ Signup successful, user should be logged in');
+      } else {
+        console.log('❌ Signup failed:', result.error);
       }
     } else {
+      console.log('🔐 Attempting login...');
       const result = await login({
         email: formData.email,
         password: formData.password
       });
       
+      console.log('🔐 Login result:', result);
+      
       if (result.success) {
         console.log('✅ Login successful');
+      } else {
+        console.log('❌ Login failed:', result.error);
       }
     }
   };
@@ -87,6 +149,7 @@ const LoginForm = () => {
   const toggleMode = () => {
     setIsSignup(!isSignup);
     clearError();
+    setValidationErrors({});
     setFormData({
       email: '',
       password: '',
@@ -101,7 +164,12 @@ const LoginForm = () => {
   const isFormValid = () => {
     if (!formData.email || !formData.password) return false;
     if (isSignup && formData.password !== formData.confirmPassword) return false;
-    return true;
+    if (isSignup && formData.password.length < 8) return false;
+    return Object.keys(validationErrors).length === 0;
+  };
+
+  const getFieldError = (field) => {
+    return validationErrors[field];
   };
 
   return (
@@ -138,7 +206,7 @@ const LoginForm = () => {
               </div>
               {!connectionStatus.success && (
                 <p className="mt-1 text-xs">
-                  Please check if the backend server is running on http://localhost:5000
+                  Please check if the backend server is running. Using API URL: {import.meta.env.VITE_API_URL || 'http://localhost:5000'}
                 </p>
               )}
             </div>
@@ -146,6 +214,7 @@ const LoginForm = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {/* Global Error */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
               <div className="flex items-center">
@@ -156,6 +225,7 @@ const LoginForm = () => {
           )}
 
           <div className="space-y-4">
+            {/* Name fields for signup */}
             {isSignup && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -189,6 +259,7 @@ const LoginForm = () => {
               </div>
             )}
 
+            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email address
@@ -199,15 +270,22 @@ const LoginForm = () => {
                   id="email"
                   name="email"
                   type="email"
+                  autoComplete="email"
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                    getFieldError('email') ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   placeholder="Enter your email"
                 />
               </div>
+              {getFieldError('email') && (
+                <p className="mt-1 text-sm text-red-600">{getFieldError('email')}</p>
+              )}
             </div>
 
+            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Password
@@ -218,11 +296,14 @@ const LoginForm = () => {
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete={isSignup ? 'new-password' : 'current-password'}
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder={isSignup ? 'Create a password (min. 6 characters)' : 'Enter your password'}
+                  className={`w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                    getFieldError('password') ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder={isSignup ? 'Create a password (min. 8 characters)' : 'Enter your password'}
                 />
                 <button
                   type="button"
@@ -236,13 +317,17 @@ const LoginForm = () => {
                   )}
                 </button>
               </div>
-              {isSignup && (
+              {getFieldError('password') && (
+                <p className="mt-1 text-sm text-red-600">{getFieldError('password')}</p>
+              )}
+              {isSignup && !getFieldError('password') && (
                 <p className="mt-1 text-xs text-gray-500">
-                  Password must be at least 6 characters long
+                  Password must be at least 8 characters with uppercase, lowercase, and number
                 </p>
               )}
             </div>
 
+            {/* Confirm Password (signup only) */}
             {isSignup && (
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
@@ -253,16 +338,30 @@ const LoginForm = () => {
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
                     required
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={`w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                      getFieldError('confirmPassword') ? 'border-red-300' : 'border-gray-300'
+                    }`}
                     placeholder="Confirm your password"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
-                {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">Passwords do not match</p>
+                {getFieldError('confirmPassword') && (
+                  <p className="mt-1 text-sm text-red-600">{getFieldError('confirmPassword')}</p>
                 )}
               </div>
             )}
@@ -303,8 +402,12 @@ const LoginForm = () => {
             <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
               <p><strong>Debug Info:</strong></p>
               <p>API URL: {import.meta.env.VITE_API_URL || 'http://localhost:5000'}</p>
-              <p>Environment: {import.meta.env.DEV ? 'Development' : 'Production'}</p>
+              <p>Environment: {import.meta.env.MODE}</p>
               <p>Form valid: {isFormValid() ? 'Yes' : 'No'}</p>
+              <p>Has token: {localStorage.getItem('authToken') ? 'Yes' : 'No'}</p>
+              {connectionStatus && (
+                <p>Connection: {connectionStatus.success ? 'OK' : 'Failed'}</p>
+              )}
             </div>
           )}
         </form>
