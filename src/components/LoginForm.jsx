@@ -209,7 +209,7 @@ const LoginForm = () => {
                 ) : connectionStatus.offline ? (
                   <>
                     <WifiOff className="w-4 h-4 mr-1" />
-                    Offline mode - Demo functionality available
+                    Unable to reach server - Please check your connection
                   </>
                 ) : (
                   <>
@@ -217,21 +217,6 @@ const LoginForm = () => {
                     Unable to connect to server
                   </>
                 )}
-              </div>
-              {connectionStatus.offline && (
-                <p className="mt-1 text-xs">
-                  You can still try the demo with any email and password. Your data will be stored locally.
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Offline Mode Notice */}
-          {isOfflineMode && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-sm">
-              <div className="flex items-center">
-                <CheckCircle className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span>Demo Mode Active - Try any email and password to explore the app!</span>
               </div>
             </div>
           )}
@@ -301,7 +286,7 @@ const LoginForm = () => {
                   className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                     getFieldError('email') ? 'border-red-300' : 'border-gray-300'
                   }`}
-                  placeholder={isOfflineMode ? "Try any email (e.g., demo@example.com)" : "Enter your email"}
+                  placeholder="Enter your email"
                 />
               </div>
               {getFieldError('email') && (
@@ -327,7 +312,7 @@ const LoginForm = () => {
                   className={`w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                     getFieldError('password') ? 'border-red-300' : 'border-gray-300'
                   }`}
-                  placeholder={isOfflineMode ? "Any password works in demo mode" : isSignup ? 'Create a password (min. 8 characters)' : 'Enter your password'}
+                  placeholder={isSignup ? 'Create a password (min. 8 characters)' : 'Enter your password'}
                 />
                 <button
                   type="button"
@@ -344,7 +329,7 @@ const LoginForm = () => {
               {getFieldError('password') && (
                 <p className="mt-1 text-sm text-red-600">{getFieldError('password')}</p>
               )}
-              {isSignup && !getFieldError('password') && !isOfflineMode && (
+              {isSignup && !getFieldError('password') && (
                 <p className="mt-1 text-xs text-gray-500">
                   Password must be at least 8 characters with uppercase, lowercase, and number
                 </p>
@@ -394,7 +379,7 @@ const LoginForm = () => {
           <div>
             <button
               type="submit"
-              disabled={loading || (!isOfflineMode && !isFormValid())}
+              disabled={loading || !isFormValid()}
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (
@@ -420,19 +405,6 @@ const LoginForm = () => {
               }
             </button>
           </div>
-
-          {/* Demo Instructions in Offline Mode */}
-          {isOfflineMode && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-600">
-              <p><strong>Demo Instructions:</strong></p>
-              <ul className="mt-1 list-disc list-inside space-y-1">
-                <li>Use any email format (e.g., demo@example.com)</li>
-                <li>Use any password (minimum 1 character)</li>
-                <li>All features work with sample data</li>
-                <li>Data is stored locally in your browser</li>
-              </ul>
-            </div>
-          )}
 
           {/* Debug Info in Development */}
           {import.meta.env.DEV && (
