@@ -14,26 +14,11 @@ import FeaturesPage from './components/FeaturesPage';
 import AdditionalFeaturesPage from './components/AdditionalFeaturesPage';
 import LoginForm from './components/LoginForm';
 import { ContactModal, EditContactModal, InterviewModal, EditInterviewModal, CallModal } from './components/Modals';
-
-// Safe auth hook that handles missing context
-const useSafeAuth = () => {
-  try {
-    // Try to import and use the real auth context
-    const { useAuth } = require('./contexts/AuthContext');
-    return useAuth();
-  } catch (error) {
-    console.warn('AuthContext not available, using mock auth');
-    return {
-      user: null,
-      logout: () => {},
-      loading: false
-    };
-  }
-};
+import { useAuth } from './contexts/AuthContext';
 
 export default function App() {
-  // Use safe auth hook
-  const { user, logout, loading: authLoading } = useSafeAuth();
+  // Use auth context directly
+  const { user, logout, loading: authLoading } = useAuth();
   
   // App navigation state
   const [currentPage, setCurrentPage] = useState('landing');
@@ -853,8 +838,63 @@ export default function App() {
             onEdit={updateDocument}
             onDelete={deleteDocument}
           />
-      )}
+        )}
       </div>
+
+      {/* Modals */}
+      <ContactModal 
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        onSubmit={addContact}
+        networkingStatuses={networkingStatuses}
+        nextStepsOptions={nextStepsOptions}
+        groups={groups}
+      />
+
+      <EditContactModal 
+        isOpen={!!editingContact}
+        contact={editingContact}
+        onClose={() => setEditingContact(null)}
+        onSubmit={updateContact}
+        networkingStatuses={networkingStatuses}
+        nextStepsOptions={nextStepsOptions}
+        groups={groups}
+      />
+
+      <InterviewModal 
+        isOpen={showInterviewModal}
+        onClose={() => setShowInterviewModal(false)}
+        onSubmit={addInterview}
+        interviewStages={interviewStages}
+        interviewNextSteps={interviewNextSteps}
+        groups={groups}
+        contacts={contacts}
+      />
+
+      <EditInterviewModal 
+        isOpen={!!editingInterview}
+        interview={editingInterview}
+        onClose={() => setEditingInterview(null)}
+        onSubmit={updateInterview}
+        interviewStages={interviewStages}
+        interviewNextSteps={interviewNextSteps}
+        groups={groups}
+        contacts={contacts}
+      />
+
+      <CallModal 
+        isOpen={showCallModal}
+        onClose={() => setShowCallModal(false)}
+        onSubmit={(data) => {
+          if (selectedContactId) {
+            addInteraction(selectedContactId, data);
+          }
+          setShowCallModal(false);
+        }}
+      />
+      
+      <ErrorNotification />
+      <LoadingOverlay />
     </div>
   );
 }
