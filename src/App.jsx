@@ -853,3 +853,8 @@ export default function App() {
             onEdit={updateDocument}
             onDelete={deleteDocument}
           />
+      )}
+      </div>
+    </div>
+  );
+}
