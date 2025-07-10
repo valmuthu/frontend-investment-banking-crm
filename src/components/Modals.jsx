@@ -1034,4 +1034,4 @@ export const InterviewHistoryModal = ({
     </div> 
   </div>
 );
-}:
+};
