@@ -57,14 +57,14 @@ const Contacts = ({
     }
   };
 
-  // Get unique values for filters
+  // Get unique values for filters - excluding blank values
   const filterOptions = useMemo(() => ({
-    firms: [...new Set(contacts.map(c => c.firm))].sort(),
-    positions: [...new Set(contacts.map(c => c.position))].sort(),
+    firms: [...new Set(contacts.map(c => c.firm).filter(Boolean))].sort(),
+    positions: [...new Set(contacts.map(c => c.position).filter(Boolean))].sort(),
     groups: [...new Set(contacts.map(c => c.group).filter(Boolean))].sort(),
-    networkingStatuses: networkingStatuses,
+    networkingStatuses: [...new Set(contacts.map(c => c.networkingStatus).filter(Boolean))].sort(),
     nextSteps: [...new Set(contacts.map(c => c.nextSteps).filter(Boolean))].sort()
-  }), [contacts, networkingStatuses]);
+  }), [contacts]);
 
   // Filtered and sorted contacts
   const filteredAndSortedContacts = useMemo(() => {
@@ -216,9 +216,6 @@ const Contacts = ({
       >
         <ArrowUpDown className="icon-sm" />
         Sort
-        {sortField && (
-          <span className="ml-1">({sortField})</span>
-        )}
         <ChevronDown className="icon-sm" />
       </button>
 
@@ -250,7 +247,7 @@ const Contacts = ({
   const ContactCard = ({ contact }) => {
     return (
       <div className="card-interactive"
-           onClick={() => onShowContactDetail(contact.id)}>
+           onClick={() => onShowContactDetail(contact.id || contact._id)}>
         <div className="section-padding">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center flex-1">
@@ -280,7 +277,7 @@ const Contacts = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDelete(contact.id);
+                  onDelete(contact.id || contact._id);
                 }}
                 className="action-button delete"
                 title="Delete"
@@ -324,12 +321,12 @@ const Contacts = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    copyToClipboard(contact.email, `email-${contact.id}`);
+                    copyToClipboard(contact.email, `email-${contact.id || contact._id}`);
                   }}
                   className="p-2 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
                   title={`Copy email: ${contact.email}`}
                 >
-                  {copiedInfo === `email-${contact.id}` ? (
+                  {copiedInfo === `email-${contact.id || contact._id}` ? (
                     <CheckCircle className="icon-sm text-emerald-600" />
                   ) : (
                     <Mail className="icon-sm" />
@@ -338,12 +335,12 @@ const Contacts = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    copyToClipboard(contact.phone, `phone-${contact.id}`);
+                    copyToClipboard(contact.phone, `phone-${contact.id || contact._id}`);
                   }}
                   className="p-2 text-gray-400 hover:text-emerald-600 transition-colors rounded-lg hover:bg-emerald-50"
                   title={`Copy phone: ${contact.phone}`}
                 >
-                  {copiedInfo === `phone-${contact.id}` ? (
+                  {copiedInfo === `phone-${contact.id || contact._id}` ? (
                     <CheckCircle className="icon-sm text-emerald-600" />
                   ) : (
                     <Phone className="icon-sm" />
@@ -352,12 +349,12 @@ const Contacts = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    copyToClipboard(contact.linkedin, `linkedin-${contact.id}`);
+                    copyToClipboard(contact.linkedin, `linkedin-${contact.id || contact._id}`);
                   }}
                   className="p-2 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
                   title="Copy LinkedIn"
                 >
-                  {copiedInfo === `linkedin-${contact.id}` ? (
+                  {copiedInfo === `linkedin-${contact.id || contact._id}` ? (
                     <CheckCircle className="icon-sm text-emerald-600" />
                   ) : (
                     <Linkedin className="icon-sm" />
@@ -398,8 +395,8 @@ const Contacts = ({
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filteredAndSortedContacts.map(contact => (
-              <tr key={contact.id} className="hover:bg-primary-50 transition-colors cursor-pointer"
-                  onClick={() => onShowContactDetail(contact.id)}>
+              <tr key={contact.id || contact._id} className="hover:bg-primary-50 transition-colors cursor-pointer"
+                  onClick={() => onShowContactDetail(contact.id || contact._id)}>
                 <td>
                   <div className="flex items-center">
                     <div className="w-8 h-8 gradient-blue rounded-lg flex items-center justify-center text-white text-xs font-semibold mr-3 shadow-sm">
@@ -439,9 +436,11 @@ const Contacts = ({
                   {contact.nextSteps && (
                     <div>
                       <div className="text-sm text-gray-900 font-medium text-truncate">{contact.nextSteps}</div>
-                      <div className={`text-xs mt-1 font-medium ${getPriorityColor(contact.nextStepsDate)}`}>
-                        {contact.nextStepsDate}
-                      </div>
+                      {contact.nextStepsDate && (
+                        <div className={`text-xs mt-1 font-medium ${getPriorityColor(contact.nextStepsDate)}`}>
+                          {contact.nextStepsDate}
+                        </div>
+                      )}
                     </div>
                   )}
                 </td>
@@ -450,12 +449,12 @@ const Contacts = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        copyToClipboard(contact.email, `table-email-${contact.id}`);
+                        copyToClipboard(contact.email, `table-email-${contact.id || contact._id}`);
                       }}
                       className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
                       title={`Copy email: ${contact.email}`}
                     >
-                      {copiedInfo === `table-email-${contact.id}` ? (
+                      {copiedInfo === `table-email-${contact.id || contact._id}` ? (
                         <CheckCircle className="icon-sm text-emerald-600" />
                       ) : (
                         <Mail className="icon-sm" />
@@ -464,12 +463,12 @@ const Contacts = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        copyToClipboard(contact.phone, `table-phone-${contact.id}`);
+                        copyToClipboard(contact.phone, `table-phone-${contact.id || contact._id}`);
                       }}
                       className="p-1.5 text-gray-400 hover:text-emerald-600 transition-colors rounded-lg hover:bg-emerald-50"
                       title={`Copy phone: ${contact.phone}`}
                     >
-                      {copiedInfo === `table-phone-${contact.id}` ? (
+                      {copiedInfo === `table-phone-${contact.id || contact._id}` ? (
                         <CheckCircle className="icon-sm text-emerald-600" />
                       ) : (
                         <Phone className="icon-sm" />
@@ -478,12 +477,12 @@ const Contacts = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        copyToClipboard(contact.linkedin, `table-linkedin-${contact.id}`);
+                        copyToClipboard(contact.linkedin, `table-linkedin-${contact.id || contact._id}`);
                       }}
                       className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
                       title="Copy LinkedIn"
                     >
-                      {copiedInfo === `table-linkedin-${contact.id}` ? (
+                      {copiedInfo === `table-linkedin-${contact.id || contact._id}` ? (
                         <CheckCircle className="icon-sm text-emerald-600" />
                       ) : (
                         <Linkedin className="icon-sm" />
@@ -506,7 +505,7 @@ const Contacts = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDelete(contact.id);
+                        onDelete(contact.id || contact._id);
                       }}
                       className="action-button delete"
                       title="Delete"
@@ -649,7 +648,7 @@ const Contacts = ({
         {viewMode === 'cards' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAndSortedContacts.map(contact => (
-              <ContactCard key={contact.id} contact={contact} />
+              <ContactCard key={contact.id || contact._id} contact={contact} />
             ))}
           </div>
         ) : (
