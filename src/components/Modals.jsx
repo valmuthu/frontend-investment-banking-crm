@@ -19,7 +19,7 @@ export const ContactModal = ({
     email: '',
     phone: '',
     linkedin: '',
-    networkingStatus: 'Not Yet Contacted',
+    networkingStatus: '',
     networkingDate: new Date().toISOString().split('T')[0],
     nextSteps: '',
     nextStepsDate: '',
@@ -39,7 +39,7 @@ export const ContactModal = ({
         email: '',
         phone: '',
         linkedin: '',
-        networkingStatus: 'Not Yet Contacted',
+        networkingStatus: '',
         networkingDate: new Date().toISOString().split('T')[0],
         nextSteps: '',
         nextStepsDate: '',
@@ -144,6 +144,7 @@ export const ContactModal = ({
                 onChange={(e) => setFormData({ ...formData, networkingStatus: e.target.value })}
                 className="form-select"
               >
+                <option value="">Select Networking Status</option>
                 {networkingStatuses.map((status) => (
                   <option key={status} value={status}>{status}</option>
                 ))}
@@ -155,6 +156,7 @@ export const ContactModal = ({
                 type="date"
                 value={formData.networkingDate}
                 onChange={(e) => setFormData({ ...formData, networkingDate: e.target.value })}
+                placeholder="mm/dd/yyyy"
                 className="form-input"
               />
             </div>
@@ -179,6 +181,7 @@ export const ContactModal = ({
                 type="date"
                 value={formData.nextStepsDate}
                 onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
+                placeholder="mm/dd/yyyy"
                 className="form-input"
               />
             </div>
@@ -235,7 +238,7 @@ export const EditContactModal = ({
     email: '',
     phone: '',
     linkedin: '',
-    networkingStatus: 'Not Yet Contacted',
+    networkingStatus: '',
     networkingDate: '',
     nextSteps: '',
     nextStepsDate: '',
@@ -253,7 +256,7 @@ export const EditContactModal = ({
         email: contact.email || '',
         phone: contact.phone || '',
         linkedin: contact.linkedin || '',
-        networkingStatus: contact.networkingStatus || 'Not Yet Contacted',
+        networkingStatus: contact.networkingStatus || '',
         networkingDate: contact.networkingDate || '',
         nextSteps: contact.nextSteps || '',
         nextStepsDate: contact.nextStepsDate || '',
@@ -365,6 +368,7 @@ export const EditContactModal = ({
                 onChange={(e) => setFormData({ ...formData, networkingStatus: e.target.value })}
                 className="form-select"
               >
+                <option value="">Select Networking Status</option>
                 {networkingStatuses.map(status => (
                   <option key={status} value={status}>{status}</option>
                 ))}
@@ -376,6 +380,7 @@ export const EditContactModal = ({
                 type="date"
                 value={formData.networkingDate}
                 onChange={(e) => setFormData({ ...formData, networkingDate: e.target.value })}
+                placeholder="mm/dd/yyyy"
                 className="form-input"
               />
             </div>
@@ -400,6 +405,7 @@ export const EditContactModal = ({
                 type="date"
                 value={formData.nextStepsDate}
                 onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
+                placeholder="mm/dd/yyyy"
                 className="form-input"
               />
             </div>
@@ -452,7 +458,7 @@ export const InterviewModal = ({
     firm: '',
     position: '',
     group: '',
-    stage: 'Not Yet Applied',
+    stage: '',
     stageDate: new Date().toISOString().split('T')[0],
     nextSteps: '',
     nextStepsDate: '',
@@ -468,7 +474,7 @@ export const InterviewModal = ({
         firm: '',
         position: '',
         group: '',
-        stage: 'Not Yet Applied',
+        stage: '',
         stageDate: new Date().toISOString().split('T')[0],
         nextSteps: '',
         nextStepsDate: '',
@@ -547,6 +553,7 @@ export const InterviewModal = ({
                 onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
                 className="form-select"
               >
+                <option value="">Select Stage</option>
                 {interviewStages.map(stage => (
                   <option key={stage} value={stage}>{stage}</option>
                 ))}
@@ -558,6 +565,7 @@ export const InterviewModal = ({
                 type="date"
                 value={formData.stageDate}
                 onChange={(e) => setFormData({ ...formData, stageDate: e.target.value })}
+                placeholder="mm/dd/yyyy"
                 className="form-input"
               />
             </div>
@@ -582,6 +590,7 @@ export const InterviewModal = ({
                 type="date"
                 value={formData.nextStepsDate}
                 onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
+                placeholder="mm/dd/yyyy"
                 className="form-input"
               />
             </div>
@@ -597,7 +606,7 @@ export const InterviewModal = ({
               >
                 <option value="">No referral</option>
                 {contacts.map((contact) => (
-                  <option key={contact.id} value={contact.id}>{contact.name} - {contact.firm}</option>
+                  <option key={contact.id || contact._id} value={contact.id || contact._id}>{contact.name} - {contact.firm}</option>
                 ))}
               </select>
             </div>
@@ -641,7 +650,7 @@ export const EditInterviewModal = ({
     firm: '',
     position: '',
     group: '',
-    stage: 'Not Yet Applied',
+    stage: '',
     stageDate: '',
     nextSteps: '',
     nextStepsDate: '',
@@ -655,7 +664,7 @@ export const EditInterviewModal = ({
         firm: interview.firm || '',
         position: interview.position || '',
         group: interview.group || '',
-        stage: interview.stage || 'Not Yet Applied',
+        stage: interview.stage || '',
         stageDate: interview.stageDate || '',
         nextSteps: interview.nextSteps || '',
         nextStepsDate: interview.nextStepsDate || '',
@@ -741,6 +750,7 @@ export const EditInterviewModal = ({
                 onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
                 className="form-select"
               >
+                <option value="">Select Stage</option>
                 {interviewStages.map(stage => (
                   <option key={stage} value={stage}>{stage}</option>
                 ))}
@@ -752,6 +762,7 @@ export const EditInterviewModal = ({
                 type="date"
                 value={formData.stageDate}
                 onChange={(e) => setFormData({ ...formData, stageDate: e.target.value })}
+                placeholder="mm/dd/yyyy"
                 className="form-input"
               />
             </div>
@@ -776,6 +787,7 @@ export const EditInterviewModal = ({
                 type="date"
                 value={formData.nextStepsDate}
                 onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
+                placeholder="mm/dd/yyyy"
                 className="form-input"
               />
             </div>
@@ -791,7 +803,7 @@ export const EditInterviewModal = ({
               >
                 <option value="">No referral</option>
                 {contacts.map(contact => (
-                  <option key={contact.id} value={contact.id}>{contact.name} - {contact.firm}</option>
+                  <option key={contact.id || contact._id} value={contact.id || contact._id}>{contact.name} - {contact.firm}</option>
                 ))}
               </select>
             </div>
@@ -889,7 +901,7 @@ export const InterviewHistoryModal = ({
   if (!isOpen || !interview) return null;
 
   const referralContact = interview.referralContactId
-    ? contacts.find(c => c.id === interview.referralContactId)
+    ? contacts.find(c => c.id === interview.referralContactId || c._id === interview.referralContactId)
     : null;
 
   return (
@@ -942,7 +954,7 @@ export const InterviewHistoryModal = ({
                       <p className="text-emerald-800 font-medium">Referred by</p>
                       <button
                         onClick={() => {
-                          setSelectedContactId(referralContact.id);
+                          setSelectedContactId(referralContact.id || referralContact._id);
                           setShowContactDetail(true);
                           onClose();
                         }}
@@ -966,7 +978,7 @@ export const InterviewHistoryModal = ({
               {interview.rounds && interview.rounds.length > 0 ? (
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                   {interview.rounds.map((round, index) => (
-                    <div key={round.id} className="border border-gray-200 rounded-lg p-4">
+                    <div key={round.id || round._id} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
                           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 text-sm font-semibold text-blue-600">
@@ -1016,175 +1028,3 @@ export const InterviewHistoryModal = ({
                   <p className="text-sm mt-1">Interview rounds will appear here as they're added</p>
                 </div>
               )}
-            </div>
-          </div>
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
-            <button
-              onClick={onEdit}
-              className="btn-secondary"
-            >
-              <Edit2 className="icon-sm mr-2" />
-              Edit Interview
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ContactDetailModal
-export const ContactDetailModal = ({ isOpen, contact, onClose, onEdit, onAddCall }) => {
-  if (!isOpen || !contact) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="card-base w-full max-w-4xl max-h-screen overflow-y-auto">
-        <div className="section-padding border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-16 h-16 gradient-blue rounded-xl flex items-center justify-center text-white text-xl font-bold mr-4 shadow-md">
-                {contact.name.split(' ').map(n => n[0]).join('')}
-              </div>
-              <div>
-                <h1 className="text-heading-1">{contact.name}</h1>
-                <p className="text-gray-600">{contact.position} at {contact.firm}</p>
-                {contact.group && <p className="text-sm text-gray-500">{contact.group}</p>}
-              </div>
-            </div>
-            <button onClick={onClose}>
-              <X className="icon-md" />
-            </button>
-          </div>
-        </div>
-        <div className="section-padding">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-heading-3 mb-3">Contact Information</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <Mail className="icon-md text-gray-400 mr-3" />
-                    <a href={`mailto:${contact.email}`} className="text-blue-600 hover:underline">
-                      {contact.email}
-                    </a>
-                  </div>
-                  <div className="flex items-center">
-                    <Phone className="icon-md text-gray-400 mr-3" />
-                    <a href={`tel:${contact.phone}`} className="text-blue-600 hover:underline">
-                      {contact.phone}
-                    </a>
-                  </div>
-                  <div className="flex items-center">
-                    <Linkedin className="icon-md text-gray-400 mr-3" />
-                    <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center">
-                      LinkedIn Profile
-                      <ExternalLink className="icon-sm ml-1" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h3 className="text-heading-3 mb-3">Status & Next Steps</h3>
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Networking Status:</span>
-                    <div className="mt-1">
-                      <span className="status-badge status-blue">
-                        {contact.networkingStatus}
-                      </span>
-                      <span className="ml-2 text-sm text-gray-500">({contact.networkingDate})</span>
-                    </div>
-                  </div>
-                  {contact.nextSteps && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">Next Steps:</span>
-                      <p className="mt-1 text-gray-900">{contact.nextSteps}</p>
-                      {contact.nextStepsDate && (
-                        <p className="text-sm text-gray-500">Due: {contact.nextStepsDate}</p>
-                      )}
-                    </div>
-                  )}
-                  {contact.referred && (
-                    <div className="flex items-center text-emerald-600">
-                      <Award className="icon-md mr-2" />
-                      <span className="font-medium">Referred Contact</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              {contact.notes && (
-                <div>
-                  <h3 className="text-heading-3 mb-3">Notes</h3>
-                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{contact.notes}</p>
-                </div>
-              )}
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-heading-3">Interaction History</h3>
-                <button
-                  onClick={onAddCall}
-                  className="btn-primary text-sm"
-                >
-                  <Plus className="icon-sm mr-1" />
-                  Add Interaction
-                </button>
-              </div>
-              {contact.interactions && contact.interactions.length > 0 ? (
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {contact.interactions.map(interaction => (
-                    <div key={interaction.id} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                            {interaction.type === 'Call' && <Phone className="icon-sm text-blue-600" />}
-                            {interaction.type === 'Email' && <Mail className="icon-sm text-blue-600" />}
-                            {interaction.type === 'Meeting' && <User className="icon-sm text-blue-600" />}
-                            {interaction.type === 'Note' && <Edit2 className="icon-sm text-blue-600" />}
-                          </div>
-                          <span className="font-medium text-gray-900">{interaction.type}</span>
-                        </div>
-                        <span className="text-sm text-gray-500">{interaction.date}</span>
-                      </div>
-                      <p className="text-gray-700 text-sm">{interaction.notes}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500 border border-gray-200 rounded-lg">
-                  <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                  <p>No interactions recorded</p>
-                  <button
-                    onClick={onAddCall}
-                    className="mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
-                  >
-                    Add your first interaction
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
-            <button
-              onClick={onEdit}
-              className="btn-secondary"
-            >
-              <Edit2 className="icon-sm mr-2" />
-              Edit Contact
-            </button>
-            <button
-              onClick={onAddCall}
-              className="btn-primary"
-            >
-              <Plus className="icon-sm mr-2" />
-              Add Interaction
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default InterviewModal;
