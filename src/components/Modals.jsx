@@ -1028,3 +1028,9 @@ export const InterviewHistoryModal = ({
                   <p className="text-sm mt-1">Interview rounds will appear here as they're added</p>
                 </div>
               )}
+              </div>
+        </div> {/* Close .grid */}
+      </div> {/* Close .section-padding */}
+    </div> {/* Close .card-base */}
+  </div> {/* Close .fixed modal backdrop */}
+);
