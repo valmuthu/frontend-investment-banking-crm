@@ -1029,8 +1029,8 @@ export const InterviewHistoryModal = ({
                 </div>
               )}
               </div>
-        </div> {/* Close .grid */}
-      </div> {/* Close .section-padding */}
-    </div> {/* Close .card-base */}
-  </div> {/* Close .fixed modal backdrop */}
+        </div> 
+      </div> 
+    </div> 
+  </div>
 );
