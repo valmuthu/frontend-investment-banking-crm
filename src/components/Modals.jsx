@@ -30,7 +30,7 @@ export const ContactModal = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (formData.name && formData.firm) {
-      onSubmit(formData);
+      onSubmit({ ...formData, _id: contact._id });
       setFormData({
         name: '',
         firm: '',
