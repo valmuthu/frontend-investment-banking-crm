@@ -34,6 +34,9 @@ const Contacts = ({
     nextSteps: []
   });
 
+  // Helper function to get contact ID consistently
+  const getContactId = (contact) => contact._id || contact.id;
+
   // Sorting options
   const sortOptions = [
     { field: 'name', label: 'Name' },
@@ -245,9 +248,11 @@ const Contacts = ({
   );
 
   const ContactCard = ({ contact }) => {
+    const contactId = getContactId(contact);
+    
     return (
       <div className="card-interactive"
-           onClick={() => onShowContactDetail(contact.id || contact._id)}>
+           onClick={() => onShowContactDetail(contactId)}>
         <div className="section-padding">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center flex-1">
@@ -277,7 +282,7 @@ const Contacts = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDelete(contact.id || contact._id);
+                  onDelete(contactId);
                 }}
                 className="action-button delete"
                 title="Delete"
@@ -321,12 +326,12 @@ const Contacts = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    copyToClipboard(contact.email, `email-${contact.id || contact._id}`);
+                    copyToClipboard(contact.email, `email-${contactId}`);
                   }}
                   className="p-2 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
                   title={`Copy email: ${contact.email}`}
                 >
-                  {copiedInfo === `email-${contact.id || contact._id}` ? (
+                  {copiedInfo === `email-${contactId}` ? (
                     <CheckCircle className="icon-sm text-emerald-600" />
                   ) : (
                     <Mail className="icon-sm" />
@@ -335,12 +340,12 @@ const Contacts = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    copyToClipboard(contact.phone, `phone-${contact.id || contact._id}`);
+                    copyToClipboard(contact.phone, `phone-${contactId}`);
                   }}
                   className="p-2 text-gray-400 hover:text-emerald-600 transition-colors rounded-lg hover:bg-emerald-50"
                   title={`Copy phone: ${contact.phone}`}
                 >
-                  {copiedInfo === `phone-${contact.id || contact._id}` ? (
+                  {copiedInfo === `phone-${contactId}` ? (
                     <CheckCircle className="icon-sm text-emerald-600" />
                   ) : (
                     <Phone className="icon-sm" />
@@ -349,12 +354,12 @@ const Contacts = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    copyToClipboard(contact.linkedin, `linkedin-${contact.id || contact._id}`);
+                    copyToClipboard(contact.linkedin, `linkedin-${contactId}`);
                   }}
                   className="p-2 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
                   title="Copy LinkedIn"
                 >
-                  {copiedInfo === `linkedin-${contact.id || contact._id}` ? (
+                  {copiedInfo === `linkedin-${contactId}` ? (
                     <CheckCircle className="icon-sm text-emerald-600" />
                   ) : (
                     <Linkedin className="icon-sm" />
@@ -394,128 +399,132 @@ const Contacts = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {filteredAndSortedContacts.map(contact => (
-              <tr key={contact.id || contact._id} className="hover:bg-primary-50 transition-colors cursor-pointer"
-                  onClick={() => onShowContactDetail(contact.id || contact._id)}>
-                <td>
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 gradient-blue rounded-lg flex items-center justify-center text-white text-xs font-semibold mr-3 shadow-sm">
-                      {contact.name.split(' ').map(n => n[0]).join('')}
+            {filteredAndSortedContacts.map(contact => {
+              const contactId = getContactId(contact);
+              
+              return (
+                <tr key={contactId} className="hover:bg-primary-50 transition-colors cursor-pointer"
+                    onClick={() => onShowContactDetail(contactId)}>
+                  <td>
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 gradient-blue rounded-lg flex items-center justify-center text-white text-xs font-semibold mr-3 shadow-sm">
+                        {contact.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-gray-900 hover:text-primary-600 transition-colors text-truncate">{contact.name}</div>
+                        <div className="flex items-center space-x-2 mt-1">
+                          {contact.referred && (
+                            <div className="referral-badge">
+                              <Check className="w-3 h-3" />
+                              Referred
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <div className="font-semibold text-gray-900 hover:text-primary-600 transition-colors text-truncate">{contact.name}</div>
-                      <div className="flex items-center space-x-2 mt-1">
-                        {contact.referred && (
-                          <div className="referral-badge">
-                            <Check className="w-3 h-3" />
-                            Referred
+                  </td>
+                  <td>
+                    <div>
+                      <div className="flex items-center font-semibold text-gray-900 text-truncate">
+                        <Building2 className="icon-sm text-gray-400 mr-2" />
+                        {contact.firm}
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1 font-medium text-truncate">{formatPositionGroup(contact.position, contact.group)}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>
+                      <span className={`status-badge text-nowrap ${getStatusColor(contact.networkingStatus)}`}>
+                        {contact.networkingStatus}
+                      </span>
+                      <div className="text-xs mt-1 text-gray-600 font-medium">{contact.networkingDate}</div>
+                    </div>
+                  </td>
+                  <td>
+                    {contact.nextSteps && (
+                      <div>
+                        <div className="text-sm text-gray-900 font-medium text-truncate">{contact.nextSteps}</div>
+                        {contact.nextStepsDate && (
+                          <div className={`text-xs mt-1 font-medium ${getPriorityColor(contact.nextStepsDate)}`}>
+                            {contact.nextStepsDate}
                           </div>
                         )}
                       </div>
+                    )}
+                  </td>
+                  <td>
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyToClipboard(contact.email, `table-email-${contactId}`);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
+                        title={`Copy email: ${contact.email}`}
+                      >
+                        {copiedInfo === `table-email-${contactId}` ? (
+                          <CheckCircle className="icon-sm text-emerald-600" />
+                        ) : (
+                          <Mail className="icon-sm" />
+                        )}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyToClipboard(contact.phone, `table-phone-${contactId}`);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-emerald-600 transition-colors rounded-lg hover:bg-emerald-50"
+                        title={`Copy phone: ${contact.phone}`}
+                      >
+                        {copiedInfo === `table-phone-${contactId}` ? (
+                          <CheckCircle className="icon-sm text-emerald-600" />
+                        ) : (
+                          <Phone className="icon-sm" />
+                        )}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyToClipboard(contact.linkedin, `table-linkedin-${contactId}`);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
+                        title="Copy LinkedIn"
+                      >
+                        {copiedInfo === `table-linkedin-${contactId}` ? (
+                          <CheckCircle className="icon-sm text-emerald-600" />
+                        ) : (
+                          <Linkedin className="icon-sm" />
+                        )}
+                      </button>
                     </div>
-                  </div>
-                </td>
-                <td>
-                  <div>
-                    <div className="flex items-center font-semibold text-gray-900 text-truncate">
-                      <Building2 className="icon-sm text-gray-400 mr-2" />
-                      {contact.firm}
+                  </td>
+                  <td>
+                    <div className="action-buttons justify-center">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(contact);
+                        }}
+                        className="action-button"
+                        title="Edit"
+                      >
+                        <Edit2 className="icon-sm" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(contactId);
+                        }}
+                        className="action-button delete"
+                        title="Delete"
+                      >
+                        <Trash2 className="icon-sm" />
+                      </button>
                     </div>
-                    <div className="text-sm text-gray-600 mt-1 font-medium text-truncate">{formatPositionGroup(contact.position, contact.group)}</div>
-                  </div>
-                </td>
-                <td>
-                  <div>
-                    <span className={`status-badge text-nowrap ${getStatusColor(contact.networkingStatus)}`}>
-                      {contact.networkingStatus}
-                    </span>
-                    <div className="text-xs mt-1 text-gray-600 font-medium">{contact.networkingDate}</div>
-                  </div>
-                </td>
-                <td>
-                  {contact.nextSteps && (
-                    <div>
-                      <div className="text-sm text-gray-900 font-medium text-truncate">{contact.nextSteps}</div>
-                      {contact.nextStepsDate && (
-                        <div className={`text-xs mt-1 font-medium ${getPriorityColor(contact.nextStepsDate)}`}>
-                          {contact.nextStepsDate}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </td>
-                <td>
-                  <div className="flex items-center space-x-1">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        copyToClipboard(contact.email, `table-email-${contact.id || contact._id}`);
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
-                      title={`Copy email: ${contact.email}`}
-                    >
-                      {copiedInfo === `table-email-${contact.id || contact._id}` ? (
-                        <CheckCircle className="icon-sm text-emerald-600" />
-                      ) : (
-                        <Mail className="icon-sm" />
-                      )}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        copyToClipboard(contact.phone, `table-phone-${contact.id || contact._id}`);
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-emerald-600 transition-colors rounded-lg hover:bg-emerald-50"
-                      title={`Copy phone: ${contact.phone}`}
-                    >
-                      {copiedInfo === `table-phone-${contact.id || contact._id}` ? (
-                        <CheckCircle className="icon-sm text-emerald-600" />
-                      ) : (
-                        <Phone className="icon-sm" />
-                      )}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        copyToClipboard(contact.linkedin, `table-linkedin-${contact.id || contact._id}`);
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-primary-600 transition-colors rounded-lg hover:bg-primary-50"
-                      title="Copy LinkedIn"
-                    >
-                      {copiedInfo === `table-linkedin-${contact.id || contact._id}` ? (
-                        <CheckCircle className="icon-sm text-emerald-600" />
-                      ) : (
-                        <Linkedin className="icon-sm" />
-                      )}
-                    </button>
-                  </div>
-                </td>
-                <td>
-                  <div className="action-buttons justify-center">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(contact);
-                      }}
-                      className="action-button"
-                      title="Edit"
-                    >
-                      <Edit2 className="icon-sm" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(contact.id || contact._id);
-                      }}
-                      className="action-button delete"
-                      title="Delete"
-                    >
-                      <Trash2 className="icon-sm" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -648,7 +657,7 @@ const Contacts = ({
         {viewMode === 'cards' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAndSortedContacts.map(contact => (
-              <ContactCard key={contact.id || contact._id} contact={contact} />
+              <ContactCard key={getContactId(contact)} contact={contact} />
             ))}
           </div>
         ) : (
