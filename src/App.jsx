@@ -159,6 +159,9 @@ export default function App() {
     }
   };
 
+  // Helper function to get contact ID (handles both id and _id)
+  const getContactId = (contact) => contact._id || contact.id;
+
   // CRUD functions with API integration
   const addContact = async (contactData) => {
     try {
@@ -179,11 +182,35 @@ export default function App() {
   const updateContact = async (updatedContact) => {
     try {
       setLoading(true);
-      const response = await apiService.updateContact(updatedContact.id || updatedContact._id, updatedContact);
+      console.log('🔄 Updating contact:', updatedContact);
+      
+      // Get the correct ID to use for the API call
+      const contactId = getContactId(updatedContact);
+      console.log('📋 Using contact ID:', contactId);
+      
+      const response = await apiService.updateContact(contactId, updatedContact);
       const updated = response.contact;
-      setContacts(prev => prev.map(contact => 
-        (contact.id === updated.id || contact._id === updated._id) ? updated : contact
-      ));
+      console.log('✅ Updated contact received:', updated);
+      
+      // Update the contacts state - be more specific with ID matching
+      setContacts(prev => {
+        const newContacts = prev.map(contact => {
+          const currentContactId = getContactId(contact);
+          const updatedContactId = getContactId(updated);
+          
+          console.log('🔍 Comparing:', { currentContactId, updatedContactId });
+          
+          if (currentContactId === updatedContactId) {
+            console.log('✅ Match found, updating contact');
+            return updated;
+          }
+          return contact;
+        });
+        
+        console.log('📊 Updated contacts array length:', newContacts.length);
+        return newContacts;
+      });
+      
       return updated;
     } catch (error) {
       console.error('Error updating contact:', error);
@@ -199,7 +226,10 @@ export default function App() {
       try {
         setLoading(true);
         await apiService.deleteContact(id);
-        setContacts(prev => prev.filter(contact => contact.id !== id && contact._id !== id));
+        setContacts(prev => prev.filter(contact => {
+          const contactId = getContactId(contact);
+          return contactId !== id;
+        }));
       } catch (error) {
         console.error('Error deleting contact:', error);
         setError('Failed to delete contact. Please try again.');
@@ -208,6 +238,9 @@ export default function App() {
       }
     }
   };
+
+  // Helper function to get interview ID (handles both id and _id)
+  const getInterviewId = (interview) => interview._id || interview.id;
 
   // Interview CRUD functions with API
   const addInterview = async (interviewData) => {
@@ -220,7 +253,7 @@ export default function App() {
           contact.firm.toLowerCase() === interviewData.firm.toLowerCase()
         );
         if (matchingContact) {
-          interviewData.referralContactId = matchingContact._id || matchingContact.id;
+          interviewData.referralContactId = getContactId(matchingContact);
         }
       }
       
@@ -240,11 +273,21 @@ export default function App() {
   const updateInterview = async (updatedInterview) => {
     try {
       setLoading(true);
-      const response = await apiService.updateInterview(updatedInterview.id || updatedInterview._id, updatedInterview);
+      
+      const interviewId = getInterviewId(updatedInterview);
+      const response = await apiService.updateInterview(interviewId, updatedInterview);
       const updated = response.interview;
-      setInterviews(prev => prev.map(interview => 
-        (interview.id === updated.id || interview._id === updated._id) ? updated : interview
-      ));
+      
+      setInterviews(prev => prev.map(interview => {
+        const currentInterviewId = getInterviewId(interview);
+        const updatedInterviewId = getInterviewId(updated);
+        
+        if (currentInterviewId === updatedInterviewId) {
+          return updated;
+        }
+        return interview;
+      }));
+      
       return updated;
     } catch (error) {
       console.error('Error updating interview:', error);
@@ -260,7 +303,10 @@ export default function App() {
       try {
         setLoading(true);
         await apiService.deleteInterview(id);
-        setInterviews(prev => prev.filter(interview => interview.id !== id && interview._id !== id));
+        setInterviews(prev => prev.filter(interview => {
+          const interviewId = getInterviewId(interview);
+          return interviewId !== id;
+        }));
       } catch (error) {
         console.error('Error deleting interview:', error);
         setError('Failed to delete interview. Please try again.');
@@ -277,7 +323,8 @@ export default function App() {
       const newInteraction = response.interaction;
 
       setContacts(prev => prev.map(contact => {
-        if (contact.id === contactId || contact._id === contactId) {
+        const currentContactId = getContactId(contact);
+        if (currentContactId === contactId) {
           return {
             ...contact,
             interactions: [newInteraction, ...(contact.interactions || [])]
@@ -300,7 +347,8 @@ export default function App() {
       const updated = response.interaction;
 
       setContacts(prev => prev.map(contact => {
-        if (contact.id === contactId || contact._id === contactId) {
+        const currentContactId = getContactId(contact);
+        if (currentContactId === contactId) {
           return {
             ...contact,
             interactions: contact.interactions.map(interaction =>
@@ -325,7 +373,8 @@ export default function App() {
         await apiService.deleteInteraction(contactId, interactionId);
         
         setContacts(prev => prev.map(contact => {
-          if (contact.id === contactId || contact._id === contactId) {
+          const currentContactId = getContactId(contact);
+          if (currentContactId === contactId) {
             return {
               ...contact,
               interactions: contact.interactions.filter(interaction => 
@@ -349,7 +398,8 @@ export default function App() {
       const newRound = response.round;
 
       setInterviews(prev => prev.map(interview => {
-        if (interview.id === interviewId || interview._id === interviewId) {
+        const currentInterviewId = getInterviewId(interview);
+        if (currentInterviewId === interviewId) {
           return {
             ...interview,
             rounds: [...(interview.rounds || []), newRound]
@@ -372,7 +422,8 @@ export default function App() {
       const updated = response.round;
 
       setInterviews(prev => prev.map(interview => {
-        if (interview.id === interviewId || interview._id === interviewId) {
+        const currentInterviewId = getInterviewId(interview);
+        if (currentInterviewId === interviewId) {
           return {
             ...interview,
             rounds: interview.rounds.map(round =>
@@ -397,7 +448,8 @@ export default function App() {
         await apiService.deleteInterviewRound(interviewId, roundId);
         
         setInterviews(prev => prev.map(interview => {
-          if (interview.id === interviewId || interview._id === interviewId) {
+          const currentInterviewId = getInterviewId(interview);
+          if (currentInterviewId === interviewId) {
             return {
               ...interview,
               rounds: interview.rounds.filter(round => 
@@ -438,12 +490,15 @@ export default function App() {
   const updateDocument = async (updatedDocument) => {
     try {
       setLoading(true);
-      const response = await apiService.updateDocument(updatedDocument.id || updatedDocument._id, updatedDocument);
+      const documentId = updatedDocument._id || updatedDocument.id;
+      const response = await apiService.updateDocument(documentId, updatedDocument);
       const updated = response.document;
       
-      setDocuments(prev => prev.map(doc => 
-        (doc.id === updated.id || doc._id === updated._id) ? updated : doc
-      ));
+      setDocuments(prev => prev.map(doc => {
+        const currentDocId = doc._id || doc.id;
+        const updatedDocId = updated._id || updated.id;
+        return currentDocId === updatedDocId ? updated : doc;
+      }));
       
       return updated;
     } catch (error) {
@@ -460,7 +515,10 @@ export default function App() {
       try {
         setLoading(true);
         await apiService.deleteDocument(id);
-        setDocuments(prev => prev.filter(doc => doc.id !== id && doc._id !== id));
+        setDocuments(prev => prev.filter(doc => {
+          const docId = doc._id || doc.id;
+          return docId !== id;
+        }));
       } catch (error) {
         console.error('Error deleting document:', error);
         setError('Failed to delete document. Please try again.');
@@ -493,8 +551,15 @@ export default function App() {
   };
 
   // Get selected items - handle both id and _id
-  const selectedContact = contacts.find(c => c.id === selectedContactId || c._id === selectedContactId);
-  const selectedInterview = interviews.find(i => i.id === selectedInterviewId || i._id === selectedInterviewId);
+  const selectedContact = contacts.find(c => {
+    const contactId = getContactId(c);
+    return contactId === selectedContactId;
+  });
+  
+  const selectedInterview = interviews.find(i => {
+    const interviewId = getInterviewId(i);
+    return interviewId === selectedInterviewId;
+  });
 
   // Error notification component
   const ErrorNotification = () => {
