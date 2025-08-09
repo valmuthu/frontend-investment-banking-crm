@@ -276,32 +276,37 @@ export default function App() {
 };
 
   const updateInterview = async (updatedInterview) => {
-    try {
-      setLoading(true);
-      
-      const interviewId = getInterviewId(updatedInterview);
-      const response = await apiService.updateInterview(interviewId, updatedInterview);
-      const updated = response.interview;
-      
-      setInterviews(prev => prev.map(interview => {
-        const currentInterviewId = getInterviewId(interview);
-        const updatedInterviewId = getInterviewId(updated);
-        
-        if (currentInterviewId === updatedInterviewId) {
-          return updated;
-        }
-        return interview;
-      }));
-      
-      return updated;
-    } catch (error) {
-      console.error('Error updating interview:', error);
-      setError('Failed to update interview. Please try again.');
-      throw error;
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+
+    // Convert empty string to null for referralContactId
+    if (!updatedInterview.referralContactId) {
+      updatedInterview.referralContactId = null;
     }
-  };
+    
+    const interviewId = getInterviewId(updatedInterview);
+    const response = await apiService.updateInterview(interviewId, updatedInterview);
+    const updated = response.interview;
+    
+    setInterviews(prev => prev.map(interview => {
+      const currentInterviewId = getInterviewId(interview);
+      const updatedInterviewId = getInterviewId(updated);
+      
+      if (currentInterviewId === updatedInterviewId) {
+        return updated;
+      }
+      return interview;
+    }));
+    
+    return updated;
+  } catch (error) {
+    console.error('Error updating interview:', error);
+    setError('Failed to update interview. Please try again.');
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
 
   const deleteInterview = async (id) => {
     if (window.confirm('Are you sure you want to delete this interview?')) {
