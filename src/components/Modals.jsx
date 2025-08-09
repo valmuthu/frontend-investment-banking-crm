@@ -537,6 +537,7 @@ export const InterviewModal = ({
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">Group</label>
+             <select
             <input
               type="text"
               value={formData.group}
