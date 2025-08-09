@@ -243,32 +243,37 @@ export default function App() {
   const getInterviewId = (interview) => interview._id || interview.id;
 
   // Interview CRUD functions with API
-  const addInterview = async (interviewData) => {
-    try {
-      setLoading(true);
-      
-      // Auto-match referral contact if not set
-      if (!interviewData.referralContactId && interviewData.firm) {
-        const matchingContact = contacts.find(contact => 
-          contact.firm.toLowerCase() === interviewData.firm.toLowerCase()
-        );
-        if (matchingContact) {
-          interviewData.referralContactId = getContactId(matchingContact);
-        }
+ const addInterview = async (interviewData) => {
+  try {
+    setLoading(true);
+    
+    // Auto-match referral contact if not set
+    if (!interviewData.referralContactId && interviewData.firm) {
+      const matchingContact = contacts.find(contact => 
+        contact.firm.toLowerCase() === interviewData.firm.toLowerCase()
+      );
+      if (matchingContact) {
+        interviewData.referralContactId = getContactId(matchingContact);
       }
-      
-      const response = await apiService.createInterview(interviewData);
-      const newInterview = response.interview;
-      setInterviews(prev => [newInterview, ...prev]);
-      return newInterview;
-    } catch (error) {
-      console.error('Error adding interview:', error);
-      setError('Failed to add interview. Please try again.');
-      throw error;
-    } finally {
-      setLoading(false);
     }
-  };
+
+    // If still empty string or undefined, set to null
+    if (!interviewData.referralContactId) {
+      interviewData.referralContactId = null;
+    }
+    
+    const response = await apiService.createInterview(interviewData);
+    const newInterview = response.interview;
+    setInterviews(prev => [newInterview, ...prev]);
+    return newInterview;
+  } catch (error) {
+    console.error('Error adding interview:', error);
+    setError('Failed to add interview. Please try again.');
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
 
   const updateInterview = async (updatedInterview) => {
     try {
