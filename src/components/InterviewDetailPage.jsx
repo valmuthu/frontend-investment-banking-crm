@@ -36,10 +36,19 @@ const InterviewDetailPage = ({
   const roundFormats = ['Phone', 'Video', 'In-Person', 'Assessment'];
   const roundOutcomes = ['Pending', 'Passed', 'Failed', 'Cancelled'];
 
+  // Helper function to get interview ID (handles both id and _id)
+  const getInterviewId = (interview) => interview._id || interview.id;
+  
+  // Helper function to get contact ID (handles both id and _id)
+  const getContactId = (contact) => contact._id || contact.id;
+  
+  // Helper function to get round ID (handles both id and _id)
+  const getRoundId = (round) => round._id || round.id;
+
   const handleAddRound = (e) => {
     e.preventDefault();
     if (newRound.stage && newRound.date) {
-      onAddRound(interview.id, newRound);
+      onAddRound(getInterviewId(interview), newRound);
       setNewRound({
         stage: 'Phone Screen',
         date: new Date().toISOString().split('T')[0],
@@ -55,7 +64,7 @@ const InterviewDetailPage = ({
   const handleUpdateRound = (e) => {
     e.preventDefault();
     if (editingRound.stage && editingRound.date) {
-      onUpdateRound(interview.id, editingRound.id, editingRound);
+      onUpdateRound(getInterviewId(interview), getRoundId(editingRound), editingRound);
       setEditingRound(null);
     }
   };
@@ -103,7 +112,7 @@ const InterviewDetailPage = ({
   };
 
   const referralContact = interview.referralContactId 
-    ? contacts.find(c => c.id === interview.referralContactId)
+    ? contacts.find(c => getContactId(c) === interview.referralContactId)
     : null;
 
   // Get firm logo URL
@@ -313,12 +322,14 @@ const InterviewDetailPage = ({
                     <label className="block text-sm font-medium text-gray-700 mb-2">Referral Contact</label>
                     <select
                       value={editedInterview.referralContactId || ''}
-                      onChange={(e) => setEditedInterview({...editedInterview, referralContactId: e.target.value ? parseInt(e.target.value) : ''})}
+                      onChange={(e) => setEditedInterview({...editedInterview, referralContactId: e.target.value || null})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">No referral</option>
                       {contacts.map(contact => (
-                        <option key={contact.id} value={contact.id}>{contact.name} - {contact.firm}</option>
+                        <option key={getContactId(contact)} value={getContactId(contact)}>
+                          {contact.name} - {contact.firm}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -353,7 +364,7 @@ const InterviewDetailPage = ({
                         <div>
                           <p className="text-emerald-800 font-medium text-sm">Referred by</p>
                           <button
-                            onClick={() => onShowContactDetail(referralContact.id)}
+                            onClick={() => onShowContactDetail(getContactId(referralContact))}
                             className="text-emerald-600 hover:text-emerald-800 hover:underline font-medium text-left"
                           >
                             {referralContact.name} at {referralContact.firm}
@@ -502,8 +513,8 @@ const InterviewDetailPage = ({
               {interview.rounds && interview.rounds.length > 0 ? (
                 <div className="space-y-4">
                   {interview.rounds.map((round, index) => (
-                    <div key={round.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                      {editingRound && editingRound.id === round.id ? (
+                    <div key={getRoundId(round)} className="border border-gray-200 rounded-lg overflow-hidden">
+                      {editingRound && getRoundId(editingRound) === getRoundId(round) ? (
                         <form onSubmit={handleUpdateRound} className="p-4 bg-gray-50">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
@@ -638,7 +649,7 @@ const InterviewDetailPage = ({
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button
-                                onClick={() => onDeleteRound(interview.id, round.id)}
+                                onClick={() => onDeleteRound(getInterviewId(interview), getRoundId(round))}
                                 className="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded"
                                 title="Delete"
                               >
