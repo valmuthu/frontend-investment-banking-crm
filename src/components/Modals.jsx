@@ -485,7 +485,6 @@ export const InterviewModal = ({
     }
   };
 
-  // Auto-match referral contact by firm
   const getMatchingContact = () => {
     return contacts.find(contact => 
       contact.firm.toLowerCase() === formData.firm.toLowerCase()
@@ -537,29 +536,27 @@ export const InterviewModal = ({
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">Group</label>
-             <select
             <input
               type="text"
               value={formData.group}
-             onChange={(e) =>
-        setFormData({ ...formData, stage: e.target.value || null })
-      }
-      className={`form-select ${!formData.stage ? "text-gray-500" : "text-black"}`}
-    >
-      {/* Grey placeholder when no value is set */}
-      {!formData.stage && (
-        <option value="" disabled>
-          Select Stage
-        </option>
-      )}
-      
-      {/* Blank option for clearing stage later */}
-      <option value=""></option>
-
-      {interviewStages.map((stage) => (
-        <option key={stage} value={stage}>
-          {stage}
-        </option>
+              onChange={(e) => setFormData({ ...formData, group: e.target.value })}
+              placeholder="e.g., TMT, Healthcare, FIG"
+              className="form-input"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Stage</label>
+              <select
+                value={formData.stage}
+                onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
+                className="form-select"
+              >
+                <option value="">Select Stage</option>
+                {interviewStages.map((stage) => (
+                  <option key={stage} value={stage}>
+                    {stage}
+                  </option>
                 ))}
               </select>
             </div>
@@ -569,7 +566,6 @@ export const InterviewModal = ({
                 type="date"
                 value={formData.stageDate}
                 onChange={(e) => setFormData({ ...formData, stageDate: e.target.value })}
-                placeholder="mm/dd/yyyy"
                 className="form-input"
               />
             </div>
@@ -594,7 +590,6 @@ export const InterviewModal = ({
                 type="date"
                 value={formData.nextStepsDate}
                 onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
-                placeholder="mm/dd/yyyy"
                 className="form-input"
               />
             </div>
@@ -602,7 +597,7 @@ export const InterviewModal = ({
           
           {!matchingContact && (
             <div>
-              <label className="block text-sm font-medium mb-2">Referral Contact (Manual Selection)</label>
+              <label className="block text-sm font-medium mb-2">Referral Contact</label>
               <select
                 value={formData.referralContactId}
                 onChange={(e) => setFormData({ ...formData, referralContactId: e.target.value ? parseInt(e.target.value) : '' })}
@@ -610,7 +605,9 @@ export const InterviewModal = ({
               >
                 <option value="">No referral</option>
                 {contacts.map((contact) => (
-                  <option key={contact.id || contact._id} value={contact.id || contact._id}>{contact.name} - {contact.firm}</option>
+                  <option key={contact.id || contact._id} value={contact.id || contact._id}>
+                    {contact.name} - {contact.firm}
+                  </option>
                 ))}
               </select>
             </div>
@@ -686,7 +683,6 @@ export const EditInterviewModal = ({
     }
   };
 
-  // Auto-match referral contact by firm
   const getMatchingContact = () => {
     return contacts.find(contact => 
       contact.firm.toLowerCase() === formData.firm.toLowerCase()
@@ -766,7 +762,6 @@ export const EditInterviewModal = ({
                 type="date"
                 value={formData.stageDate}
                 onChange={(e) => setFormData({ ...formData, stageDate: e.target.value })}
-                placeholder="mm/dd/yyyy"
                 className="form-input"
               />
             </div>
@@ -791,7 +786,6 @@ export const EditInterviewModal = ({
                 type="date"
                 value={formData.nextStepsDate}
                 onChange={(e) => setFormData({ ...formData, nextStepsDate: e.target.value })}
-                placeholder="mm/dd/yyyy"
                 className="form-input"
               />
             </div>
@@ -799,7 +793,7 @@ export const EditInterviewModal = ({
           
           {!matchingContact && (
             <div>
-              <label className="block text-sm font-medium mb-2">Referral Contact (Manual Selection)</label>
+              <label className="block text-sm font-medium mb-2">Referral Contact</label>
               <select
                 value={formData.referralContactId}
                 onChange={(e) => setFormData({ ...formData, referralContactId: e.target.value ? parseInt(e.target.value) : '' })}
@@ -807,7 +801,9 @@ export const EditInterviewModal = ({
               >
                 <option value="">No referral</option>
                 {contacts.map(contact => (
-                  <option key={contact.id || contact._id} value={contact.id || contact._id}>{contact.name} - {contact.firm}</option>
+                  <option key={contact.id || contact._id} value={contact.id || contact._id}>
+                    {contact.name} - {contact.firm}
+                  </option>
                 ))}
               </select>
             </div>
@@ -891,7 +887,6 @@ export const CallModal = ({ isOpen, onClose, onSubmit }) => {
     </div>
   );
 };
-
 // InterviewHistoryModal
 export const InterviewHistoryModal = ({
   isOpen,
