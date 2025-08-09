@@ -540,22 +540,25 @@ export const InterviewModal = ({
             <input
               type="text"
               value={formData.group}
-              onChange={(e) => setFormData({ ...formData, group: e.target.value })}
-              placeholder="e.g., TMT, Healthcare, FIG"
-              className="form-input"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Stage</label>
-              <select
-                value={formData.stage}
-                onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
-                className="form-select"
-              >
-                <option value="">Select Stage</option>
-                {interviewStages.map(stage => (
-                  <option key={stage} value={stage}>{stage}</option>
+             onChange={(e) =>
+        setFormData({ ...formData, stage: e.target.value || null })
+      }
+      className={`form-select ${!formData.stage ? "text-gray-500" : "text-black"}`}
+    >
+      {/* Grey placeholder when no value is set */}
+      {!formData.stage && (
+        <option value="" disabled>
+          Select Stage
+        </option>
+      )}
+      
+      {/* Blank option for clearing stage later */}
+      <option value=""></option>
+
+      {interviewStages.map((stage) => (
+        <option key={stage} value={stage}>
+          {stage}
+        </option>
                 ))}
               </select>
             </div>
