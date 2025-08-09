@@ -162,6 +162,9 @@ export default function App() {
   // Helper function to get contact ID (handles both id and _id)
   const getContactId = (contact) => contact._id || contact.id;
 
+  // Helper function to get interview ID (handles both id and _id)
+  const getInterviewId = (interview) => interview._id || interview.id;
+
   // CRUD functions with API integration
   const addContact = async (contactData) => {
     try {
@@ -239,74 +242,71 @@ export default function App() {
     }
   };
 
-  // Helper function to get interview ID (handles both id and _id)
-  const getInterviewId = (interview) => interview._id || interview.id;
-
   // Interview CRUD functions with API
- const addInterview = async (interviewData) => {
-  try {
-    setLoading(true);
-    
-    // Auto-match referral contact if not set
-    if (!interviewData.referralContactId && interviewData.firm) {
-      const matchingContact = contacts.find(contact => 
-        contact.firm.toLowerCase() === interviewData.firm.toLowerCase()
-      );
-      if (matchingContact) {
-        interviewData.referralContactId = getContactId(matchingContact);
+  const addInterview = async (interviewData) => {
+    try {
+      setLoading(true);
+      
+      // Auto-match referral contact if not set
+      if (!interviewData.referralContactId && interviewData.firm) {
+        const matchingContact = contacts.find(contact => 
+          contact.firm.toLowerCase() === interviewData.firm.toLowerCase()
+        );
+        if (matchingContact) {
+          interviewData.referralContactId = getContactId(matchingContact);
+        }
       }
-    }
 
-    // If still empty string or undefined, set to null
-    if (!interviewData.referralContactId) {
-      interviewData.referralContactId = null;
+      // If still empty string or undefined, set to null
+      if (!interviewData.referralContactId) {
+        interviewData.referralContactId = null;
+      }
+      
+      const response = await apiService.createInterview(interviewData);
+      const newInterview = response.interview;
+      setInterviews(prev => [newInterview, ...prev]);
+      return newInterview;
+    } catch (error) {
+      console.error('Error adding interview:', error);
+      setError('Failed to add interview. Please try again.');
+      throw error;
+    } finally {
+      setLoading(false);
     }
-    
-    const response = await apiService.createInterview(interviewData);
-    const newInterview = response.interview;
-    setInterviews(prev => [newInterview, ...prev]);
-    return newInterview;
-  } catch (error) {
-    console.error('Error adding interview:', error);
-    setError('Failed to add interview. Please try again.');
-    throw error;
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const updateInterview = async (updatedInterview) => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    // Convert empty string to null for referralContactId
-    if (!updatedInterview.referralContactId) {
-      updatedInterview.referralContactId = null;
-    }
-    
-    const interviewId = getInterviewId(updatedInterview);
-    const response = await apiService.updateInterview(interviewId, updatedInterview);
-    const updated = response.interview;
-    
-    setInterviews(prev => prev.map(interview => {
-      const currentInterviewId = getInterviewId(interview);
-      const updatedInterviewId = getInterviewId(updated);
-      
-      if (currentInterviewId === updatedInterviewId) {
-        return updated;
+      // Convert empty string to null for referralContactId
+      if (!updatedInterview.referralContactId) {
+        updatedInterview.referralContactId = null;
       }
-      return interview;
-    }));
-    
-    return updated;
-  } catch (error) {
-    console.error('Error updating interview:', error);
-    setError('Failed to update interview. Please try again.');
-    throw error;
-  } finally {
-    setLoading(false);
-  }
-};
+      
+      const interviewId = getInterviewId(updatedInterview);
+      const response = await apiService.updateInterview(interviewId, updatedInterview);
+      const updated = response.interview;
+      
+      setInterviews(prev => prev.map(interview => {
+        const currentInterviewId = getInterviewId(interview);
+        const updatedInterviewId = getInterviewId(updated);
+        
+        if (currentInterviewId === updatedInterviewId) {
+          return updated;
+        }
+        return interview;
+      }));
+      
+      return updated;
+    } catch (error) {
+      console.error('Error updating interview:', error);
+      setError('Failed to update interview. Please try again.');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const deleteInterview = async (id) => {
     if (window.confirm('Are you sure you want to delete this interview?')) {
@@ -540,12 +540,13 @@ export default function App() {
 
   // Navigation functions
   const showContactDetail = (contactId) => {
+    console.log('🔍 Showing contact detail for ID:', contactId);
     setSelectedContactId(contactId);
     setCurrentView('contact-detail');
   };
 
   const showInterviewDetail = (interviewId) => {
-    // When clicking on an interview from Recent interviews, open the specific detail page
+    console.log('🔍 Showing interview detail for ID:', interviewId);
     setSelectedInterviewId(interviewId);
     setCurrentView('interview-detail');
   };
@@ -709,6 +710,8 @@ export default function App() {
   }
 
   if (currentView === 'interview-detail' && selectedInterview) {
+    console.log('🎯 Rendering interview detail page for:', selectedInterview);
+    
     return (
       <div className="flex bg-gray-50 min-h-screen">
         <Navigation 
