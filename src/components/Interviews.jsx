@@ -33,6 +33,12 @@ const Interviews = ({
     nextSteps: []
   });
 
+  // Helper function to get interview ID (handles both id and _id)
+  const getInterviewId = (interview) => interview._id || interview.id;
+
+  // Helper function to get contact ID (handles both id and _id)
+  const getContactId = (contact) => contact._id || contact.id;
+
   // Sorting options
   const sortOptions = [
     { field: 'firm', label: 'Firm' },
@@ -256,15 +262,19 @@ const Interviews = ({
   );
 
   const InterviewCard = ({ interview }) => {
+    const interviewId = getInterviewId(interview);
     const referralContact = interview.referralContactId 
-      ? contacts.find(c => c.id === interview.referralContactId)
+      ? contacts.find(c => getContactId(c) === interview.referralContactId)
       : null;
     
     const firmLogo = getFirmLogo(interview.firm);
 
     return (
       <div className="card-interactive"
-           onClick={() => onShowInterviewDetail(interview.id)}>
+           onClick={() => {
+             console.log('Interview card clicked, ID:', interviewId);
+             onShowInterviewDetail(interviewId);
+           }}>
         <div className="section-padding">
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center flex-1 min-w-0 mr-3">
@@ -303,7 +313,7 @@ const Interviews = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDelete(interview.id);
+                  onDelete(interviewId);
                 }}
                 className="action-button delete"
                 title="Delete"
@@ -330,7 +340,7 @@ const Interviews = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onShowContactDetail(referralContact.id);
+                    onShowContactDetail(getContactId(referralContact));
                   }}
                   className="text-success-600 hover:text-success-800 hover:underline text-xs font-medium truncate"
                 >
@@ -391,14 +401,18 @@ const Interviews = ({
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filteredAndSortedInterviews.map(interview => {
+              const interviewId = getInterviewId(interview);
               const referralContact = interview.referralContactId 
-                ? contacts.find(c => c.id === interview.referralContactId)
+                ? contacts.find(c => getContactId(c) === interview.referralContactId)
                 : null;
               const firmLogo = getFirmLogo(interview.firm);
 
               return (
-                <tr key={interview.id} className="hover:bg-primary-50 transition-colors cursor-pointer"
-                    onClick={() => onShowInterviewDetail(interview.id)}>
+                <tr key={interviewId} className="hover:bg-primary-50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      console.log('Interview row clicked, ID:', interviewId);
+                      onShowInterviewDetail(interviewId);
+                    }}>
                   <td>
                     <div className="flex items-center">
                       <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-3 shadow-sm overflow-hidden border border-gray-200">
@@ -426,7 +440,7 @@ const Interviews = ({
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onShowContactDetail(referralContact.id);
+                                  onShowContactDetail(getContactId(referralContact));
                                 }}
                                 className="hover:underline font-medium truncate"
                               >
@@ -484,7 +498,7 @@ const Interviews = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onDelete(interview.id);
+                          onDelete(interviewId);
                         }}
                         className="action-button delete"
                         title="Delete"
@@ -628,7 +642,7 @@ const Interviews = ({
         {viewMode === 'cards' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAndSortedInterviews.map(interview => (
-              <InterviewCard key={interview.id} interview={interview} />
+              <InterviewCard key={getInterviewId(interview)} interview={interview} />
             ))}
           </div>
         ) : (
