@@ -750,7 +750,7 @@ export const EditInterviewModal = ({
                 onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
                 className="form-select"
               >
-                <option value="">''</option>
+                <option value=""> </option>
                 {interviewStages.map(stage => (
                   <option key={stage} value={stage}>{stage}</option>
                 ))}
