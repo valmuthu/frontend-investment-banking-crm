@@ -144,7 +144,7 @@ export const ContactModal = ({
                 onChange={(e) => setFormData({ ...formData, networkingStatus: e.target.value })}
                 className="form-select"
               >
-                <option value="">Select Networking Status</option>
+                <option value=""> </option>
                 {networkingStatuses.map((status) => (
                   <option key={status} value={status}>{status}</option>
                 ))}
@@ -169,7 +169,7 @@ export const ContactModal = ({
                 onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
                 className="form-select"
               >
-                <option value="">Select Next Steps</option>
+                <option value=""> </option>
                 {nextStepsOptions.map((step) => (
                   <option key={step} value={step}>{step}</option>
                 ))}
@@ -368,7 +368,7 @@ export const EditContactModal = ({
                 onChange={(e) => setFormData({ ...formData, networkingStatus: e.target.value })}
                 className="form-select"
               >
-                <option value="">Select Networking Status</option>
+                <option value=""> </option>
                 {networkingStatuses.map(status => (
                   <option key={status} value={status}>{status}</option>
                 ))}
@@ -393,7 +393,7 @@ export const EditContactModal = ({
                 onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
                 className="form-select"
               >
-                <option value="">Select Next Steps</option>
+                <option value=""> </option>
                 {nextStepsOptions.map(step => (
                   <option key={step} value={step}>{step}</option>
                 ))}
@@ -578,7 +578,7 @@ export const InterviewModal = ({
                 onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
                 className="form-select"
               >
-                <option value="">Select Next Steps</option>
+                <option value=""> </option>
                 {interviewNextSteps.map(step => (
                   <option key={step} value={step}>{step}</option>
                 ))}
@@ -750,7 +750,7 @@ export const EditInterviewModal = ({
                 onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
                 className="form-select"
               >
-                <option value="">Select Stage</option>
+                <option value=""> </option>
                 {interviewStages.map(stage => (
                   <option key={stage} value={stage}>{stage}</option>
                 ))}
@@ -774,7 +774,7 @@ export const EditInterviewModal = ({
                 onChange={(e) => setFormData({ ...formData, nextSteps: e.target.value })}
                 className="form-select"
               >
-                <option value="">Select Next Steps</option>
+                <option value=""> </option>
                 {interviewNextSteps.map(step => (
                   <option key={step} value={step}>{step}</option>
                 ))}
