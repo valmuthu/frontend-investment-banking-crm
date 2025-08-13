@@ -30,10 +30,14 @@ const ContactDetailPage = ({
 
   const interactionTypes = ['Call', 'Email', 'Meeting', 'Note'];
 
+  // Get the contact ID properly
+  const getContactId = (contact) => contact._id || contact.id;
+
   const handleAddInteraction = (e) => {
     e.preventDefault();
     if (newInteraction.title && newInteraction.notes) {
-      onAddInteraction(contact.id, newInteraction);
+      const contactId = getContactId(contact);
+      onAddInteraction(contactId, newInteraction);
       setNewInteraction({
         type: 'Call',
         title: '',
@@ -47,7 +51,9 @@ const ContactDetailPage = ({
   const handleUpdateInteraction = (e) => {
     e.preventDefault();
     if (editingInteraction.title && editingInteraction.notes) {
-      onUpdateInteraction(contact.id, editingInteraction.id, editingInteraction);
+      const contactId = getContactId(contact);
+      const interactionId = editingInteraction._id || editingInteraction.id;
+      onUpdateInteraction(contactId, interactionId, editingInteraction);
       setEditingInteraction(null);
     }
   };
@@ -58,6 +64,7 @@ const ContactDetailPage = ({
   };
 
   const getStatusColor = (status) => {
+    if (!status) return 'bg-gray-50 text-gray-500 border-gray-200';
     switch (status) {
       case 'Not Yet Contacted': return 'bg-gray-50 text-gray-700 border-gray-200';
       case 'Initial Outreach Sent': return 'bg-blue-50 text-blue-700 border-blue-200';
@@ -202,16 +209,13 @@ const ContactDetailPage = ({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Group</label>
-                    <select
-                      value={editedContact.group}
+                    <input
+                      type="text"
+                      value={editedContact.group || ''}
                       onChange={(e) => setEditedContact({...editedContact, group: e.target.value})}
+                      placeholder="e.g., TMT, Healthcare, FIG"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select Group</option>
-                      {groups.map(group => (
-                        <option key={group} value={group}>{group}</option>
-                      ))}
-                    </select>
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
@@ -275,12 +279,12 @@ const ContactDetailPage = ({
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Networking Status</label>
                     <select
-                      value={editedContact.networkingStatus}
+                      value={editedContact.networkingStatus || ''}
                       onChange={(e) => setEditedContact({...editedContact, networkingStatus: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       {networkingStatuses.map(status => (
-                        <option key={status} value={status}>{status}</option>
+                        <option key={status} value={status}>{status || '(None)'}</option>
                       ))}
                     </select>
                   </div>
@@ -296,13 +300,12 @@ const ContactDetailPage = ({
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Next Steps</label>
                     <select
-                      value={editedContact.nextSteps}
+                      value={editedContact.nextSteps || ''}
                       onChange={(e) => setEditedContact({...editedContact, nextSteps: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select Next Steps</option>
                       {nextStepsOptions.map(step => (
-                        <option key={step} value={step}>{step}</option>
+                        <option key={step} value={step}>{step || '(None)'}</option>
                       ))}
                     </select>
                   </div>
@@ -338,15 +341,19 @@ const ContactDetailPage = ({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Networking Status:</span>
-                    <div className="mt-2">
-                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStatusColor(contact.networkingStatus)}`}>
-                        {contact.networkingStatus}
-                      </span>
-                      <span className="ml-3 text-sm text-gray-500">({contact.networkingDate})</span>
+                  {contact.networkingStatus && (
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">Networking Status:</span>
+                      <div className="mt-2">
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStatusColor(contact.networkingStatus)}`}>
+                          {contact.networkingStatus}
+                        </span>
+                        {contact.networkingDate && (
+                          <span className="ml-3 text-sm text-gray-500">({contact.networkingDate})</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
                   {contact.nextSteps && (
                     <div>
@@ -481,111 +488,118 @@ const ContactDetailPage = ({
               {/* Interactions List */}
               {contact.interactions && contact.interactions.length > 0 ? (
                 <div className="space-y-4">
-                  {contact.interactions.map(interaction => (
-                    <div key={interaction.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                      {editingInteraction && editingInteraction.id === interaction.id ? (
-                        <form onSubmit={handleUpdateInteraction} className="p-4 bg-gray-50">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                              <select
-                                value={editingInteraction.type}
-                                onChange={(e) => setEditingInteraction({...editingInteraction, type: e.target.value})}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              >
-                                {interactionTypes.map(type => (
-                                  <option key={type} value={type}>{type}</option>
-                                ))}
-                              </select>
+                  {contact.interactions.map(interaction => {
+                    const interactionId = interaction._id || interaction.id;
+                    return (
+                      <div key={interactionId} className="border border-gray-200 rounded-lg overflow-hidden">
+                        {editingInteraction && (editingInteraction._id === interactionId || editingInteraction.id === interactionId) ? (
+                          <form onSubmit={handleUpdateInteraction} className="p-4 bg-gray-50">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                                <select
+                                  value={editingInteraction.type}
+                                  onChange={(e) => setEditingInteraction({...editingInteraction, type: e.target.value})}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                  {interactionTypes.map(type => (
+                                    <option key={type} value={type}>{type}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                                <input
+                                  type="date"
+                                  required
+                                  value={editingInteraction.date}
+                                  onChange={(e) => setEditingInteraction({...editingInteraction, date: e.target.value})}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
                             </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                            <div className="mb-4">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
                               <input
-                                type="date"
+                                type="text"
                                 required
-                                value={editingInteraction.date}
-                                onChange={(e) => setEditingInteraction({...editingInteraction, date: e.target.value})}
+                                value={editingInteraction.title}
+                                onChange={(e) => setEditingInteraction({...editingInteraction, title: e.target.value})}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                               />
                             </div>
-                          </div>
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                            <input
-                              type="text"
-                              required
-                              value={editingInteraction.title}
-                              onChange={(e) => setEditingInteraction({...editingInteraction, title: e.target.value})}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                            <textarea
-                              required
-                              rows="3"
-                              value={editingInteraction.notes}
-                              onChange={(e) => setEditingInteraction({...editingInteraction, notes: e.target.value})}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                          <div className="flex justify-end space-x-3">
-                            <button
-                              type="button"
-                              onClick={() => setEditingInteraction(null)}
-                              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="submit"
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                              Save Changes
-                            </button>
-                          </div>
-                        </form>
-                      ) : (
-                        <div className="p-4 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start flex-1">
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-4 ${getInteractionColor(interaction.type)}`}>
-                                {getInteractionIcon(interaction.type)}
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center justify-between mb-2">
-                                  <h4 className="font-semibold text-gray-900">{interaction.title}</h4>
-                                  <span className="text-sm text-gray-500">{interaction.date}</span>
-                                </div>
-                                <div className="flex items-center mb-2">
-                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getInteractionColor(interaction.type)}`}>
-                                    {interaction.type}
-                                  </span>
-                                </div>
-                                <p className="text-gray-700 text-sm leading-relaxed">{interaction.notes}</p>
-                              </div>
+                            <div className="mb-4">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                              <textarea
+                                required
+                                rows="3"
+                                value={editingInteraction.notes}
+                                onChange={(e) => setEditingInteraction({...editingInteraction, notes: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
                             </div>
-                            <div className="flex items-center space-x-2 ml-4">
+                            <div className="flex justify-end space-x-3">
                               <button
-                                onClick={() => setEditingInteraction(interaction)}
-                                className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded"
-                                title="Edit"
+                                type="button"
+                                onClick={() => setEditingInteraction(null)}
+                                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                               >
-                                <Edit2 className="w-4 h-4" />
+                                Cancel
                               </button>
                               <button
-                                onClick={() => onDeleteInteraction(contact.id, interaction.id)}
-                                className="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded"
-                                title="Delete"
+                                type="submit"
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                               >
-                                <X className="w-4 h-4" />
+                                Save Changes
                               </button>
                             </div>
+                          </form>
+                        ) : (
+                          <div className="p-4 hover:bg-gray-50 transition-colors">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start flex-1">
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-4 ${getInteractionColor(interaction.type)}`}>
+                                  {getInteractionIcon(interaction.type)}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h4 className="font-semibold text-gray-900">{interaction.title}</h4>
+                                    <span className="text-sm text-gray-500">{interaction.date}</span>
+                                  </div>
+                                  <div className="flex items-center mb-2">
+                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getInteractionColor(interaction.type)}`}>
+                                      {interaction.type}
+                                    </span>
+                                  </div>
+                                  <p className="text-gray-700 text-sm leading-relaxed">{interaction.notes}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2 ml-4">
+                                <button
+                                  onClick={() => setEditingInteraction(interaction)}
+                                  className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded"
+                                  title="Edit"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    const contactId = getContactId(contact);
+                                    const interactionId = interaction._id || interaction.id;
+                                    onDeleteInteraction(contactId, interactionId);
+                                  }}
+                                  className="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded"
+                                  title="Delete"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-12">
