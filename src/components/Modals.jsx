@@ -552,7 +552,7 @@ export const InterviewModal = ({
                 onChange={(e) => setFormData({ ...formData, stage: e.target.value })}
                 className="form-select"
               >
-                <option value="">Select Stage</option>
+                <option value=""> </option>
                 {interviewStages.map((stage) => (
                   <option key={stage} value={stage}>
                     {stage}
