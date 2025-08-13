@@ -49,6 +49,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('landing');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [currentView, setCurrentView] = useState('main');
+  const [previousViewMode, setPreviousViewMode] = useState('cards'); // Track view mode for contacts/interviews
   
   // Modal states
   const [showContactModal, setShowContactModal] = useState(false);
@@ -71,6 +72,7 @@ export default function App() {
 
   // Constants - Define these as static values to avoid re-declaration
   const networkingStatuses = [
+    '', // Blank option
     'Not Yet Contacted',
     'Initial Outreach Sent',
     'Intro Call Scheduled',
@@ -81,6 +83,7 @@ export default function App() {
   ];
 
   const nextStepsOptions = [
+    '', // Blank option
     'Send Initial Outreach',
     'Schedule Intro Call',
     'Prepare for Upcoming Call',
@@ -91,6 +94,7 @@ export default function App() {
   ];
 
   const interviewStages = [
+    '', // Blank option
     'Not Yet Applied',
     'Applied',
     'Phone Screen',
@@ -105,6 +109,7 @@ export default function App() {
   ];
 
   const interviewNextSteps = [
+    '', // Blank option
     'Submit Application',
     'Follow-Up on Application',
     'Prepare for Upcoming Interview',
@@ -169,7 +174,13 @@ export default function App() {
   const addContact = async (contactData) => {
     try {
       setLoading(true);
-      const response = await apiService.createContact(contactData);
+      // Convert empty strings to null for backend
+      const cleanedData = {
+        ...contactData,
+        networkingStatus: contactData.networkingStatus || null,
+        nextSteps: contactData.nextSteps || null
+      };
+      const response = await apiService.createContact(cleanedData);
       const newContact = response.contact;
       setContacts(prev => [newContact, ...prev]);
       return newContact;
@@ -191,7 +202,14 @@ export default function App() {
       const contactId = getContactId(updatedContact);
       console.log('📋 Using contact ID:', contactId);
       
-      const response = await apiService.updateContact(contactId, updatedContact);
+      // Convert empty strings to null for backend
+      const cleanedData = {
+        ...updatedContact,
+        networkingStatus: updatedContact.networkingStatus || null,
+        nextSteps: updatedContact.nextSteps || null
+      };
+      
+      const response = await apiService.updateContact(contactId, cleanedData);
       const updated = response.contact;
       console.log('✅ Updated contact received:', updated);
       
@@ -247,22 +265,25 @@ export default function App() {
     try {
       setLoading(true);
       
+      // Convert empty strings to null for backend
+      const cleanedData = {
+        ...interviewData,
+        stage: interviewData.stage || null,
+        nextSteps: interviewData.nextSteps || null,
+        referralContactId: interviewData.referralContactId || null
+      };
+      
       // Auto-match referral contact if not set
-      if (!interviewData.referralContactId && interviewData.firm) {
+      if (!cleanedData.referralContactId && cleanedData.firm) {
         const matchingContact = contacts.find(contact => 
-          contact.firm.toLowerCase() === interviewData.firm.toLowerCase()
+          contact.firm.toLowerCase() === cleanedData.firm.toLowerCase() && contact.referred
         );
         if (matchingContact) {
-          interviewData.referralContactId = getContactId(matchingContact);
+          cleanedData.referralContactId = getContactId(matchingContact);
         }
       }
-
-      // If still empty string or undefined, set to null
-      if (!interviewData.referralContactId) {
-        interviewData.referralContactId = null;
-      }
       
-      const response = await apiService.createInterview(interviewData);
+      const response = await apiService.createInterview(cleanedData);
       const newInterview = response.interview;
       setInterviews(prev => [newInterview, ...prev]);
       return newInterview;
@@ -279,13 +300,16 @@ export default function App() {
     try {
       setLoading(true);
 
-      // Convert empty string to null for referralContactId
-      if (!updatedInterview.referralContactId) {
-        updatedInterview.referralContactId = null;
-      }
+      // Convert empty strings to null for backend
+      const cleanedData = {
+        ...updatedInterview,
+        stage: updatedInterview.stage || null,
+        nextSteps: updatedInterview.nextSteps || null,
+        referralContactId: updatedInterview.referralContactId || null
+      };
       
-      const interviewId = getInterviewId(updatedInterview);
-      const response = await apiService.updateInterview(interviewId, updatedInterview);
+      const interviewId = getInterviewId(cleanedData);
+      const response = await apiService.updateInterview(interviewId, cleanedData);
       const updated = response.interview;
       
       setInterviews(prev => prev.map(interview => {
@@ -481,9 +505,19 @@ export default function App() {
     try {
       setLoading(true);
       
-      // For file uploads, you'll need to implement FormData handling
-      // This is a simplified version
-      const response = await apiService.createDocument(documentData);
+      // Create FormData for file upload
+      const formData = new FormData();
+      if (documentData.file) {
+        formData.append('file', documentData.file);
+      }
+      formData.append('name', documentData.name);
+      formData.append('type', documentData.type);
+      formData.append('notes', documentData.notes || '');
+      formData.append('associatedContacts', JSON.stringify(documentData.associatedContacts || []));
+      formData.append('associatedFirms', JSON.stringify(documentData.associatedFirms || []));
+      formData.append('tags', JSON.stringify(documentData.tags || []));
+      
+      const response = await apiService.uploadDocument(formData);
       const newDocument = response.document;
       setDocuments(prev => [newDocument, ...prev]);
       
@@ -539,15 +573,17 @@ export default function App() {
   };
 
   // Navigation functions
-  const showContactDetail = (contactId) => {
+  const showContactDetail = (contactId, viewMode) => {
     console.log('🔍 Showing contact detail for ID:', contactId);
     setSelectedContactId(contactId);
+    setPreviousViewMode(viewMode || 'cards'); // Save the current view mode
     setCurrentView('contact-detail');
   };
 
-  const showInterviewDetail = (interviewId) => {
+  const showInterviewDetail = (interviewId, viewMode) => {
     console.log('🔍 Showing interview detail for ID:', interviewId);
     setSelectedInterviewId(interviewId);
+    setPreviousViewMode(viewMode || 'cards'); // Save the current view mode
     setCurrentView('interview-detail');
   };
 
@@ -712,6 +748,11 @@ export default function App() {
   if (currentView === 'interview-detail' && selectedInterview) {
     console.log('🎯 Rendering interview detail page for:', selectedInterview);
     
+    // Check if interview should be marked as referred based on matching contact
+    const referralContact = selectedInterview.referralContactId
+      ? contacts.find(c => getContactId(c) === selectedInterview.referralContactId)
+      : contacts.find(c => c.firm.toLowerCase() === selectedInterview.firm.toLowerCase() && c.referred);
+    
     return (
       <div className="flex bg-gray-50 min-h-screen">
         <Navigation 
@@ -733,10 +774,11 @@ export default function App() {
             onAddRound={addInterviewRound}
             onUpdateRound={updateInterviewRound}
             onDeleteRound={deleteInterviewRound}
-            onShowContactDetail={showContactDetail}
+            onShowContactDetail={(contactId) => showContactDetail(contactId, previousViewMode)}
             interviewStages={interviewStages}
             interviewNextSteps={interviewNextSteps}
             groups={groups}
+            hasReferral={!!referralContact}
           />
           
           <EditInterviewModal 
@@ -797,8 +839,8 @@ export default function App() {
             <Dashboard 
               contacts={contacts}
               interviews={interviews}
-              onShowContactDetail={showContactDetail}
-              onShowInterviewDetail={showInterviewDetail}
+              onShowContactDetail={(contactId) => showContactDetail(contactId, 'cards')}
+              onShowInterviewDetail={(interviewId) => showInterviewDetail(interviewId, 'cards')}
               setActiveTab={setActiveTab}
             />
           )}
@@ -813,6 +855,7 @@ export default function App() {
               onDelete={deleteContact}
               onAdd={() => setShowContactModal(true)}
               onShowContactDetail={showContactDetail}
+              previousViewMode={previousViewMode}
             />
           )}
           
@@ -826,8 +869,9 @@ export default function App() {
               onEdit={setEditingInterview}
               onDelete={deleteInterview}
               onAdd={() => setShowInterviewModal(true)}
-              onShowContactDetail={showContactDetail}
+              onShowContactDetail={(contactId) => showContactDetail(contactId, previousViewMode)}
               onShowInterviewDetail={showInterviewDetail}
+              previousViewMode={previousViewMode}
             />
           )}
 
