@@ -70,9 +70,9 @@ export default function App() {
   const [interviews, setInterviews] = useState([]);
   const [documents, setDocuments] = useState([]);
 
-  // Constants - Define these as static values to avoid re-declaration
+  // Constants - Include blank option at the start for dropdowns
   const networkingStatuses = [
-    '', // Blank option
+    '', // Blank option (default)
     'Not Yet Contacted',
     'Initial Outreach Sent',
     'Intro Call Scheduled',
@@ -83,7 +83,7 @@ export default function App() {
   ];
 
   const nextStepsOptions = [
-    '', // Blank option
+    '', // Blank option (default)
     'Send Initial Outreach',
     'Schedule Intro Call',
     'Prepare for Upcoming Call',
@@ -94,7 +94,7 @@ export default function App() {
   ];
 
   const interviewStages = [
-    '', // Blank option
+    '', // Blank option (default)
     'Not Yet Applied',
     'Applied',
     'Phone Screen',
@@ -109,7 +109,7 @@ export default function App() {
   ];
 
   const interviewNextSteps = [
-    '', // Blank option
+    '', // Blank option (default)
     'Submit Application',
     'Follow-Up on Application',
     'Prepare for Upcoming Interview',
@@ -213,24 +213,16 @@ export default function App() {
       const updated = response.contact;
       console.log('✅ Updated contact received:', updated);
       
-      // Update the contacts state - be more specific with ID matching
-      setContacts(prev => {
-        const newContacts = prev.map(contact => {
-          const currentContactId = getContactId(contact);
-          const updatedContactId = getContactId(updated);
-          
-          console.log('🔍 Comparing:', { currentContactId, updatedContactId });
-          
-          if (currentContactId === updatedContactId) {
-            console.log('✅ Match found, updating contact');
-            return updated;
-          }
-          return contact;
-        });
+      // Update the contacts state
+      setContacts(prev => prev.map(contact => {
+        const currentContactId = getContactId(contact);
+        const updatedContactId = getContactId(updated);
         
-        console.log('📊 Updated contacts array length:', newContacts.length);
-        return newContacts;
-      });
+        if (currentContactId === updatedContactId) {
+          return updated;
+        }
+        return contact;
+      }));
       
       return updated;
     } catch (error) {
@@ -265,12 +257,12 @@ export default function App() {
     try {
       setLoading(true);
       
-      // Convert empty strings to null for backend
+      // Convert empty strings to null for backend and ensure referralContactId is a string
       const cleanedData = {
         ...interviewData,
         stage: interviewData.stage || null,
         nextSteps: interviewData.nextSteps || null,
-        referralContactId: interviewData.referralContactId || null
+        referralContactId: interviewData.referralContactId ? String(interviewData.referralContactId) : null
       };
       
       // Auto-match referral contact if not set
@@ -279,7 +271,7 @@ export default function App() {
           contact.firm.toLowerCase() === cleanedData.firm.toLowerCase() && contact.referred
         );
         if (matchingContact) {
-          cleanedData.referralContactId = getContactId(matchingContact);
+          cleanedData.referralContactId = String(getContactId(matchingContact));
         }
       }
       
@@ -300,12 +292,12 @@ export default function App() {
     try {
       setLoading(true);
 
-      // Convert empty strings to null for backend
+      // Convert empty strings to null for backend and ensure referralContactId is a string
       const cleanedData = {
         ...updatedInterview,
         stage: updatedInterview.stage || null,
         nextSteps: updatedInterview.nextSteps || null,
-        referralContactId: updatedInterview.referralContactId || null
+        referralContactId: updatedInterview.referralContactId ? String(updatedInterview.referralContactId) : null
       };
       
       const interviewId = getInterviewId(cleanedData);
@@ -574,16 +566,16 @@ export default function App() {
 
   // Navigation functions
   const showContactDetail = (contactId, viewMode) => {
-    console.log('🔍 Showing contact detail for ID:', contactId);
+    console.log('🔍 Showing contact detail for ID:', contactId, 'View mode:', viewMode);
     setSelectedContactId(contactId);
-    setPreviousViewMode(viewMode || 'cards'); // Save the current view mode
+    setPreviousViewMode(viewMode || previousViewMode || 'cards'); // Maintain view mode
     setCurrentView('contact-detail');
   };
 
   const showInterviewDetail = (interviewId, viewMode) => {
-    console.log('🔍 Showing interview detail for ID:', interviewId);
+    console.log('🔍 Showing interview detail for ID:', interviewId, 'View mode:', viewMode);
     setSelectedInterviewId(interviewId);
-    setPreviousViewMode(viewMode || 'cards'); // Save the current view mode
+    setPreviousViewMode(viewMode || previousViewMode || 'cards'); // Maintain view mode
     setCurrentView('interview-detail');
   };
 
@@ -839,8 +831,8 @@ export default function App() {
             <Dashboard 
               contacts={contacts}
               interviews={interviews}
-              onShowContactDetail={(contactId) => showContactDetail(contactId, 'cards')}
-              onShowInterviewDetail={(interviewId) => showInterviewDetail(interviewId, 'cards')}
+              onShowContactDetail={(contactId) => showContactDetail(contactId, previousViewMode || 'cards')}
+              onShowInterviewDetail={(interviewId) => showInterviewDetail(interviewId, previousViewMode || 'cards')}
               setActiveTab={setActiveTab}
             />
           )}
