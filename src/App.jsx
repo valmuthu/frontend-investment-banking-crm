@@ -444,23 +444,33 @@ export default function App() {
 
   const updateInterviewRound = async (interviewId, roundId, updatedRound) => {
     try {
-      const response = await apiService.updateInterviewRound(interviewId, roundId, updatedRound);
-      const updated = response.round;
-
+      // Update locally since backend route doesn't exist
       setInterviews(prev => prev.map(interview => {
         const currentInterviewId = getInterviewId(interview);
         if (currentInterviewId === interviewId) {
           return {
             ...interview,
             rounds: interview.rounds.map(round =>
-              (round.id === roundId || round._id === roundId) ? updated : round
+              (round.id === roundId || round._id === roundId) ? { ...round, ...updatedRound } : round
             )
           };
         }
         return interview;
       }));
 
-      return updated;
+      // Try to update the entire interview instead
+      const interview = interviews.find(i => getInterviewId(i) === interviewId);
+      if (interview) {
+        const updatedInterview = {
+          ...interview,
+          rounds: interview.rounds.map(round =>
+            (round.id === roundId || round._id === roundId) ? { ...round, ...updatedRound } : round
+          )
+        };
+        await updateInterview(updatedInterview);
+      }
+
+      return updatedRound;
     } catch (error) {
       console.error('Error updating interview round:', error);
       setError('Failed to update interview round. Please try again.');
@@ -471,8 +481,7 @@ export default function App() {
   const deleteInterviewRound = async (interviewId, roundId) => {
     if (window.confirm('Are you sure you want to delete this interview round?')) {
       try {
-        await apiService.deleteInterviewRound(interviewId, roundId);
-        
+        // Update locally since backend route doesn't exist
         setInterviews(prev => prev.map(interview => {
           const currentInterviewId = getInterviewId(interview);
           if (currentInterviewId === interviewId) {
@@ -485,6 +494,18 @@ export default function App() {
           }
           return interview;
         }));
+        
+        // Try to update the entire interview instead
+        const interview = interviews.find(i => getInterviewId(i) === interviewId);
+        if (interview) {
+          const updatedInterview = {
+            ...interview,
+            rounds: interview.rounds.filter(round => 
+              round.id !== roundId && round._id !== roundId
+            )
+          };
+          await updateInterview(updatedInterview);
+        }
       } catch (error) {
         console.error('Error deleting interview round:', error);
         setError('Failed to delete interview round. Please try again.');
